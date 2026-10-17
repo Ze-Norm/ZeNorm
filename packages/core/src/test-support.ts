@@ -4,7 +4,8 @@
  * planning runner would.
  */
 import { execFileSync } from "node:child_process";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { copyFile, cp, mkdtemp, realpath, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -81,7 +82,8 @@ import {
   recordGrill,
 } from "./planning-runs.ts";
 import type { Tx } from "./planning-runs.ts";
-import { createProject, saveProjectSettings } from "./project.ts";
+import { saveProjectSettings, toProject } from "./project.ts";
+import type { ProjectRow } from "./project.ts";
 import { appendRunEvent } from "./run-events.ts";
 import { coreSeams, setSeams } from "./seams.ts";
 import { recordSpecReview, recordSpecs } from "./spec-runs.ts";
@@ -266,12 +268,47 @@ export interface TestContext {
   readonly user: UserActor;
 }
 
-export async function openTestContext(prefix: string): Promise<TestContext> {
-  const root = await mkdtemp(join(tmpdir(), prefix));
-  const opened = openDatabase(join(root, "zenorm.sqlite"));
+interface Templates {
+  /** A database file every migration has run on, closed. */
+  readonly database: string;
+  /** A repository on `main` with one commit holding a README. */
+  readonly repository: string;
+}
+
+let templates: Templates | undefined;
+
+/**
+ * The templates each test copies, made on first use in each test file's worker and removed when
+ * it exits: migrating a database and committing to a new repository were most of a case's time.
+ */
+function testTemplates(): Templates {
+  if (templates !== undefined) return templates;
+  const root = mkdtempSync(join(tmpdir(), "zenorm-core-templates-"));
+  process.on("exit", () => {
+    rmSync(root, { recursive: true, force: true });
+  });
+  const database = join(root, "zenorm.sqlite");
+  const opened = openDatabase(database);
   if (!opened.ok) throw new Error(opened.error.message);
   const migrated = migrateDatabase(opened.value, MIGRATIONS_FOLDER);
   if (!migrated.ok) throw new Error(migrated.error.message);
+  opened.value.$client.close();
+  const repository = join(root, "repository");
+  mkdirSync(repository);
+  git(repository, ["init", "-q", "-b", "main"]);
+  writeFileSync(join(repository, "README.md"), "# Repo\n");
+  git(repository, ["add", "README.md"]);
+  git(repository, ["commit", "-q", "-m", "init"]);
+  templates = { database, repository };
+  return templates;
+}
+
+export async function openTestContext(prefix: string): Promise<TestContext> {
+  const root = await mkdtemp(join(tmpdir(), prefix));
+  const file = join(root, "zenorm.sqlite");
+  await copyFile(testTemplates().database, file);
+  const opened = openDatabase(file);
+  if (!opened.ok) throw new Error(opened.error.message);
   return testContextOf(root, opened.value);
 }
 
@@ -317,20 +354,25 @@ function git(cwd: string, args: readonly string[]): void {
   });
 }
 
-/** A Project over a fresh repository on `main` with one commit holding a README. */
+/**
+ * A Project over a fresh repository on `main` with one commit holding a README (a copy of the
+ * template, so every project of a test file has the same commit), inserted as a fixture row:
+ * `createProject`'s git checks run in its own tests.
+ */
 export async function addProject(context: TestContext, name: string): Promise<Project> {
   const path = join(context.root, name);
-  await mkdir(path);
-  git(path, ["init", "-q", "-b", "main"]);
-  await writeFile(join(path, "README.md"), "# Repo\n");
-  git(path, ["add", "README.md"]);
-  git(path, ["commit", "-q", "-m", "init"]);
-  const created = await createProject(context.user, context.db, {
-    folderPath: path,
+  await cp(testTemplates().repository, path, { recursive: true });
+  const row: ProjectRow = {
+    id: uuidv7(),
+    folderPath: await realpath(path),
     baseBranch: "main",
-  });
-  if (!created.ok) throw new Error(created.error.code);
-  return created.value;
+    requiredChecks: [],
+    repairLimit: null,
+    fixCommands: [],
+    createdAt: new Date().toISOString(),
+  };
+  writeTestData(context, (tx) => tx.insert(projects).values(row).run());
+  return await toProject(context.db, row);
 }
 
 /** A new map in `project`; its first chart run is running. */

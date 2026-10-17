@@ -1111,7 +1111,7 @@ export async function verifyDelivery(input: {
 }
 
 /** How long a check killed with SIGTERM has before its process group gets SIGKILL. */
-const CHECK_KILL_GRACE_MS = 10_000;
+export const CHECK_KILL_GRACE_MS = 10_000;
 
 /**
  * Signals a process group, ignoring a group that has exited (ESRCH) or is exiting (EPERM, which
@@ -1143,6 +1143,7 @@ function runCheck(
     cwd: string;
     env: NodeJS.ProcessEnv;
     timeoutMs: number;
+    killGraceMs: number;
     signal: AbortSignal;
     logPath: string;
   },
@@ -1183,7 +1184,7 @@ function runCheck(
       killGroup(pid, "SIGTERM");
       killTimer = setTimeout(() => {
         killGroup(pid, "SIGKILL");
-      }, CHECK_KILL_GRACE_MS);
+      }, options.killGraceMs);
     };
     const timer = setTimeout(() => {
       timedOut = true;
@@ -1236,8 +1237,8 @@ export function checkLogPath(runDir: string, index: number): string {
  * without a shell, detached in its own process group, its whole output written to
  * `checkLogPath(runDir, index)`. `env` is the complete environment each
  * check receives: the server's environment plus the run identity (`gitIdentityEnv`). A check
- * past `timeoutMs`, or running when `signal` aborts, gets SIGTERM to its group and SIGKILL 10 s
- * later. Every check runs even after one fails; none starts after `signal` has aborted. A failing
+ * past `timeoutMs`, or running when `signal` aborts, gets SIGTERM to its group and SIGKILL
+ * `killGraceMs` later (`CHECK_KILL_GRACE_MS` for a run). Every check runs even after one fails; none starts after `signal` has aborted. A failing
  * check is data, so this returns results, never a refusal.
  */
 export async function runChecks(input: {
@@ -1245,6 +1246,7 @@ export async function runChecks(input: {
   runDir: string;
   checks: DeliveryChecks;
   timeoutMs: number;
+  killGraceMs: number;
   env: NodeJS.ProcessEnv;
   signal: AbortSignal;
 }): Promise<CheckResult[]> {
@@ -1262,6 +1264,7 @@ export async function runChecksReporting(
     runDir: string;
     checks: DeliveryChecks;
     timeoutMs: number;
+    killGraceMs: number;
     env: NodeJS.ProcessEnv;
     signal: AbortSignal;
   },
@@ -1278,6 +1281,7 @@ export async function runChecksReporting(
         cwd: input.worktreePath,
         env: input.env,
         timeoutMs: input.timeoutMs,
+        killGraceMs: input.killGraceMs,
         signal: input.signal,
         logPath: checkLogPath(input.runDir, index),
       }),

@@ -1,18 +1,11 @@
 import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
-import { mkdir, mkdtemp, readFile, realpath, rename, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
+import { mkdir, readFile, realpath, rename, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 
 import { gitIdentityEnv, LOCAL_EXECUTOR, ok, ticketBranchName } from "@zenorm/contracts";
 import type { CheckResult, DeliveryFailure, Verdict } from "@zenorm/contracts";
-import {
-  deliveryRunTickets,
-  deliveryRuns,
-  MIGRATIONS_FOLDER,
-  migrateDatabase,
-  openDatabase,
-} from "@zenorm/db";
+import { deliveryRunTickets, deliveryRuns } from "@zenorm/db";
 import type { ZeNormDatabase } from "@zenorm/db";
 import { asc, eq } from "drizzle-orm";
 import { validate, version } from "uuid";
@@ -21,6 +14,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
   acceptVerdict,
   cancelDelivery,
+  CHECK_KILL_GRACE_MS,
   checkLogPath,
   deliveryBranchName,
   deliveryIdentities,
@@ -42,9 +36,9 @@ import {
 } from "./delivery.ts";
 import type { DeliveryEnd, StoredDeliveryRun } from "./delivery.ts";
 import { approveTicketSet, rejectTicketSet } from "./planning.ts";
-import { createProject, saveProjectSettings } from "./project.ts";
+import { saveProjectSettings } from "./project.ts";
 import { recordTicketMerged } from "./run-progress.ts";
-import { reviewedTicketSet, runFolder, SPEC, testContextOf } from "./test-support.ts";
+import { addProject, openTestContext, reviewedTicketSet, runFolder, SPEC } from "./test-support.ts";
 import type { TestContext } from "./test-support.ts";
 
 let root: string;
@@ -89,15 +83,9 @@ interface Seeded {
 /** A project over a fresh repository on `main` and a map whose ticket set is drafted and, unless told otherwise, approved. */
 async function seed(options: { approve: boolean }): Promise<Seeded> {
   const repo = join(root, "repo");
-  await mkdir(repo);
-  git(repo, ["init", "-q", "-b", "main"]);
-  await writeFile(join(repo, "README.md"), "# Repo\n");
-  git(repo, ["add", "README.md"]);
-  git(repo, ["commit", "-q", "-m", "init"]);
-  const created = await createProject(context.user, db, { folderPath: repo, baseBranch: "main" });
-  if (!created.ok) throw new Error(created.error.code);
+  const created = await addProject(context, "repo");
   const project = await saveProjectSettings(context.user, db, {
-    projectId: created.value.id,
+    projectId: created.id,
     baseBranch: "main",
     requiredChecks: CHECKS,
     repairLimit: 0,
@@ -173,14 +161,10 @@ function runRows(): unknown[] {
 }
 
 beforeEach(async () => {
-  root = await realpath(await mkdtemp(join(tmpdir(), "zenorm-core-delivery-")));
+  context = await openTestContext("zenorm-core-delivery-");
+  root = await realpath(context.root);
   runsDir = join(root, "data", "runs");
-  const opened = openDatabase(join(root, "zenorm.sqlite"));
-  if (!opened.ok) throw new Error(opened.error.message);
-  db = opened.value;
-  const migrated = migrateDatabase(db, MIGRATIONS_FOLDER);
-  if (!migrated.ok) throw new Error(migrated.error.message);
-  context = testContextOf(root, db);
+  db = context.db;
 });
 
 afterEach(async () => {
@@ -994,6 +978,7 @@ describe("runChecks", () => {
         "git var GIT_COMMITTER_IDENT",
       ],
       timeoutMs: 10_000,
+      killGraceMs: CHECK_KILL_GRACE_MS,
       env,
       signal: new AbortController().signal,
     });
@@ -1017,6 +1002,7 @@ describe("runChecks", () => {
       runDir: join(root, "run"),
       checks: ["seq 1 5000"],
       timeoutMs: 10_000,
+      killGraceMs: CHECK_KILL_GRACE_MS,
       env,
       signal: new AbortController().signal,
     });
@@ -1032,6 +1018,7 @@ describe("runChecks", () => {
       runDir,
       checks: ["git status --short", "seq 1 5000"],
       timeoutMs: 10_000,
+      killGraceMs: CHECK_KILL_GRACE_MS,
       env,
       signal: new AbortController().signal,
     });
@@ -1050,6 +1037,7 @@ describe("runChecks", () => {
       runDir: join(root, "run"),
       checks: ["sleep 5", "git status --short"],
       timeoutMs: 500,
+      killGraceMs: CHECK_KILL_GRACE_MS,
       env,
       signal: new AbortController().signal,
     });
@@ -1071,6 +1059,7 @@ describe("runChecks", () => {
       runDir: join(root, "run"),
       checks: ["sleep 5", "touch marker.txt"],
       timeoutMs: 10_000,
+      killGraceMs: CHECK_KILL_GRACE_MS,
       env,
       signal: controller.signal,
     });
@@ -1088,7 +1077,7 @@ describe("runChecks", () => {
       script,
       [
         "#!/bin/sh",
-        // Bounded (about 40 s, past the 10 s grace and the 20 s test timeout) so an orphan left by a killed worker exits by itself.
+        // Bounded (about 40 s, past the 2 s grace and the 20 s test timeout) so an orphan left by a killed worker exits by itself.
         `sh -c 'trap "" TERM; echo $$ > ${pidFile}; i=0; while [ $i -lt 40 ]; do sleep 1; i=$((i+1)); done' </dev/null >/dev/null 2>&1 &`,
         "trap 'exit 143' TERM",
         "while :; do sleep 1; done",
@@ -1111,6 +1100,8 @@ describe("runChecks", () => {
         runDir: join(root, "run"),
         checks: [script],
         timeoutMs: 500,
+        // Short, so the test does not wait out a run's 10 s.
+        killGraceMs: 2_000,
         env,
         signal: new AbortController().signal,
       });
@@ -1125,7 +1116,7 @@ describe("runChecks", () => {
         () => {
           expect(alive(pid)).toBe(false);
         },
-        { timeout: 12_000, interval: 100 },
+        { timeout: 4_000, interval: 100 },
       );
     } finally {
       // Whatever failed above, the grandchild that ignores SIGTERM and this test's folder go.
@@ -1159,6 +1150,7 @@ describe("runChecks", () => {
         runDir: join(root, "run"),
         checks: ["touch marker.txt"],
         timeoutMs: 10_000,
+        killGraceMs: CHECK_KILL_GRACE_MS,
         env,
         signal: controller.signal,
       }),
@@ -1173,6 +1165,7 @@ describe("runChecks", () => {
       runDir: join(root, "run"),
       checks: ["zenorm-no-such-executable --flag", "git status --short"],
       timeoutMs: 10_000,
+      killGraceMs: CHECK_KILL_GRACE_MS,
       env,
       signal: new AbortController().signal,
     });
@@ -1412,6 +1405,7 @@ describe("check results stored as they finish", () => {
         runDir: dirname(run.worktreePath),
         checks: ["git status --short", "git rev-parse --verify no-such-ref", "git status --short"],
         timeoutMs: 10_000,
+        killGraceMs: CHECK_KILL_GRACE_MS,
         env: { ...process.env, ...gitIdentityEnv(deliveryIdentity(run.id)) },
         signal: new AbortController().signal,
       },

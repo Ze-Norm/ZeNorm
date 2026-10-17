@@ -10,28 +10,72 @@ on:
 permissions:
   contents: read
 
+# A new push to a pull request cancels its older run; main and tags run every commit.
+concurrency:
+  group: check-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+# Linux only: a macOS job beside each Linux one used up the Actions minutes too fast. Everything in
+# `pnpm check` but e2e, whose flows don't pass on Linux yet: run `pnpm check` locally for them.
+# The jobs restore turbo's cache, so a task whose inputs are unchanged since main replays its logs,
+# except on a version tag, where the publish workflow's check runs every task.
 jobs:
-  # Linux only: GitHub bills a macOS minute as ten Linux ones, and a macOS job beside each Linux
-  # one used up the Actions minutes too fast.
-  check:
+  static:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           persist-credentials: false
-      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+      - uses: ./.github/actions/setup
         with:
-          node-version-file: .nvmrc
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: |
-          git config --global user.name "zenorm-ci"
-          git config --global user.email "ci@zenorm.invalid"
-      # Everything in `pnpm check` but e2e, whose flows don't pass on Linux yet: run `pnpm check`
-      # locally for them. The sweep and its `ps` parsing are unit tests.
-      - run: pnpm exec turbo run build typecheck lint test
+          turbo-cache: ${{ !startsWith(github.ref, 'refs/tags/') && 'static' || '' }}
+      - run: pnpm exec turbo run build typecheck lint
       - run: pnpm exec prettier --check .
+      - name: Prune turbo cache entries older than a week
+        run: find .turbo/cache -type f -mtime +7 -delete 2>/dev/null || true
+
+  # The tests, split across runners: each has 4 vCPUs, and the suites are bound by them (git and
+  # stand-in processes). core and server are the two big suites; vitest shards core by file.
+  test:
+    name: test (${{ matrix.name }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: core 1/2
+            key: core-1
+            args: --filter=@zenorm/core -- --shard=1/2
+          - name: core 2/2
+            key: core-2
+            args: --filter=@zenorm/core -- --shard=2/2
+          - name: server
+            key: server
+            args: --filter=@zenorm/server
+          - name: the rest
+            key: rest
+            args: --filter=!@zenorm/core --filter=!@zenorm/server
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+        with:
+          turbo-cache: ${{ !startsWith(github.ref, 'refs/tags/') && format('test-{0}', matrix.key) || '' }}
+      - run: pnpm exec turbo run test ${{ matrix.args }}
+      - name: Prune turbo cache entries older than a week
+        run: find .turbo/cache -type f -mtime +7 -delete 2>/dev/null || true
+
+  # The required status check: passes only when every job above passed.
+  check:
+    needs: [static, test]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - if: needs.static.result != 'success' || needs.test.result != 'success'
+        run: |
+          echo "static: ${{ needs.static.result }}, test: ${{ needs.test.result }}" >&2
+          exit 1
 
   smoke:
     # The install smoke test: the packed @ze-norm/cli installed with npm into an empty
@@ -41,14 +85,8 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           persist-credentials: false
-      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+      - uses: ./.github/actions/setup
         with:
-          node-version-file: .nvmrc
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: |
-          git config --global user.name "zenorm-ci"
-          git config --global user.email "ci@zenorm.invalid"
+          turbo-cache: ${{ !startsWith(github.ref, 'refs/tags/') && 'smoke' || '' }}
       - run: pnpm exec turbo run pack --filter=@ze-norm/cli
       - run: pnpm --filter @ze-norm/cli smoke

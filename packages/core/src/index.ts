@@ -1,6 +1,7 @@
 export {
   acceptVerdict,
   cancelDelivery,
+  CHECK_KILL_GRACE_MS,
   checkLogPath,
   checkPassed,
   checkVerdictCriteria,

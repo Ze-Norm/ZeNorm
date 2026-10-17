@@ -1,0 +1,32 @@
+name: setup
+description: >
+  pnpm, the .nvmrc Node and the workspace's dependencies, a git identity for the tests' commits,
+  and turbo's cache from an earlier run of the same job. Runs after a checkout.
+
+inputs:
+  turbo-cache:
+    description: The cache key's job part, or empty for no turbo cache.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
+    - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+      with:
+        node-version-file: .nvmrc
+        cache: pnpm
+    - run: pnpm install --frozen-lockfile
+      shell: bash
+    - run: |
+        git config --global user.name "zenorm-ci"
+        git config --global user.email "ci@zenorm.invalid"
+      shell: bash
+    # Each run saves its own entry; a pull request restores its branch's latest, else main's. A
+    # task whose inputs (and its dependencies') are unchanged replays its logs instead of running.
+    - if: inputs.turbo-cache != ''
+      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+      with:
+        path: .turbo/cache
+        key: turbo-${{ runner.os }}-${{ inputs.turbo-cache }}-${{ github.sha }}
+        restore-keys: turbo-${{ runner.os }}-${{ inputs.turbo-cache }}-

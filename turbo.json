@@ -2,11 +2,15 @@
   "$schema": "https://turborepo.com/schema.json",
   "ui": "stream",
   "agentGuidance": false,
-  "globalDependencies": ["tsconfig.base.json", "eslint.config.js"],
+  "globalDependencies": ["tsconfig.base.json", "eslint.config.js", ".nvmrc"],
   "globalPassThroughEnv": ["TMPDIR"],
   "tasks": {
     "transit": {
       "dependsOn": ["^transit"]
+    },
+    "@zenorm/agent#transit": {
+      "dependsOn": ["^transit"],
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/skills/**"]
     },
     "build": {
       "dependsOn": ["^build", "transit"],
