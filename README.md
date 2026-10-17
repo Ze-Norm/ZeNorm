@@ -42,7 +42,7 @@ Writing code is fast now. The hard part is deciding what to build, keeping that 
 
 ## Install
 
-You need macOS or Linux (on Windows, use WSL 2), Node.js 26.11.1 or later, git, and Claude Code installed.
+You need macOS or Linux (on Windows, use WSL 2), Node.js 26.11.1 or later, git, and Claude Code installed. Node 26 is the Current release line, not yet LTS, so an LTS installer gives you Node 24; install 26 with `nvm install 26` (or `fnm install 26`).
 
 ```sh
 npm install -g @ze-norm/cli
@@ -50,7 +50,7 @@ zenorm init
 zenorm run
 ```
 
-`zenorm init` asks for one model, hands you to Claude Code's own sign-in if it isn't signed in, and writes `~/.config/zenorm/config.json` with its data folder beside it (`~/.config/zenorm/data`). Every command reads its config from `--config <path>`, else `ZENORM_CONFIG`, else `~/.config/zenorm/config.json`. The [example config](config.example.json) lists every key. `zenorm doctor` checks Node, the platform, the config, the data folder, Claude Code and its sign-in, git, the web build and the database, changes nothing, and lists every failing check with its code. Open [http://127.0.0.1:4310](http://127.0.0.1:4310), add a project, and start a map.
+`zenorm init` asks for one model, hands you to Claude Code's own sign-in if it isn't signed in, and writes `~/.config/zenorm/config.json` with its data folder beside it (`~/.config/zenorm/data`). On a machine without a browser (SSH, WSL, a container), run `claude auth login` first, or set `ANTHROPIC_API_KEY`; ZeNorm passes its environment on to Claude Code. Every command reads its config from `--config <path>`, else `ZENORM_CONFIG`, else `~/.config/zenorm/config.json`. The [example config](config.example.json) lists every key. `zenorm doctor` checks Node, the platform, the config, the data folder, Claude Code and its sign-in, git, the web build and the database, changes nothing, and lists every failing check with its code. Open [http://127.0.0.1:4310](http://127.0.0.1:4310), add a project, and start a map.
 
 Every config key but `fastMode` is required; ZeNorm refuses to start rather than guess a default. [SETUP.md](SETUP.md) explains each key. To run ZeNorm from a checkout of this repository instead, for example to work on it or to use plugins, see [DEVELOPING.md](DEVELOPING.md).
 

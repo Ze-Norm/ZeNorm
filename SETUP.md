@@ -7,7 +7,7 @@ This guide covers installing the `zenorm` command, writing its config file and r
 ## Requirements
 
 - macOS or Linux. On Windows, use WSL 2; ZeNorm refuses to run on native Windows.
-- Node.js 26.11.1 or later
+- Node.js 26.11.1 or later. Node 26 is the Current release line, not yet LTS, so an LTS installer gives you Node 24; install 26 with `nvm install 26` (or `fnm install 26`).
 - [Claude Code](https://docs.claude.com/en/docs/claude-code), installed and on your `PATH`. ZeNorm runs it for planning and delivery; `zenorm init` signs it in if it isn't.
 - git
 
@@ -28,8 +28,10 @@ zenorm init
 `zenorm init` asks which model to plan and deliver with (Sonnet 5.5, Haiku 5.5, Opus 5.5, Opus 5.5 in fast mode, Fable 5.1 or any other model id), hands you to Claude Code's own sign-in if it isn't signed in, and writes `~/.config/zenorm/config.json`. If a config is already there, it asks before replacing it and keeps the old file as a backup. The config it writes sets:
 
 - `dataDir`: the `data` folder beside the config (`~/.config/zenorm/data`), created if missing. The database lives at `<dataDir>/zenorm.sqlite`, delivery runs work in `<dataDir>/runs`, and session records go in `<dataDir>/sessions`.
-- `agent.claudePath`: the absolute path of the `claude` it found on your `PATH`. ZeNorm itself never looks `claude` up on `PATH`, so if you move or reinstall Claude Code, update this key (or rerun `zenorm init`).
+- `agent.claudePath`: the absolute path of the `claude` it found on your `PATH`. ZeNorm runs only the `claude` this key names, never one it finds on `PATH`, so if you move or reinstall Claude Code, update this key (or rerun `zenorm init`).
 - `server.host` and `server.port`: `127.0.0.1` and `4310`.
+
+Claude Code's sign-in opens a browser. On a machine without one (SSH, WSL, a container), run `claude auth login` before `zenorm init` and follow its instructions, or set `ANTHROPIC_API_KEY` in the environment you run `zenorm` from: ZeNorm passes its environment on to every Claude Code session, and `zenorm doctor` then reports it signed in (`api_key`).
 
 Every command reads its config from `--config <path>`, else `ZENORM_CONFIG`, else `~/.config/zenorm/config.json`. You can edit the file by hand; [`config.example.json`](config.example.json) lists every key. Every key but `fastMode` is required: ZeNorm refuses to start if a key is missing or unknown, rather than guess a default.
 
