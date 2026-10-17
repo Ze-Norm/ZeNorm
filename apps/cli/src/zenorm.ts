@@ -1,8 +1,7 @@
 import { dirname } from "node:path";
-import { isatty } from "node:tty";
 import { fileURLToPath } from "node:url";
 
-import { refusalReporter, runCli } from "./cli.ts";
+import { reportRefusal, runCli } from "./cli.ts";
 import { COMMANDS } from "./commands.ts";
 import { packagedAssets } from "./packaged.ts";
 
@@ -22,8 +21,7 @@ const ended = await runCli(
     },
   },
   COMMANDS,
-  // Readable refusals at a terminal; one JSON line each when standard error is piped.
-  refusalReporter(isatty(2)),
+  reportRefusal,
 );
 // `run` keeps the process open while it serves; it exits on SIGTERM or SIGINT.
 if (ended !== "serving") {

@@ -5,6 +5,7 @@ import { join } from "node:path";
 
 import { ok } from "@zenorm/contracts";
 import type { StartupError } from "@zenorm/contracts";
+import { loadConfig } from "@zenorm/zenorm/startup";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { Mock } from "vitest";
 
@@ -12,9 +13,10 @@ import {
   cliConfigPath,
   formatRefusal,
   isNodeAtLeast,
-  refusalReporter,
+  reportRefusal,
   runCli,
   standardConfigPath,
+  withInitHint,
 } from "./cli.ts";
 import type { CliInput, Command, CommandTable } from "./cli.ts";
 import { COMMANDS, withCommands } from "./commands.ts";
@@ -185,16 +187,34 @@ describe("help and the version", () => {
   );
 
   test.each([["--help"], ["--version"], ["run", "--help"]])(
-    "%s on native Windows or old Node is refused first, with no output",
+    "%s on native Windows is refused first, with no output",
     async (...argv) => {
       const { commands } = stubCommands();
       expect(await runCli(input({ argv, platform: "win32" }), commands, report)).toBe(1);
-      expect(await runCli(input({ argv, nodeVersion: "26.11.0" }), commands, report)).toBe(1);
-      expect(reported.map(({ code }) => code)).toEqual([
-        "platform_unsupported",
-        "node_version_unsupported",
-      ]);
+      expect(reported.map(({ code }) => code)).toEqual(["platform_unsupported"]);
       expect(written).toEqual([]);
+    },
+  );
+
+  test.each([["--help"], ["-h"], ["--version"], ["-V"], ["run", "--help"], ["doctor", "-h"]])(
+    "%s on old Node answers with exit code 0 and runs no command",
+    async (...argv) => {
+      const { commands, run } = stubCommands();
+      expect(await runCli(input({ argv, nodeVersion: "24.22.0" }), commands, report)).toBe(0);
+      expect(written.join("")).not.toBe("");
+      expect(reported).toEqual([]);
+      expect(run).not.toHaveBeenCalled();
+    },
+  );
+
+  test.each([["run"], ["run", "--bogus"], ["--help", "--version"], ["bogus", "--help"], []])(
+    "%j on old Node is node_version_unsupported, with no output",
+    async (...argv) => {
+      const { commands, run } = stubCommands();
+      expect(await runCli(input({ argv, nodeVersion: "24.22.0" }), commands, report)).toBe(1);
+      expect(reportedCodes()).toEqual([{ code: "node_version_unsupported", subject: "24.22.0" }]);
+      expect(written).toEqual([]);
+      expect(run).not.toHaveBeenCalled();
     },
   );
 
@@ -315,7 +335,7 @@ function isJson(line: string): boolean {
   }
 }
 
-describe("refusals piped and at a terminal", () => {
+describe("refusals on standard error", () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
@@ -323,30 +343,15 @@ describe("refusals piped and at a terminal", () => {
   const refusals: readonly { code: string; overrides: Partial<CliInput> }[] = [
     { code: "arguments_invalid", overrides: { argv: ["bogus"] } },
     { code: "platform_unsupported", overrides: { platform: "win32" } },
+    { code: "node_version_unsupported", overrides: { nodeVersion: "24.22.0" } },
     { code: "config_file_missing", overrides: { argv: ["run"] } },
   ];
 
   test.each(refusals)(
-    "$code with stderr not a terminal is exactly one JSON line with code, message and subject",
+    "$code is readable text naming its code, with no JSON line, terminal or not",
     async ({ code, overrides }) => {
       const stderr = captureStderr();
-      expect(await runCli(input(overrides), COMMANDS, refusalReporter(false))).toBe(1);
-      expect(stderr).toHaveLength(1);
-      const [line] = stderr;
-      if (line === undefined) throw new Error("no refusal was written");
-      expect(line).not.toContain("\n");
-      const parsed: unknown = JSON.parse(line);
-      expect(parsed).toHaveProperty("code", code);
-      expect(parsed).toHaveProperty("message");
-      expect(parsed).toHaveProperty("subject");
-    },
-  );
-
-  test.each(refusals)(
-    "$code with stderr a terminal is readable text naming its code, with no JSON line",
-    async ({ code, overrides }) => {
-      const stderr = captureStderr();
-      expect(await runCli(input(overrides), COMMANDS, refusalReporter(true))).toBe(1);
+      expect(await runCli(input(overrides), COMMANDS, reportRefusal)).toBe(1);
       expect(stderr).toHaveLength(1);
       const text = stderr.join("\n");
       expect(text).toContain(code);
@@ -365,6 +370,34 @@ describe("refusals piped and at a terminal", () => {
     expect(text).toContain("example");
     expect(text).toContain("routes");
     expect(text.split("\n").filter(isJson)).toEqual([]);
+  });
+});
+
+describe("the init hint", () => {
+  const missing: StartupError = {
+    code: "config_file_missing",
+    message: "No config file at /nowhere.json",
+    subject: "/nowhere.json",
+  };
+
+  test("config_file_missing keeps its code and subject and gains a message of its own", () => {
+    const hinted = withInitHint(missing);
+    expect(hinted).toMatchObject({ code: missing.code, subject: missing.subject });
+    expect(hinted.message).not.toBe(missing.message);
+  });
+
+  test("every other refusal is unchanged", () => {
+    const other: StartupError = { ...missing, code: "config_file_invalid" };
+    expect(withInitHint(other)).toBe(other);
+  });
+
+  test("run's config_file_missing is apps/zenorm's, hinted", async () => {
+    const configFile = join(home, "config.json");
+    const raw = await loadConfig(configFile);
+    if (raw.ok) throw new Error("the test's config file exists");
+    const argv = ["run", "--config", configFile];
+    expect(await runCli(input({ argv }), COMMANDS, report)).toBe(1);
+    expect(reported).toEqual([withInitHint(raw.error)]);
   });
 });
 

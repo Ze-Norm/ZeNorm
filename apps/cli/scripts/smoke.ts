@@ -144,10 +144,22 @@ function runBin(bin: string, args: readonly string[]): BinRun {
   return { status: run.status, stdout: run.stdout, stderr: run.stderr };
 }
 
+/** Whether `line` is a JSON object or array, as a JSON refusal line would be. */
+function isJsonLine(line: string): boolean {
+  if (!line.startsWith("{") && !line.startsWith("[")) return false;
+  try {
+    JSON.parse(line);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * The published manifest's only runtime dependency is better-sqlite3 (the command library is
  * bundled); `zenorm --help` and `zenorm --version` exit 0, the version the manifest's; and an
- * unknown option exits 1 with one `arguments_invalid` JSON line on stderr, which is no terminal.
+ * unknown option exits 1 with a readable `arguments_invalid` refusal on stderr (no terminal), no
+ * line of it JSON.
  */
 function checkCommandLine(bin: string, packageDir: string): void {
   const { dependencies, version: published } = readInstalledManifest(packageDir);
@@ -170,11 +182,14 @@ function checkCommandLine(bin: string, packageDir: string): void {
     );
   }
   const unknown = runBin(bin, ["run", "--bogus"]);
-  const lines = unknown.stderr.split("\n").filter((line) => line !== "");
-  const refusal: unknown = lines.length === 1 ? JSON.parse(lines.join("")) : null;
-  if (unknown.status !== 1 || !isRecord(refusal) || refusal.code !== "arguments_invalid") {
+  const lines = unknown.stderr.split("\n");
+  if (
+    unknown.status !== 1 ||
+    !lines.includes("  code: arguments_invalid") ||
+    lines.some((line) => isJsonLine(line))
+  ) {
     throw new Error(
-      `zenorm run --bogus exited ${String(unknown.status)} without one arguments_invalid line: ${unknown.stderr}`,
+      `zenorm run --bogus exited ${String(unknown.status)} without a readable arguments_invalid refusal: ${unknown.stderr}`,
     );
   }
 }

@@ -8,7 +8,7 @@ import {
 } from "@commander-js/extra-typings";
 import { err, ok } from "@zenorm/contracts";
 import type { Result, StartupError } from "@zenorm/contracts";
-import { printRefusal, startAndListen } from "@zenorm/zenorm/serve";
+import { startAndListen } from "@zenorm/zenorm/serve";
 import { configPath } from "@zenorm/zenorm/startup";
 import type { StartupInput, ZeNormAssets } from "@zenorm/zenorm/startup";
 
@@ -104,21 +104,20 @@ export function isNodeAtLeast(version: string, minimum: string): boolean {
   return havePatch >= needPatch;
 }
 
-/** Node older than `MINIMUM_NODE_VERSION` is refused, naming both versions. */
+/** Node older than `MINIMUM_NODE_VERSION` is refused, naming both versions and how to upgrade. */
 export function refuseNodeVersion(nodeVersion: string): Result<null, StartupError> {
   if (isNodeAtLeast(nodeVersion, MINIMUM_NODE_VERSION)) return ok(null);
+  const major = versionParts(MINIMUM_NODE_VERSION)[0];
   return err({
     code: "node_version_unsupported",
-    message: `ZeNorm needs Node ${MINIMUM_NODE_VERSION} or newer; this is Node ${nodeVersion}`,
+    message: `ZeNorm needs Node ${MINIMUM_NODE_VERSION} or newer (the Current line, not yet LTS); this is Node ${nodeVersion}. Install it with \`nvm install ${String(major)}\` or \`fnm install ${String(major)}\`, then run zenorm again`,
     subject: nodeVersion,
   });
 }
 
-/** The refusals every command runs first, before reading its arguments or anything else. */
-export function refuseEnvironment(input: CliInput): Result<null, StartupError> {
-  const platform = refusePlatform(input.platform);
-  if (!platform.ok) return platform;
-  return refuseNodeVersion(input.nodeVersion);
+/** Whether `argv` holds a help or version flag. */
+function asksHelpOrVersion(argv: readonly string[]): boolean {
+  return argv.some((arg) => HELP_FLAGS.includes(arg) || VERSION_FLAGS.includes(arg));
 }
 
 /** `arguments_invalid` for `argv`, with `reason` and where the usage is. */
@@ -144,8 +143,7 @@ export function refuseBeforeParse(
   if (argv.length === 0) {
     return err(argumentsInvalid(argv, `Name a command: ${names.join(", ")}`));
   }
-  const asked = argv.some((arg) => HELP_FLAGS.includes(arg) || VERSION_FLAGS.includes(arg));
-  if (!asked || argv.length === 1) return ok(null);
+  if (!asksHelpOrVersion(argv) || argv.length === 1) return ok(null);
   const [name, flag] = argv;
   if (
     argv.length === 2 &&
@@ -251,6 +249,15 @@ export function cliConfigPath(config: string | undefined, env: Env): Result<stri
   return configPath(configArgs(config), env, standardConfigPath(env));
 }
 
+/**
+ * `error` with, for `config_file_missing`, how to create the file: `zenorm init`. apps/zenorm
+ * mints the code without it, since `pnpm dev` has no `init`; every other refusal is unchanged.
+ */
+export function withInitHint(error: StartupError): StartupError {
+  if (error.code !== "config_file_missing") return error;
+  return { ...error, message: `${error.message}. Run \`${PROGRAM_NAME} init\` to create one` };
+}
+
 /** `zenorm run`: serves ZeNorm with the package's assets and no plugins, as `pnpm dev` does. */
 export const runCommand: Command = async (context) => {
   const started = await startAndListen(
@@ -262,12 +269,12 @@ export const runCommand: Command = async (context) => {
     },
     context.env,
   );
-  if (!started.ok) return started;
+  if (!started.ok) return err(withInitHint(started.error));
   return ok("serving");
 };
 
 /**
- * A refusal as readable text for a terminal: its message, then its code and subject, and for
+ * A refusal as readable text: its message, then its code and subject, and for
  * `plugin_start_failed` the plugin and phase that failed. No line of it is JSON.
  */
 export function formatRefusal(error: StartupError): string {
@@ -280,33 +287,37 @@ export function formatRefusal(error: StartupError): string {
 }
 
 /**
- * The reporter `runCli` refuses through: readable text when standard error is a terminal,
- * else apps/zenorm's one JSON line `{ code, message, subject }`. The bin passes whether
- * fd 2 is a terminal; tests choose either form.
+ * The bin's reporter: each refusal as readable text on standard error, a terminal or not (a
+ * script reads the exit code and the `code:` line).
  */
-export function refusalReporter(stderrIsTerminal: boolean): (error: StartupError) => void {
-  if (!stderrIsTerminal) return printRefusal;
-  return (error) => {
-    console.error(formatRefusal(error));
-  };
+export function reportRefusal(error: StartupError): void {
+  console.error(formatRefusal(error));
 }
 
 /**
- * `zenorm <command>`: the platform and Node refusals, then the arguments, then the command from
- * `table`. Help and the version end with exit code 0; a refusal is reported with `report` and
- * ends with exit code 1.
+ * `zenorm <command>`: the platform refusal, the Node refusal, then the arguments, then the
+ * command from `table`. A command line that only asks for help or the version skips the Node
+ * refusal, so `zenorm --help` answers on an older Node; it runs nothing else. Help and the
+ * version end with exit code 0; a refusal is reported with `report` and ends with exit code 1.
  */
 export async function runCli(
   input: CliInput,
   table: CommandTable,
   report: (error: StartupError) => void,
 ): Promise<CommandEnd> {
-  const refused = refuseEnvironment(input);
-  if (!refused.ok) {
-    report(refused.error);
+  const platform = refusePlatform(input.platform);
+  if (!platform.ok) {
+    report(platform.error);
     return 1;
   }
   const checked = refuseBeforeParse(input.argv, table);
+  if (!(checked.ok && asksHelpOrVersion(input.argv))) {
+    const node = refuseNodeVersion(input.nodeVersion);
+    if (!node.ok) {
+      report(node.error);
+      return 1;
+    }
+  }
   if (!checked.ok) {
     report(checked.error);
     return 1;

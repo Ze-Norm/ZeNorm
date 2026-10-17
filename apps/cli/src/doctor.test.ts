@@ -1,20 +1,30 @@
-import { chmod, cp, mkdir, mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import {
+  chmod,
+  cp,
+  mkdir,
+  mkdtemp,
+  readdir,
+  readFile,
+  rm,
+  symlink,
+  writeFile,
+} from "node:fs/promises";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { delimiter, join } from "node:path";
 
 import { SONNET_LIMITS } from "@zenorm/contracts";
 import type { StartupError } from "@zenorm/contracts";
 import { SOURCE_ASSETS } from "@zenorm/zenorm/source-assets";
-import { DATABASE_FILE, startup } from "@zenorm/zenorm/startup";
+import { DATABASE_FILE, loadConfig, startup } from "@zenorm/zenorm/startup";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
-import { runCli } from "./cli.ts";
+import { runCli, withInitHint } from "./cli.ts";
 import type { CliInput, Command, CommandEnd, Env } from "./cli.ts";
 import { withCommands } from "./commands.ts";
 import { DOCTOR_CHECKS, doctorCommand } from "./doctor.ts";
 import type { DoctorCheck } from "./doctor.ts";
-import { initConfig } from "./init.ts";
+import { findOnPath, initConfig } from "./init.ts";
 import { MINIMUM_NODE_VERSION } from "./packaged.ts";
 
 /** The repository's stand-in claude (`apps/zenorm/e2e/fake-claude.ts`). */
@@ -220,17 +230,54 @@ describe("zenorm doctor", () => {
     expect(failures()).toEqual([{ name: "sign_in", code: "agent_not_logged_in" }]);
   });
 
-  test("no config file: config_file_missing, its checks skipped, git and the web build still checked", async () => {
-    expect(await zenorm(["doctor"], machineEnv())).toBe(1);
+  /** A `PATH` of one folder holding only this machine's git, then `more` folders. */
+  async function gitOnlyPath(...more: string[]): Promise<string> {
+    const git = await findOnPath("git", machineEnv());
+    if (git === null) throw new Error("these tests need git on PATH");
+    const bin = join(home, "git-bin");
+    await mkdir(bin);
+    await symlink(git, join(bin, "git"));
+    return [bin, ...more].join(delimiter);
+  }
+
+  test("no config file: config_file_missing, claude found on PATH, git and the web build still checked", async () => {
+    // The stand-in claude sits in `home`.
+    const env = { HOME: home, PATH: await gitOnlyPath(home) };
+    expect(await zenorm(["doctor"], env)).toBe(1);
     expect(failures()).toEqual([{ name: "config", code: "config_file_missing" }]);
     expect(kinds()).toMatchObject({
       data_dir: "skipped",
-      claude: "skipped",
+      claude: "passed",
       sign_in: "skipped",
       git: "passed",
       web_build: "passed",
       database: "skipped",
     });
+  });
+
+  test("no config file: the config check fails with apps/zenorm's refusal, hinted", async () => {
+    const raw = await loadConfig(configFile);
+    if (raw.ok) throw new Error("the test's config file exists");
+    expect(await zenorm(["doctor", "--config", configFile], machineEnv())).toBe(1);
+    const config = checks.find(({ name }) => name === "config");
+    expect(config?.outcome).toEqual({ kind: "failed", error: withInitHint(raw.error) });
+  });
+
+  test("no config file and no claude on PATH: claude fails agent_cli_missing too", async () => {
+    const env = { HOME: home, PATH: await gitOnlyPath() };
+    expect(await zenorm(["doctor"], env)).toBe(1);
+    expect(failures()).toEqual([
+      { name: "config", code: "config_file_missing" },
+      { name: "claude", code: "agent_cli_missing" },
+    ]);
+  });
+
+  test("an invalid config file: config_file_invalid, claude still looked up on PATH", async () => {
+    await writeFile(configFile, "{ not json");
+    const env = { HOME: home, PATH: await gitOnlyPath(home) };
+    expect(await zenorm(["doctor", "--config", configFile], env)).toBe(1);
+    expect(failures()).toEqual([{ name: "config", code: "config_file_invalid" }]);
+    expect(kinds()).toMatchObject({ claude: "passed", sign_in: "skipped", database: "skipped" });
   });
 
   test("an unknown flag is arguments_invalid, with no check run", async () => {
