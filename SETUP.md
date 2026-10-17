@@ -2,8 +2,6 @@
 
 This guide covers installing the `zenorm` command, writing its config file and running it. The [README](README.md) has the overview.
 
-> **Pre-release.** Expect breaking changes, including to saved data.
-
 ## Requirements
 
 - macOS or Linux. On Windows, use WSL 2; ZeNorm refuses to run on native Windows.

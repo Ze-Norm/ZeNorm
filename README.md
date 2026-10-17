@@ -13,16 +13,13 @@ ZeNorm is an open-source, spec-driven development workflow for Claude Code.
 
 Bring any software idea, however rough. ZeNorm turns it into a clear plan, then builds it, keeping the two in step to the end.
 
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE) [![Built for Claude Code](https://img.shields.io/badge/built_for-Claude_Code-d97757?style=flat-square)](https://docs.claude.com/en/docs/claude-code) ![Status: pre-release](https://img.shields.io/badge/status-pre--release-orange?style=flat-square)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE) [![Built for Claude Code](https://img.shields.io/badge/built_for-Claude_Code-d97757?style=flat-square)](https://docs.claude.com/en/docs/claude-code)
 
 MIT licensed, and runs on your machine using [Claude Code](https://docs.claude.com/en/docs/claude-code).
 
 [Website](https://zenorm.com) · [Setup](SETUP.md) · [Developing](DEVELOPING.md) · [Glossary](CONTEXT.md)
 
 </div>
-
-> [!WARNING]
-> **Pre-release.** ZeNorm is under active development. Expect sharp edges and breaking changes, including to saved data.
 
 ## Example: one change, start to finish
 

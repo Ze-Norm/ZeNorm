@@ -1,6 +1,6 @@
 # Security policy
 
-ZeNorm is pre-release. Only the latest `main` is supported: fixes land there, and there are no backports.
+Only the latest `main` is supported: fixes land there, and there are no backports.
 
 ## Reporting a vulnerability
 
