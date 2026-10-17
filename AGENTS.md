@@ -16,7 +16,7 @@ All packages are `@zenorm/<dir>`, ESM, exporting TypeScript source, except the p
 - `apps/zenorm` → contracts, agent, db, server, web (only `webDistDir`). The app entry and its Playwright e2e.
 - `examples/plugin-example` → plugin-sdk, contracts. Exercises every extension point; `examples/bad-plugins/` has one bad plugin per startup error code.
 - `apps/zenorm-example` → contracts, server, web, plugin-sdk, the example plugin, apps/zenorm.
-- `apps/cli` → contracts, agent, apps/zenorm, web (only `webDistDir`, at build time). The published `zenorm` command. `COMMANDS` in `src/commands.ts` is the one command table; read `buildProgram`'s comment in `src/cli.ts` before touching commander.
+- `apps/cli` → contracts, agent, apps/zenorm, web (only `webDistDir`, at build time). The published `zenorm` command. `COMMANDS` in `src/commands.ts` is the one command table; read `buildProgram`'s comment in `src/cli.ts` before touching commander. better-sqlite3 is its only `dependencies` entry; everything else it imports, workspace or not, is a devDependency the esbuild bundle inlines.
 
 `skills/` and `CONTEXT.md` are outside the workspace and every check.
 
@@ -26,7 +26,7 @@ All packages are `@zenorm/<dir>`, ESM, exporting TypeScript source, except the p
 - Expected failures return a `Result` with a stable error code; only programmer errors throw. Tests assert codes, never message text.
 - Use shadcn components over bespoke Tailwind.
 - `CONTEXT.md` glossary terms are the identifiers (`Project`, not `Repo`).
-- Code runs on Node type stripping: relative imports end in `.ts`.
+- Server-side code runs on Node type stripping: relative imports end in `.ts` (`.tsx` in the web entries).
 - Packages log through the `log` function the app passes in, never `console`.
 
 ## Checks

@@ -31,6 +31,12 @@ pnpm format                             # fix formatting
 ZENORM_LIVE_CLAUDE_PATH="$(command -v claude)" pnpm --filter @zenorm/agent test:live
 ```
 
+Changes to the CLI, its packing or the assets it ships also need the install smoke test, which packs the CLI, installs it with npm outside the repository and drives it end to end. It is outside `pnpm check` (it installs from the npm registry); CI runs it:
+
+```sh
+pnpm exec turbo run pack --filter=@ze-norm/cli && pnpm --filter @ze-norm/cli smoke
+```
+
 ## Plugins
 
 `pnpm dev:example` serves ZeNorm composed with the [example plugin](examples/plugin-example), which exercises every extension point; its config needs a `plugins.example` section. [`examples/bad-plugins`](examples/bad-plugins) has one broken plugin per startup error.
