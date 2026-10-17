@@ -4,7 +4,7 @@
  * planning runner would.
  */
 import { execFileSync } from "node:child_process";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { copyFile, cp, mkdtemp, realpath, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -44,8 +44,6 @@ import {
   hatchMessages,
   installChangeFeed,
   maps,
-  MIGRATIONS_FOLDER,
-  migrateDatabase,
   openDatabase,
   planningRuns,
   projects,
@@ -65,6 +63,7 @@ import {
 import type { ZeNormDatabase } from "@zenorm/db";
 import { and, asc, desc, eq } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
+import { inject } from "vitest";
 
 import { recordSurvey } from "./code-survey.ts";
 import { deliveryIdentity, endDelivery, prepareDelivery, startDelivery } from "./delivery.ts";
@@ -81,7 +80,8 @@ import {
   recordGrill,
 } from "./planning-runs.ts";
 import type { Tx } from "./planning-runs.ts";
-import { createProject, saveProjectSettings } from "./project.ts";
+import { saveProjectSettings, toProject } from "./project.ts";
+import type { ProjectRow } from "./project.ts";
 import { appendRunEvent } from "./run-events.ts";
 import { coreSeams, setSeams } from "./seams.ts";
 import { recordSpecReview, recordSpecs } from "./spec-runs.ts";
@@ -268,10 +268,10 @@ export interface TestContext {
 
 export async function openTestContext(prefix: string): Promise<TestContext> {
   const root = await mkdtemp(join(tmpdir(), prefix));
-  const opened = openDatabase(join(root, "zenorm.sqlite"));
+  const file = join(root, "zenorm.sqlite");
+  await copyFile(inject("coreTemplates").database, file);
+  const opened = openDatabase(file);
   if (!opened.ok) throw new Error(opened.error.message);
-  const migrated = migrateDatabase(opened.value, MIGRATIONS_FOLDER);
-  if (!migrated.ok) throw new Error(migrated.error.message);
   return testContextOf(root, opened.value);
 }
 
@@ -317,20 +317,25 @@ function git(cwd: string, args: readonly string[]): void {
   });
 }
 
-/** A Project over a fresh repository on `main` with one commit holding a README. */
+/**
+ * A Project over a fresh repository on `main` with one commit holding a README (a copy of the
+ * run's template, so every project has the same commit), inserted as a fixture row:
+ * `createProject`'s git checks run in its own tests.
+ */
 export async function addProject(context: TestContext, name: string): Promise<Project> {
   const path = join(context.root, name);
-  await mkdir(path);
-  git(path, ["init", "-q", "-b", "main"]);
-  await writeFile(join(path, "README.md"), "# Repo\n");
-  git(path, ["add", "README.md"]);
-  git(path, ["commit", "-q", "-m", "init"]);
-  const created = await createProject(context.user, context.db, {
-    folderPath: path,
+  await cp(inject("coreTemplates").repository, path, { recursive: true });
+  const row: ProjectRow = {
+    id: uuidv7(),
+    folderPath: await realpath(path),
     baseBranch: "main",
-  });
-  if (!created.ok) throw new Error(created.error.code);
-  return created.value;
+    requiredChecks: [],
+    repairLimit: null,
+    fixCommands: [],
+    createdAt: new Date().toISOString(),
+  };
+  writeTestData(context, (tx) => tx.insert(projects).values(row).run());
+  return await toProject(context.db, row);
 }
 
 /** A new map in `project`; its first chart run is running. */

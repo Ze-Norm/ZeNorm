@@ -23,6 +23,7 @@ import type {
 import {
   acceptVerdict,
   appendRunEvent,
+  CHECK_KILL_GRACE_MS,
   checkGitHubSignIn,
   checkLogPath,
   checkPassed,
@@ -491,6 +492,7 @@ export function createDeliveryRunner({
           runDir,
           checks: run.checks,
           timeoutMs: checkTimeoutMinutes * MS_PER_MINUTE,
+          killGraceMs: CHECK_KILL_GRACE_MS,
           env: { ...process.env, ...gitIdentityEnv(gitIdentity) },
           signal,
         },
