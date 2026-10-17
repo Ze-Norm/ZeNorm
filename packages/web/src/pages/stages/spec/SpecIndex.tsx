@@ -19,9 +19,8 @@ function sectionIds(content: SpecRevisionContent, delta: TextDelta | null): stri
 
 /**
  * The spec document's index at the left of the document (`WorkspacePage`): Problem, Solution, each
- * behaviour (marked when the revision changes it, slice 8b D11), the removed ones, Out of scope;
- * the section the reader is in is marked (UX audit C4). `delta` is null on revision 1 and on a
- * spec the map only waits on.
+ * behaviour (marked when the revision changes it), the removed ones, Out of scope; the section the
+ * reader is in is marked. `delta` is null on revision 1 and on a spec the map only waits on.
  */
 export function SpecIndex({
   content,

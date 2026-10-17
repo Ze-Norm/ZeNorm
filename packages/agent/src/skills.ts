@@ -5,19 +5,19 @@ import { fileURLToPath } from "node:url";
 import { err, ok, type Result, type SkillMissingError } from "@zenorm/contracts";
 
 /**
- * The repository's skills folder, `<repository>/skills/` (spec D1), found from this module. Only
- * the entries that run from source (`apps/zenorm`, `apps/zenorm-example`) and tests pass it in;
- * the adapters take the folder they are given, so the built CLI passes its packaged copy.
+ * The repository's skills folder, `<repository>/skills/`, found from this module. Only the entries
+ * that run from source (`apps/zenorm`, `apps/zenorm-example`) and tests pass it in; the adapters
+ * take the folder they are given, so the built CLI passes its packaged copy.
  */
 export const SKILLS_DIR = fileURLToPath(new URL("../../../skills/", import.meta.url));
 
 /** The SKILL.md files a delivery session is told to read, by absolute path. */
 export interface DeliverySkills {
-  /** The orchestrator follows it (L79). */
+  /** The orchestrator follows it. */
   readonly implementSpec: string;
   /** The orchestrator's review step and the reviewer follow it. */
   readonly codeReview: string;
-  /** The pull request writer follows it (C3): the vendored PR skill. */
+  /** The pull request writer follows it: the vendored PR skill. */
   readonly pullRequest: string;
 }
 
@@ -32,7 +32,7 @@ export function deliverySkills(skillsDir: string): DeliverySkills {
 
 export type { SkillMissingError } from "@zenorm/contracts";
 
-/** The product skills the planning agent's spec and ticket runs follow, by absolute path (L115, spec D4). */
+/** The product skills the planning agent's spec and ticket runs follow, by absolute path. */
 export interface PlanningSkills {
   /** DraftSpecs and ReviseSpec follow it. */
   readonly toSpec: string;
@@ -64,7 +64,7 @@ export function checkSkill(skillPath: string): Result<null, SkillMissingError> {
 /**
  * Checks the orchestrator's and the reviewer's skills, the orchestrator's first. The pull request
  * writer checks its own when a run reaches it, so a missing PR skill fails only a run that opens a
- * pull request (3.1).
+ * pull request.
  */
 export function checkDeliverySkills(skills: DeliverySkills): Result<null, SkillMissingError> {
   const implementSpec = checkSkill(skills.implementSpec);

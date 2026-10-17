@@ -18,7 +18,7 @@ import { JSDOM } from "jsdom";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 /**
- * Each bad plugin of `examples/bad-plugins` fails with its D16 code (S9-19): a server code from
+ * Each bad plugin of `examples/bad-plugins` fails with its startup code: a server code from
  * `startZeNorm`, which composes `createApp` as `apps/zenorm` does, and a web code from
  * `createWebApp`'s blocking page. `executor_unknown` is a config failure: the example plugin with
  * `delivery.executor: "missing"`.
@@ -113,7 +113,7 @@ async function start(
 const SERVER_CASES = BAD_CASES.filter((bad): bad is BadServerCase => bad.kind === "server");
 const WEB_CASES = BAD_CASES.filter((bad): bad is BadWebCase => bad.kind === "web");
 
-describe("the bad plugins' server codes (S9-19, D16)", () => {
+describe("the bad plugins' server codes", () => {
   test.each(SERVER_CASES.map((bad) => [bad.code, bad] as const))("%s", async (code, bad) => {
     const started = await start(bad.plugins, bad.pluginConfig, "local");
     expect(started.ok ? null : started.error.code).toBe(code);
@@ -184,7 +184,7 @@ function repository(name: string): string {
   return folderPath;
 }
 
-describe("the example plugin's denial by name (CR9b-1)", () => {
+describe("the example plugin's denial by name", () => {
   const SECTION = {
     example: { deniedProjectNames: ["denied-repo"], refusedDeliveryProjectNames: [] },
   };
@@ -230,7 +230,7 @@ describe("the example plugin's denial by name (CR9b-1)", () => {
   });
 });
 
-describe("the bad plugins' web codes (S9-19, D16)", () => {
+describe("the bad plugins' web codes", () => {
   test.each(WEB_CASES.map((bad) => [bad.code, bad] as const))("%s", async (code, bad) => {
     const started = await start(bad.serverPlugins, {}, "local");
     if (!started.ok) throw new Error(started.error.message);

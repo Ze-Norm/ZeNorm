@@ -30,7 +30,7 @@ afterEach(async () => {
 
 const REQUEST = { method: "GET", url: "http://zenorm.test/rpc", headers: new Headers() };
 
-describe("core's seams behave as core did before them (S9-17)", () => {
+describe("core's seams behave as core did before them", () => {
   test("identify returns the instance's one local User", () => {
     expect(coreSeams(context.db).identify(REQUEST)).toBe(localUser(context.db).id);
   });
@@ -79,7 +79,7 @@ describe("core's seams behave as core did before them (S9-17)", () => {
   });
 });
 
-describe("wrapped seams (D16)", () => {
+describe("wrapped seams", () => {
   test("two chained admission wrappers both run, the later outermost, core innermost", async () => {
     const calls: string[] = [];
     const recording =

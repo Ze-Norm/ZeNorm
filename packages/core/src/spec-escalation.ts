@@ -9,11 +9,11 @@ import { isDraft, latestOf, readReviews, readSpecRevisions } from "./specs.ts";
 import type { StoredRevision } from "./specs.ts";
 
 /**
- * How many failed reviews a spec takes before its next failed review stops the revise loop (RC4):
+ * How many failed reviews a spec takes before its next failed review stops the revise loop:
  * that review's findings all escalate, so no repair is due. Its `decision` findings go to the
  * person (`personDecides`); its `revise` ones open waypoints their grilling may settle from the
  * map's answers, resolutions and FACTS. Counted per spec since its latest approved revision,
- * across maps, clearings, rejections, notes, rewrites in place (L241) and decision-escalated
+ * across maps, clearings, rejections, notes, rewrites in place and decision-escalated
  * reviews, so nothing resets it.
  */
 export const SPEC_REVIEW_FAILED_CAP = 2;
@@ -27,7 +27,7 @@ export const SPEC_REVIEW_PERSON_CAP = 3;
 /**
  * The failed reviews of the spec's revisions after its latest approved revision before `revision`
  * (all before it when none is approved), `revision`'s own earlier reviews included: a draft
- * rewritten in place (L241) keeps the reviews of the content it replaced. Called before the review
+ * rewritten in place keeps the reviews of the content it replaced. Called before the review
  * being recorded is stored.
  */
 function failedReviewsSinceApproval(db: Reader, revision: StoredRevision): number {
@@ -50,10 +50,10 @@ export interface Escalation {
 }
 
 /**
- * Which of a failing review's findings escalate (S7-8, S7-9, RC4), computed in the transaction
- * recording it from recorded revisions and reviews (no counter, issue 25). None when the revision
+ * Which of a failing review's findings escalate, computed in the transaction
+ * recording it from recorded revisions and reviews (no counter). None when the revision
  * is no longer its spec's latest draft or the map-scope `to_spec` works: that review is saved
- * pinned to its revision and starts nothing (S7-10). Else every finding, to the person, when the
+ * pinned to its revision and starts nothing. Else every finding, to the person, when the
  * spec already failed `SPEC_REVIEW_PERSON_CAP` reviews since its latest approval; else every
  * finding, only the `decision` ones to the person, when it failed `SPEC_REVIEW_FAILED_CAP`; else
  * every `decision` finding, to the person (the `revise` ones stay unescalated, so a repair is due
@@ -117,7 +117,7 @@ export function sameProblem(
 }
 
 /**
- * The waypoint an escalated finding goes to (S7-8, S7-9): the waypoint of an escalated finding of
+ * The waypoint an escalated finding goes to: the waypoint of an escalated finding of
  * the map's earlier reviews raising the same problem (`sameProblem`) while that waypoint is not
  * yet closed (open, or claimed by its grilling), else a new unblocked Grilling waypoint with the
  * finding's title and question, numbered after the map's highest and created by the review run.

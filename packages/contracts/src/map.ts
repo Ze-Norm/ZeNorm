@@ -93,8 +93,8 @@ export function questionRoundDraft(limits: ModelLimits) {
 export type QuestionRoundDraft = z.infer<ReturnType<typeof questionRoundDraft>>;
 
 /**
- * One answer, positional to its question: an option index, the person's words, or both (S6a-9).
- * `accepted` marks option 0 taken through Accept the rest, with no words (spec D5).
+ * One answer, positional to its question: an option index, the person's words, or both. `accepted`
+ * marks option 0 taken through Accept the rest, with no words.
  */
 export const Answer = z.strictObject({
   optionIndex: z.int().min(0).nullable(),
@@ -107,20 +107,20 @@ export type Answer = z.infer<typeof Answer>;
 export const Answers = z.array(Answer);
 export type Answers = z.infer<typeof Answers>;
 
-/** A round is pending until submitted or withdrawn (slice 7b S7b-6, S7b-9). */
+/** A round is pending until submitted or withdrawn. */
 export const RoundStatus = z.enum(["pending", "submitted", "withdrawn"]);
 export type RoundStatus = z.infer<typeof RoundStatus>;
 
 /**
- * Why a pending round was withdrawn (slice 7b D1): its waypoint was reopened, reworded or claimed
- * afresh (`superseded`), or ruled out of scope.
+ * Why a pending round was withdrawn: its waypoint was reopened, reworded or claimed afresh
+ * (`superseded`), or ruled out of scope.
  */
 export const RoundWithdrawnReason = z.enum(["superseded", "waypoint_out_of_scope"]);
 export type RoundWithdrawnReason = z.infer<typeof RoundWithdrawnReason>;
 
 /**
- * A stored question round: on a waypoint, or map-level (`waypointId` null) during charting.
- * Rounds on a waypoint are numbered from 1; map-level rounds are numbered from 1 per map (S6a-8).
+ * A stored question round: on a waypoint, or map-level (`waypointId` null) during charting. Rounds
+ * on a waypoint are numbered from 1; map-level rounds are numbered from 1 per map.
  */
 export const QuestionRound = z.strictObject({
   id: EntityId,
@@ -129,8 +129,8 @@ export const QuestionRound = z.strictObject({
   waypointId: EntityId.nullable(),
   number: z.int().min(1),
   /**
-   * The waypoint's last round (S6a-10), or the destination's last follow-up (DR-1); the first
-   * map-level round is never final (DR-9).
+   * The waypoint's last round, or the destination's last follow-up; the first map-level round is
+   * never final.
    */
   final: z.boolean(),
   status: RoundStatus,
@@ -164,10 +164,10 @@ export const MapRecord = z.strictObject({
   id: EntityId,
   projectId: EntityId,
   idea: MapIdea,
-  /** The first chart's reading of the idea; null until charted (S6a-3). */
+  /** The first chart's reading of the idea; null until charted. */
   title: MapTitle.nullable(),
   summary: MapSummary.nullable(),
-  /** Proposed by the first chart, confirmed by the next (S6a-4); null until charted. */
+  /** Proposed by the first chart, confirmed by the next; null until charted. */
   destination: MapDestination.nullable(),
   /** ISO 8601 UTC; null until the destination is confirmed. */
   destinationConfirmedAt: z.iso.datetime().nullable(),

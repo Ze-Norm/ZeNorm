@@ -3,12 +3,12 @@ import type { CodedError, PluginSummary, Result } from "@zenorm/contracts";
 import { SLOT_NAMES } from "@zenorm/plugin-sdk";
 import type { PluginManifest, SlotName, WebPlugin } from "@zenorm/plugin-sdk";
 
-/** A web plugin's slot key that is not one of the SDK's slots (D16). */
+/** A web plugin's slot key that is not one of the SDK's slots. */
 export type PluginSlotUnknownError = CodedError<"plugin_slot_unknown"> & {
   readonly data: { readonly pluginId: string; readonly slot: string };
 };
 
-/** The web's plugins and the server's differ, by id, version or order (S9-18, D16). */
+/** The web's plugins and the server's differ, by id, version or order. */
 export type PluginSetMismatchError = CodedError<"plugin_set_mismatch"> & {
   readonly data: { readonly web: PluginSummary[]; readonly server: PluginSummary[] };
 };
@@ -26,7 +26,7 @@ function isSlotName(key: string): key is SlotName {
 
 /**
  * The first slot key, in plugin order, that names no SDK slot. TypeScript refuses one at
- * `defineWebPlugin`; this catches a plugin built outside the type check (D16).
+ * `defineWebPlugin`; this catches a plugin built outside the type check.
  */
 export function checkSlotNames(
   plugins: readonly WebPlugin[],
@@ -57,8 +57,8 @@ function describe(list: readonly PluginSummary[]): string {
 
 /**
  * Compares the server's plugin list (`GET /plugins`, composition order) with the web's own: the
- * same ids with the same versions in the same order, since both sides apply plugins in that order
- * (S9-18). Anything else is `plugin_set_mismatch`.
+ * same ids with the same versions in the same order, since both sides apply plugins in that
+ * order. Anything else is `plugin_set_mismatch`.
  */
 export function comparePluginSets(
   server: PluginList,
@@ -126,7 +126,7 @@ export async function fetchPluginList(
 
 /**
  * The web's plugin gate, run before anything renders: the slot keys, then the server's list
- * against the web's own (D16).
+ * against the web's own.
  */
 export async function checkWebPlugins(
   plugins: readonly WebPlugin[],

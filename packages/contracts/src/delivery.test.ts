@@ -99,7 +99,7 @@ describe("DeliveryChecks", () => {
   });
 });
 
-describe("ProjectChecks and SaveProjectSettingsInput (S8-2)", () => {
+describe("ProjectChecks and SaveProjectSettingsInput", () => {
   const PROJECT_ID = "0199b8a0-5c6e-7d2a-9f3b-1a2b3c4d5e70";
 
   test("accepts no checks and ten checks", () => {
@@ -203,7 +203,7 @@ describe("Verdict", () => {
     expect(Verdict.safeParse({ ...verdict, findings }).success).toBe(true);
   });
 
-  test("requires a finding's criterion (S8-11)", () => {
+  test("requires a finding's criterion", () => {
     const withoutCriterion: Record<string, unknown> = { ...finding };
     delete withoutCriterion.criterion;
     expect(issues(Verdict.safeParse({ ...verdict, findings: [withoutCriterion] }))).toEqual([
@@ -318,7 +318,7 @@ describe("DeliveryRun", () => {
     expect(DeliveryRun.safeParse(running).success).toBe(true);
   });
 
-  test("accepts a failed run with its failure, which carries no phase (L44)", () => {
+  test("accepts a failed run with its failure, which carries no phase", () => {
     const failed = {
       ...ended,
       state: "failed",
@@ -334,7 +334,7 @@ describe("DeliveryRun", () => {
     ).toEqual([{ code: "unrecognized_keys", path: ["failure"] }]);
   });
 
-  test("requires the stored phase on every state (S8-10)", () => {
+  test("requires the stored phase on every state", () => {
     for (const run of [running, ended, { ...ended, state: "interrupted" }]) {
       expect(issues(DeliveryRun.safeParse({ ...run, phase: null }))).toEqual([
         { code: "invalid_value", path: ["phase"] },
@@ -342,7 +342,7 @@ describe("DeliveryRun", () => {
     }
   });
 
-  test("names the executor carrying it, never empty (CR9b-6)", () => {
+  test("names the executor carrying it, never empty", () => {
     expect(issues(DeliveryRun.safeParse({ ...ended, executor: undefined }))).toEqual([
       { code: "invalid_type", path: ["executor"] },
     ]);
@@ -352,7 +352,7 @@ describe("DeliveryRun", () => {
     expect(DeliveryRun.safeParse({ ...ended, executor: "example" }).success).toBe(true);
   });
 
-  test("carries its pinned repair limit and attempts, both null on a run from before repairs (C2)", () => {
+  test("carries its pinned repair limit and attempts, both null on a run from before repairs", () => {
     expect(
       DeliveryRun.safeParse({ ...ended, repairLimit: null, repairAttempts: null }).success,
     ).toBe(true);
@@ -367,7 +367,7 @@ describe("DeliveryRun", () => {
     ]);
   });
 
-  test("carries the pull request a passed run opened, or null (C1, 1.3)", () => {
+  test("carries the pull request a passed run opened, or null", () => {
     const pullRequest = {
       number: 12,
       url: "https://github.com/acme/numbers/pull/12",
@@ -387,7 +387,7 @@ describe("DeliveryRun", () => {
     ).toEqual([{ code: "too_small", path: ["pullRequest", "number"] }]);
   });
 
-  test("a run publishing its pull request reads phase publishing (5.4)", () => {
+  test("a run publishing its pull request reads phase publishing", () => {
     expect(DeliveryRun.safeParse({ ...running, phase: "publishing" }).success).toBe(true);
   });
 
@@ -443,7 +443,7 @@ describe("DeliveryRun", () => {
   });
 });
 
-describe("ImplementEvent (D3)", () => {
+describe("ImplementEvent", () => {
   test("accepts a line, a started ticket and a merged ticket", () => {
     for (const event of [
       { kind: "line", who: "orchestrator", ticket: null, text: "Starting." },
@@ -475,7 +475,7 @@ describe("delivery codes", () => {
     }
   });
 
-  test("DeliveryFailureCode carries the publishing step's five codes (C2)", () => {
+  test("DeliveryFailureCode carries the publishing step's five codes", () => {
     for (const code of [
       "delivery_gh_missing",
       "delivery_github_not_signed_in",
@@ -488,7 +488,7 @@ describe("delivery codes", () => {
     }
   });
 
-  test("delivery.start refuses in the demo's blocker order (S8-3)", () => {
+  test("delivery.start refuses in its blocker order", () => {
     expect(StartDeliveryErrorCode.options).toEqual([
       "ticket_set_not_found",
       "ticket_set_not_approved",
@@ -520,7 +520,7 @@ describe("delivery codes", () => {
   });
 });
 
-describe("checkNeedsShell (L197 item 9)", () => {
+describe("checkNeedsShell", () => {
   test.each(["pnpm test", "node --test", "git status --short", "pnpm --filter @zenorm/web test"])(
     "%j runs without a shell",
     (command) => {
@@ -559,7 +559,7 @@ describe("checkNeedsShell (L197 item 9)", () => {
   });
 });
 
-describe("cutAgentText (D4, L197 item 4)", () => {
+describe("cutAgentText", () => {
   test("keeps a text that fits and cuts a longer one to max with an ellipsis", () => {
     expect(cutAgentText("abc", 3)).toBe("abc");
     expect(cutAgentText("abcdef", 4)).toBe("abc…");

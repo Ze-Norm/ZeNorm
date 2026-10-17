@@ -22,8 +22,8 @@ import { expect, test } from "./worker-server.ts";
 /**
  * Runs on its own project (`deliveryRunsRepo()`). Each scenario uses a new map and saves
  * the project's required checks and a repair limit of 0 through `project.saveSettings` before it
- * starts (slice 8 S8-3).
- * Run states are read from `map.overview`'s `spec.runs`, the one read every page shares (S8-14).
+ * starts.
+ * Run states are read from `map.overview`'s `spec.runs`, the one read every page shares.
  */
 const SPEC_SLUG = "export-data-as-csv";
 const PASSING_CHECK = "git status --short";
@@ -91,7 +91,7 @@ function checkResult(page: Page, command: string) {
     .filter({ hasText: command });
 }
 
-/** The Runs list's link to run `number`; listed from the second run (slice 8 D9). */
+/** The Runs list's link to run `number`; listed from the second run. */
 function runLink(page: Page, number: number) {
   return page
     .getByRole("region", { name: "Runs of this spec from this map" })
@@ -161,7 +161,7 @@ test("delivers an approved ticket set: cancels run 1, then run 2 passes", async 
   await withChecks(page, mapId, [PASSING_CHECK, PRINTING_CHECK]);
   expect((await specRun(page, mapId, 1)).checks).toEqual([PASSING_CHECK, SLOW_CHECK]);
   const started2 = await startDelivery(page, "Start again from clean");
-  // The branch names the spec by the last 8 characters of its id (S7-22).
+  // The branch names the spec by the last 8 characters of its id.
   const { branch } = started2;
   expect(branch).toMatch(new RegExp(`^zenorm/${SPEC_SLUG}-[0-9a-f]{8}-run-2$`));
 
@@ -224,7 +224,7 @@ test("delivers an approved ticket set: cancels run 1, then run 2 passes", async 
   await expect(runLink(page, 2)).toHaveAttribute("aria-current", "page");
 });
 
-test("a check failing after the executor exits is repaired once, and the run passes (C2, C3)", async ({
+test("a check failing after the executor exits is repaired once, and the run passes", async ({
   page,
 }) => {
   // The marker holds the stand-in's repair attempt until the release file exists.

@@ -16,11 +16,11 @@ import type {
 import type { AccessDeniedError } from "@zenorm/contracts";
 import { accessDeniedSentence } from "@/lib/access";
 
-/** The Delivery stage's sentences, each chosen by a code or a state (spec D8; ledger L100). */
+/** The Delivery stage's sentences, each chosen by a code or a state. */
 
 /**
- * `project_checks_missing`'s words in a start refusal (slice 8 D7), where no link follows; a card
- * or alert that links Project settings says only the fact (`blockerSentence`, UX audit A2).
+ * `project_checks_missing`'s words in a start refusal, where no link follows; a card or alert
+ * that links Project settings says only the fact (`blockerSentence`).
  */
 const CHECKS_MISSING = "The project has no required checks. Set them in project settings.";
 const CHECKS_MISSING_FACT = "The project has no required checks.";
@@ -29,7 +29,7 @@ const CHECKS_MISSING_FACT = "The project has no required checks.";
 const REPAIR_LIMIT_MISSING = "The project has no repair limit. Set one in project settings.";
 const REPAIR_LIMIT_MISSING_FACT = "The project has no repair limit.";
 
-/** `delivery_in_progress`'s words (slice 8 D7, ruling 5), naming the active run's spec. */
+/** `delivery_in_progress`'s words, naming the active run's spec. */
 function activeRunSentence(activeRun: ActiveRun): string {
   return `“${activeRun.specTitle}” already has an active run in this project.`;
 }
@@ -67,7 +67,7 @@ export function startRefusalMessage(error: StartDeliveryError | AccessDeniedErro
     case "delivery_branch_exists":
       return `The branch ${error.data.branch} already exists in the project's repository.`;
     case "delivery_not_admitted":
-      // The refusing admission wrapper's own sentence (S9-17).
+      // The refusing admission wrapper's own sentence.
       return error.data.reason;
   }
 }
@@ -84,7 +84,7 @@ export function cancelRefusalMessage(error: CancelDeliveryError | AccessDeniedEr
 }
 
 /**
- * Why Start delivery is unavailable, one sentence per blocker (spec D3, D6, D8): the one source
+ * Why Start delivery is unavailable, one sentence per blocker: the one source
  * for the project page's alert and the next-action card, both of which link Project settings
  * beside the checks sentence.
  */
@@ -107,15 +107,15 @@ export function blockerSentence(blocker: StartDeliveryBlocker, project: Project)
 }
 
 /**
- * What a running run is doing and how far it has got (D9, the demo's `runProgress`): from its
- * stored phase, its merged tickets and its stored check results, as core words the stage line.
+ * What a running run is doing and how far it has got: from its stored phase, its merged tickets and
+ * its stored check results, as core words the stage line.
  */
 export function runProgress(run: SpecRun): { doing: string; progress: string } {
   switch (run.phase) {
     case "preparing":
       return { doing: "Preparing the run", progress: "creating the branch" };
     case "implementing": {
-      // Back in implementing for a repair attempt (C3): the attempt, not the tickets.
+      // Back in implementing for a repair attempt: the attempt, not the tickets.
       if (run.repairAttempts !== null && run.repairAttempts > 0 && run.repairLimit !== null) {
         const failing = required(run.checkResults, "check results", run).filter(
           (result) => checkOutcome(result) !== "passed",
@@ -152,7 +152,7 @@ export function runProgress(run: SpecRun): { doing: string; progress: string } {
   }
 }
 
-/** An ended run's headline (the demo's `endedHeadline`); a merged run is delivered. */
+/** An ended run's headline; a merged run is delivered. */
 export function endedHeadline(run: DeliveryRun): string {
   switch (run.state) {
     case "passed":
@@ -175,7 +175,7 @@ export function endedHeadline(run: DeliveryRun): string {
 }
 
 /**
- * A failed run's one sentence (UX audit P1-1): the first line of its stored failure message, as
+ * A failed run's one sentence: the first line of its stored failure message, as
  * core's `deliveryFailureWords` reads it for the next action's detail (the web cannot import
  * core). The agent's messages carry a stderr tail after that line, which `failureDetail` keeps for
  * the run's head to show on request.
@@ -213,7 +213,7 @@ export function markMergedRefusalMessage(error: MarkMergedError | AccessDeniedEr
   }
 }
 
-/** The sentence shown beside Check now for a `delivery.checkPullRequest` refusal, by its code (C4). */
+/** The sentence shown beside Check now for a `delivery.checkPullRequest` refusal, by its code. */
 export function checkPullRequestRefusalMessage(
   error: CheckPullRequestError | AccessDeniedError,
 ): string {
@@ -232,7 +232,7 @@ export function checkPullRequestRefusalMessage(
   }
 }
 
-/** The word a pull request's state shows as on Delivery (C5). */
+/** The word a pull request's state shows as on Delivery. */
 export function pullRequestStateWord(state: PullRequestState): string {
   switch (state) {
     case "open":

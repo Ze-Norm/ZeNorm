@@ -24,8 +24,8 @@ function stateBadge(run: DeliveryRun): BadgeVariant {
 }
 
 /**
- * "Runs of this spec from this map" (slice 8 D9, the demo's run list): every run of the spec,
- * newest first, each opened by `?run=`; the page shows it once the spec has a second run.
+ * "Runs of this spec from this map": every run of the spec, newest first, each opened by `?run=`;
+ * the page shows it once the spec has a second run.
  */
 export function RunList({
   mapId,

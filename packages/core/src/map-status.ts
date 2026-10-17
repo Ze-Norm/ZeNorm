@@ -39,14 +39,14 @@ import {
 import type { ClearingInput, RunOutcomes } from "./planning-runs.ts";
 import type { StoredPass } from "./wayfinding-records.ts";
 
-/** A revision's planning review as the status reads it (D8): an escalated one sent a finding on. */
+/** A revision's planning review as the status reads it: an escalated one sent a finding on. */
 export type StatusReview = "pending" | "passed" | "findings" | "escalated";
 
 /** One revision of a spec on this map, as the status reads it. */
 export interface StatusRevision {
   /** Its number on the spec, from 1, whichever map wrote the earlier ones. */
   readonly revision: number;
-  /** How many clauses (behaviours) the revision has (L135 (a)). */
+  /** How many clauses (behaviours) the revision has. */
   readonly clauses: number;
   readonly approvedAt: string | null;
   /** When the revision was rejected or superseded; null while it stands. */
@@ -59,23 +59,23 @@ export interface StatusTicketSet {
   /** How many tickets its current version has. */
   readonly tickets: number;
   readonly approvedAt: string | null;
-  /** Its current version's tickets review, from `ticketSetReview` (slice 7c D11, L171 (c)). */
+  /** Its current version's tickets review, from `ticketSetReview`. */
   readonly review: TicketSetReview | null;
   /**
    * Whether an earlier revision of the spec was approved (on any map): its tickets are then "new
-   * tickets" (D9, the demo's `revisionBefore`; a rejected revision is not one the code was built on).
+   * tickets" (a rejected revision is not one the code was built on).
    */
   readonly follows: boolean;
   /**
-   * Unapproved while a later revision of the spec stands (S8b-9): it is never approved, and its
+   * Unapproved while a later revision of the spec stands: it is never approved, and its
    * stages read "Replaced by a later revision" before its review.
    */
   readonly replaced: boolean;
-  /** Whether its current version carries any criterion as `delivered` (D9). */
+  /** Whether its current version carries any criterion as `delivered`. */
   readonly anyDelivered: boolean;
 }
 
-/** One spec the map wrote a revision of (D7, D8). */
+/** One spec the map wrote a revision of. */
 export interface StatusSpec {
   readonly id: string;
   readonly number: number;
@@ -85,17 +85,17 @@ export interface StatusSpec {
   readonly ticketSet: StatusTicketSet | null;
   /**
    * Whether its `to_tickets` has work left (`toTicketsDue`): false once its set is approved, so a
-   * stopped rewrite of a set approved since drives no status or Try again (S7-18, L137 (1)).
+   * stopped rewrite of a set approved since drives no status or Try again.
    */
   readonly ticketsDue: boolean;
   /**
-   * The delivery runs of its approved revision's set, newest first (slice 8b D9, the demo's
-   * `runsOn`): a run pinned to another map's revision is not this map's.
+   * The delivery runs of its approved revision's set, newest first: a run pinned to another map's
+   * revision is not this map's.
    */
   readonly runs: readonly StatusRun[];
 }
 
-/** One delivery run as the status reads it (slice 8 D7). */
+/** One delivery run as the status reads it. */
 export type StatusRun = Pick<
   SpecRun,
   | "number"
@@ -114,7 +114,7 @@ export type StatusRun = Pick<
 >;
 
 /**
- * What `mapStatus` reads (slice 6a spec D8): the map, its rounds, waypoints, blockers and planning
+ * What `mapStatus` reads: the map, its rounds, waypoints, blockers and planning
  * runs, its spec revisions and ticket sets, and its delivery runs.
  */
 export interface MapStatusInput {
@@ -133,23 +133,23 @@ export interface MapStatusInput {
   readonly blockers: readonly { waypointNumber: number; blockerNumber: number }[];
   /** The map's planning runs, oldest first: the map's, its waypoints' and its specs' scopes. */
   readonly planningRuns: readonly PlanningRun[];
-  /** The specs the map wrote a revision of, by number (D7). */
+  /** The specs the map wrote a revision of, by number. */
   readonly specs: readonly StatusSpec[];
   /** The map's project's blockers, in `delivery.start`'s order. */
   readonly startDeliveryBlockers: readonly StartDeliveryBlocker[];
-  /** The map's project's active run, which `delivery_in_progress`'s words name (ruling 5). */
+  /** The map's project's active run, which `delivery_in_progress`'s words name. */
   readonly activeRun: ActiveRun | null;
-  /** The map's research reports and task outcomes, which a waiting waypoint's run left (S6b-6). */
+  /** The map's research reports and task outcomes, which a waiting waypoint's run left. */
   readonly runOutcomes: RunOutcomes;
-  /** How many fog items the map has (S6b-10). */
+  /** How many fog items the map has. */
   readonly fogCount: number;
-  /** The map's consistency passes, oldest first (S6b-11). */
+  /** The map's consistency passes, oldest first. */
   readonly passes: readonly Pick<StoredPass, "compared">[];
-  /** The map's open waits and released ones whose revision it has not written (slice 8b D9). */
+  /** The map's open waits and released ones whose revision it has not written. */
   readonly waits: readonly SpecWaitView[];
 }
 
-/** A map's clearing and its own runs, as the status reads them (D6). */
+/** A map's clearing and its own runs, as the status reads them. */
 type ClearingFields = Pick<
   MapStatusInput,
   "map" | "waypoints" | "rounds" | "planningRuns" | "fogCount" | "passes"
@@ -164,7 +164,7 @@ export interface ReachedRun {
   readonly outcome: DeliveryOutcome;
 }
 
-/** One spec the map wrote a revision of, as `reachedStage` reads it (D7). */
+/** One spec the map wrote a revision of, as `reachedStage` reads it. */
 export interface ReachedSpec {
   readonly id: string;
   readonly number: number;
@@ -205,11 +205,10 @@ function later(line: string): Evaluated {
 const NOTHING = { round: null, stopped: null, waiting: null, onMap: null };
 
 /**
- * The button of each action that is the person's (S7b-16), as the demo names them
- * (`prototypes/web-workspace-demo/src/demo/derive.ts` 643–773; Try again is slice 6a's). An action
- * that is not the person's has none (L147 Q2). `openDelivery` is an interrupted delivery run's, a state
- * the demo has no row for: it is cancelled on the Delivery page before delivery starts again.
- * `mergePullRequest` is a passed run's that opened a pull request (C5): it opens Delivery.
+ * The button of each action that is the person's. An action that is not the person's has none.
+ * `openDelivery` is an interrupted delivery run's: it is cancelled on the Delivery page before
+ * delivery starts again.
+ * `mergePullRequest` is a passed run's that opened a pull request: it opens Delivery.
  */
 export const ACTION_LABELS = {
   answer: "Answer",
@@ -242,7 +241,7 @@ function needsYou(
 
 /**
  * A stopped scope's next action: its **Try again** acts on the failed retry, and its detail says
- * why the run stopped, by its code and the run's purpose (UX audit P1-1).
+ * why the run stopped, by its code and the run's purpose.
  */
 function stoppedAction(
   headline: string,
@@ -269,14 +268,13 @@ function agent(headline: string): Action {
   return { who: "agent", label: null, headline, detail: null, ...NOTHING };
 }
 
-/** What nobody acts on: a stage resting on a fact (slice 8b D9). */
+/** What nobody acts on: a stage resting on a fact. */
 function nobody(headline: string, detail: string | null): Action {
   return { who: "nobody", label: null, headline, detail, ...NOTHING };
 }
 
 /**
- * A wait action's detail by its live hold's kind, H the holding map (slice 8b D16, the "Wait action
- * detail" row; the demo's `waitAction` gains "and its tickets are written", deviation 3).
+ * A wait action's detail by its live hold's kind, H the holding map.
  */
 export const WAIT_DETAIL: Record<SpecHoldKind, (holder: string) => string> = {
   revision: (holder) =>
@@ -294,7 +292,7 @@ export function plural(count: number, word: string): string {
   return `${String(count)} ${word}${count === 1 ? "" : "s"}`;
 }
 
-/** The map's own runs (L27), oldest first. */
+/** The map's own runs, oldest first. */
 function mapScope(input: Pick<MapStatusInput, "planningRuns">): readonly PlanningRun[] {
   return scopeRuns(input.planningRuns, null);
 }
@@ -314,7 +312,7 @@ function stoppedChart(input: MapStatusInput): StoppedRun | null {
   return scope.at(-1)?.purpose === "chart" ? stoppedRun(scope) : null;
 }
 
-/** The map's stopped `consistency` run (its scope is the map's, S6b-12), or null. */
+/** The map's stopped `consistency` run (its scope is the map's), or null. */
 function stoppedConsistency(input: MapStatusInput): StoppedRun | null {
   const scope = mapScope(input);
   return scope.at(-1)?.purpose === "consistency" ? stoppedRun(scope) : null;
@@ -357,14 +355,14 @@ const STOPPED_WORDS: Record<WaypointKind, (title: string) => string> = {
   task: (title) => `Working the task “${title}” failed.`,
 };
 
-/** A working waypoint scope's agent entry (D7), by the waypoint's kind. */
+/** A working waypoint scope's agent entry, by the waypoint's kind. */
 const WORKING_WORDS: Record<WaypointKind, (title: string) => string> = {
   grilling: (title) => `The agent is working “${title}”.`,
   research: (title) => `The agent is researching “${title}”.`,
   task: (title) => `The agent is working the task “${title}”.`,
 };
 
-/** A waiting waypoint's headline and detail (D7): the report's gap or the failed task's facts. */
+/** A waiting waypoint's headline and detail: the report's gap or the failed task's facts. */
 function waitingWords(
   title: string,
   waiting: WaitingRun,
@@ -406,7 +404,7 @@ function cleared(input: MapStatusInput): boolean {
   return isCleared(clearingOf(input));
 }
 
-/** Idea (D8): working during the first chart and its retry, needs-you if it stopped, else done. */
+/** Idea: working during the first chart and its retry, needs-you if it stopped, else done. */
 function idea(input: MapStatusInput): Evaluated {
   if (input.map.title !== null) {
     return done("Captured");
@@ -430,7 +428,7 @@ function idea(input: MapStatusInput): Evaluated {
   throw new Error("A map with no title has no chart running or stopped");
 }
 
-/** Whether a scope's runs, oldest first, show a run running or awaiting its retry (spec D4). */
+/** Whether a scope's runs, oldest first, show a run running or awaiting its retry. */
 function scopeWorking(runs: readonly PlanningRun[]): boolean {
   const latest = runs.at(-1);
   return (
@@ -445,7 +443,7 @@ function wayfindingWaits(map: MapStatusInput["map"]): string | null {
 }
 
 /**
- * Wayfinding (6a D8, 6b D7): later while the map has no title; then needs-you if any round is
+ * Wayfinding: later while the map has no title; then needs-you if any round is
  * pending, any `chart`, `survey`, waypoint, `fog` or `consistency` scope is stopped, or any waypoint waits on
  * the person; else working while a `chart`, `survey`, waypoint, `fog` or `consistency` run runs or awaits
  * its retry;
@@ -458,7 +456,7 @@ function wayfinding(input: MapStatusInput): Evaluated {
   if (waits !== null) {
     return later(waits);
   }
-  // n excludes out-of-scope waypoints (D8; D5: neither compared nor counted).
+  // n excludes out-of-scope waypoints (neither compared nor counted).
   const total = input.waypoints.filter((waypoint) => waypoint.status !== "out_of_scope").length;
   const resolved = input.waypoints.filter((waypoint) => waypoint.status === "resolved").length;
   const progress = `${String(resolved)} of ${String(total)} resolved`;
@@ -471,7 +469,7 @@ function wayfinding(input: MapStatusInput): Evaluated {
     answer.push({
       who: "you",
       label: ACTION_LABELS.answer,
-      // DR-19: the last round confirms; any earlier one may bring a follow-up.
+      // The last round confirms; any earlier one may bring a follow-up.
       headline: isLastMapRound(destinationRound)
         ? "Confirm the destination."
         : `Answer destination round ${String(destinationRound.number)}.`,
@@ -487,7 +485,7 @@ function wayfinding(input: MapStatusInput): Evaluated {
       (candidate) => candidate.waypointId === waypoint.id && candidate.status === "pending",
     );
     if (round === undefined) continue;
-    // Direct dependents only (L106).
+    // Direct dependents only.
     const unblocks = input.blockers.filter(
       (blocker) => blocker.blockerNumber === waypoint.number,
     ).length;
@@ -591,7 +589,7 @@ function wayfinding(input: MapStatusInput): Evaluated {
   throw new Error("A charted map that is not cleared has no round, stopped scope or run");
 }
 
-/** What every spec's stages read of the map: its clearing and its own `to_spec` (D6, L121). */
+/** What every spec's stages read of the map: its clearing and its own `to_spec`. */
 interface SpecContext {
   readonly clearing: ClearingInput;
   readonly cleared: boolean;
@@ -615,7 +613,7 @@ function specContext(input: ClearingFields): SpecContext {
   return { clearing, cleared: isCleared(clearing), mapDraft };
 }
 
-/** A spec's own scope (D8): `working` or stopped, with the purpose of its latest run; else null. */
+/** A spec's own scope: `working` or stopped, with the purpose of its latest run; else null. */
 function specScope(
   planningRuns: readonly PlanningRun[],
   spec: Pick<StatusSpec, "id">,
@@ -627,7 +625,7 @@ function specScope(
   if (latest === undefined || shown === null) {
     return null;
   }
-  // A stopped run superseded under S7-26 drives no status or Try again (L121, L127 (1)).
+  // A stopped run superseded by the clearing drives no status or Try again.
   if (shown !== "working" && isSupersededStop(latest, context.clearing)) {
     return null;
   }
@@ -670,7 +668,7 @@ function stoppedSpecScope(purpose: PlanningRun["purpose"], stopped: StoppedRun):
 const REVISING = working("Agent is revising", "The agent is revising the spec.");
 
 /**
- * Why one spec's Spec stage is not reached yet (later), or null when it is (D8): an unapproved
+ * Why one spec's Spec stage is not reached yet (later), or null when it is: an unapproved
  * revision with no review or repair on it, while the map's re-clear does not write, waits on
  * Wayfinding when its findings escalated or the map is not cleared.
  */
@@ -690,14 +688,13 @@ function specStageWaits(
   if (latest.review === "escalated") {
     return "Review findings went to Wayfinding";
   }
-  // No revision of an un-cleared map is approved or rejected (S7-10). The line is the demo's
-  // for a spec waiting on the map (`prototypes/web-workspace-demo/src/demo/derive.ts`, L129).
+  // No revision of an un-cleared map is approved or rejected: the spec waits on the map.
   return context.cleared ? null : "Waits on wayfinding";
 }
 
 /**
- * One spec's Spec stage (D8): approved is done; its review or repair working; a stopped review or
- * repair (unless superseded, S7-26) needs you with Try again; every unapproved spec is revised while
+ * One spec's Spec stage: approved is done; its review or repair working; a stopped review or
+ * repair (unless superseded) needs you with Try again; every unapproved spec is revised while
  * the map's re-clear writes; escalated findings wait on Wayfinding; any other draft on an
  * un-cleared map waits on Wayfinding; a draft whose review passed awaits your approval.
  */
@@ -729,11 +726,11 @@ function specStage(input: MapStatusInput, spec: StatusSpec, context: SpecContext
   // Escalated findings and an un-cleared map are later (`specStageWaits`).
   if (context.mapDraft !== "idle") {
     // The map's stopped re-clear writes the next revision, so even a passed draft is not offered
-    // for approval (S7-10, L138); its Try again is the map's.
+    // for approval; its Try again is the map's.
     return { tone: "idle", line: "Waits on the next revision", actions: [] };
   }
   if (latest.supersededAt === null && latest.review === "passed") {
-    // "Revised" past the spec's first revision, whichever map wrote it (the demo's `revisionBefore`).
+    // "Revised" past the spec's first revision, whichever map wrote it.
     const revised = latest.revision > 1;
     return needsYou(
       "Awaiting your approval",
@@ -742,23 +739,23 @@ function specStage(input: MapStatusInput, spec: StatusSpec, context: SpecContext
       revised ? ACTION_LABELS.approveRevision : ACTION_LABELS.approveSpec,
     );
   }
-  // A review, repair or re-clear starts in the transaction that makes it due (D6).
+  // A review, repair or re-clear starts in the transaction that makes it due.
   throw new Error(
     `Spec ${String(spec.number)}'s draft has no review, repair or approval to wait on`,
   );
 }
 
-/** The latest approved revision of a spec on this map (S8b-8), or undefined. */
+/** The latest approved revision of a spec on this map, or undefined. */
 function approvedRevision(spec: Pick<StatusSpec, "revisions">): StatusRevision | undefined {
   return spec.revisions.filter((revision) => revision.approvedAt !== null).at(-1);
 }
 
-/** A replaced set's line (S8b-9), which no demo state has (D9). */
+/** A replaced set's line. */
 const REPLACED = "Replaced by a later revision";
 
 /**
- * A set's count (D9, the demo's `specStageStatus`): "No new tickets" when it has none, else its
- * tickets, "new ticket(s)" past the spec's first revision.
+ * A set's count: "No new tickets" when it has none, else its tickets, "new ticket(s)" past the
+ * spec's first revision.
  */
 function ticketCount(set: StatusTicketSet): string {
   return set.tickets === 0
@@ -767,7 +764,7 @@ function ticketCount(set: StatusTicketSet): string {
 }
 
 /**
- * The set a review repair rewrites when spec's latest `to_tickets` is one (slice 7c D5, L175): it
+ * The set a review repair rewrites when spec's latest `to_tickets` is one: it
  * carries no hatch message and the set's current version failed a review that is not held; else
  * null. A first `to_tickets` has no set, a rejection rewrite follows a passed review, and a note
  * rewrite carries its message.
@@ -786,9 +783,9 @@ function repairOf(input: MapStatusInput, spec: StatusSpec): StatusTicketSet | nu
 }
 
 /**
- * Why one spec's Tickets stage is not reached yet (later), or null when it is (D8, S8b-8): no
+ * Why one spec's Tickets stage is not reached yet (later), or null when it is: no
  * revision of the map is approved, or the map's later revision awaits approval; a replaced set is
- * reached (S8b-9).
+ * reached.
  */
 function ticketsWaits(
   spec: Pick<ReachedSpec, "number" | "revisions" | "ticketSet">,
@@ -803,19 +800,20 @@ function ticketsWaits(
 }
 
 /**
- * One spec's Tickets stage (D8, slice 7c D6): waits on the spec until approved; `to_tickets`
- * working (a review repair reads the review's findings), or stopped with Try again (not superseded by the clearing, L127 (1); a stop whose set was
- * approved since is, L137 (1)); the set approved is done, with or without a review (Existing
- * Records); else by its review: pending or running is the agent's, stopped needs you with Try
- * again, passed awaits your approval, held needs you to tell the agent how to fix it.
+ * One spec's Tickets stage: waits on the spec until approved; `to_tickets` working (a review
+ * repair reads the review's findings), or stopped with Try again (not superseded by the clearing;
+ * a stop whose set was approved since is); the set approved is done, with or without a review (a
+ * set approved before tickets reviews has none); else by its review: pending or running is the
+ * agent's, stopped needs you with Try again, passed awaits your approval, held needs you to tell
+ * the agent how to fix it.
  */
 function ticketsStage(input: MapStatusInput, spec: StatusSpec, context: SpecContext): Evaluated {
-  // No approved revision, or the map's later revision awaits approval (S8b-8).
+  // No approved revision, or the map's later revision awaits approval.
   const waits = ticketsWaits(spec);
   if (waits !== null) {
     return later(waits);
   }
-  // A replaced set reads so before its review, so a held replaced set never asks you (S8b-9).
+  // A replaced set reads so before its review, so a held replaced set never asks you.
   if (spec.ticketSet?.replaced === true) {
     return {
       tone: "idle",
@@ -840,7 +838,7 @@ function ticketsStage(input: MapStatusInput, spec: StatusSpec, context: SpecCont
   }
   const set = spec.ticketSet;
   if (set === null) {
-    // `to_tickets` starts in the transaction approving the spec (D6).
+    // `to_tickets` starts in the transaction approving the spec.
     throw new Error(`Approved spec ${String(spec.number)} has no ticket set and no to_tickets`);
   }
   const count = ticketCount(set);
@@ -854,7 +852,7 @@ function ticketsStage(input: MapStatusInput, spec: StatusSpec, context: SpecCont
   switch (review.state) {
     case "pending":
     case "running":
-      // The review starts in the transaction writing the version (S7c-2).
+      // The review starts in the transaction writing the version.
       return working(
         `${count} · tickets review running`,
         "The tickets review is checking the tickets.",
@@ -862,8 +860,7 @@ function ticketsStage(input: MapStatusInput, spec: StatusSpec, context: SpecCont
     case "stopped":
       return stoppedSpecScope("tickets_review", review.stopped);
     case "passed":
-      // A reviewed set with no tickets is confirmed, not approved (S8b-15, the demo's
-      // `specNextAction`).
+      // A reviewed set with no tickets is confirmed, not approved.
       return set.tickets === 0
         ? needsYou(
             `${count} · awaiting approval`,
@@ -880,7 +877,7 @@ function ticketsStage(input: MapStatusInput, spec: StatusSpec, context: SpecCont
     case "findings": {
       const escalated = review.findings.find((finding) => finding.escalated);
       if (!review.held || escalated === undefined) {
-        // A failed, unheld review starts its repair in the transaction recording it (S7c-4), so
+        // A failed, unheld review starts its repair in the transaction recording it, so
         // its spec scope's latest run is that repair: working, or stopped with Try again (its
         // tickets are due, `toTicketsDue`), both read above. A reopen or un-clear cancels neither.
         throw new Error(
@@ -898,8 +895,8 @@ function ticketsStage(input: MapStatusInput, spec: StatusSpec, context: SpecCont
 }
 
 /**
- * A run's name (D7, the demo's `runName`): "Delivery run" ("The delivery run" at the start of a
- * sentence) until the spec has a second run, then "Run n".
+ * A run's name: "Delivery run" ("The delivery run" at the start of a sentence) until the spec has
+ * a second run, then "Run n".
  */
 export function runName(run: Pick<StatusRun, "number">, sentenceStart: boolean): string {
   if (run.number > 1) {
@@ -909,8 +906,8 @@ export function runName(run: Pick<StatusRun, "number">, sentenceStart: boolean):
 }
 
 /**
- * What an active run is doing and how far it has got (D7, the demo's `runProgress`), from its
- * stored phase, its merged tickets and its stored check results. Lines never decide it (S8-9).
+ * What an active run is doing and how far it has got, from its stored phase, its merged tickets
+ * and its stored check results. Lines never decide it.
  */
 function runProgress(run: StatusRun): { doing: string; progress: string } {
   switch (run.phase) {
@@ -929,7 +926,7 @@ function runProgress(run: StatusRun): { doing: string; progress: string } {
       };
     }
     case "verifying": {
-      // Each check's result is stored as it finishes (D5): none stored yet is none passed.
+      // Each check's result is stored as it finishes: none stored yet is none passed.
       const passed = run.checkResults === null ? 0 : run.checkResults.filter(checkPassed).length;
       return {
         doing: "Rerunning the required checks",
@@ -953,7 +950,7 @@ function withFirst(words: string, letter: "lower" | "upper"): string {
 }
 
 /**
- * A start blocker's line on the rail (UX audit A4): a few words, as the rail's cell truncates; the
+ * A start blocker's line on the rail: a few words, as the rail's cell truncates; the
  * next-action card carries the full sentence (`blockerWords`) and the way past it.
  */
 function blockerLine(blocker: StartDeliveryBlocker): string {
@@ -972,9 +969,8 @@ function blockerLine(blocker: StartDeliveryBlocker): string {
 }
 
 /**
- * A start blocker's words (slice 5; slice 8 D7, the demo's `deliveryBlockers`): the active run's
- * spec title names the run in progress, so `delivery_in_progress` without one is a programmer
- * error.
+ * A start blocker's words: the active run's spec title names the run in progress, so
+ * `delivery_in_progress` without one is a programmer error.
  */
 function blockerWords(blocker: StartDeliveryBlocker, activeRun: ActiveRun | null): string {
   switch (blocker) {
@@ -1003,11 +999,10 @@ function reachedRun(run: Pick<StatusRun, "mergedAt" | "state">): ReachedRun {
 }
 
 /**
- * Why one spec's Delivery stage is not reached yet (later), or null when it is (slice 8 D7): no
- * approved set; or, while the map's later revision awaits approval (S8b-8, the demo reads the
- * latest revision's set), nothing offers to start a run of the approved set, so no run with
- * tickets to deliver, or an unmerged blocked, failed or cancelled one, waits on the tickets. A
- * replaced set is reached (S8b-9). `latest` is the spec's latest run, if any.
+ * Why one spec's Delivery stage is not reached yet (later), or null when it is: no approved set;
+ * or, while the map's later revision awaits approval, nothing offers to start a run of the approved
+ * set, so no run with tickets to deliver, or an unmerged blocked, failed or cancelled one, waits on
+ * the tickets. A replaced set is reached. `latest` is the spec's latest run, if any.
  */
 function deliveryWaits(
   spec: Pick<ReachedSpec, "number" | "revisions" | "ticketSet">,
@@ -1033,14 +1028,12 @@ function deliveryWaits(
 }
 
 /**
- * One spec's Delivery stage (slice 8 D7, the demo's `specStageStatus` and `specNextAction`), from
- * its latest run: none waits on a start blocker or awaits Start delivery; a merged run is done; a
- * running one is the agent's; a passed one awaits Merge PR when it opened a pull request (C5),
- * else Mark merged; an interrupted one Open Delivery
- * (slice 5); a blocked, failed or cancelled one Start again from clean. A spec whose own run is the
- * project's active one shows that run, never the blocker. While the map's later revision awaits
- * approval, nothing offers to start a run: no run, or a blocked, failed or cancelled one, waits on
- * the tickets.
+ * One spec's Delivery stage, from its latest run: none waits on a start blocker or awaits Start
+ * delivery; a merged run is done; a running one is the agent's; a passed one awaits Merge PR when
+ * it opened a pull request, else Mark merged; an interrupted one Open Delivery; a blocked, failed
+ * or cancelled one Start again from clean. A spec whose own run is the project's active one shows
+ * that run, never the blocker. While the map's later revision awaits approval, nothing offers to
+ * start a run: no run, or a blocked, failed or cancelled one, waits on the tickets.
  */
 function deliveryStage(input: MapStatusInput, spec: StatusSpec): Evaluated {
   const run = spec.runs[0];
@@ -1080,7 +1073,7 @@ function deliveryStage(input: MapStatusInput, spec: StatusSpec): Evaluated {
   }
   const name = runName(run, false);
   const Name = runName(run, true);
-  // A merged run is a passed one Mark merged recorded (S8-5).
+  // A merged run is a passed one Mark merged recorded.
   if (run.mergedAt !== null) {
     return done(`${name} merged`);
   }
@@ -1112,7 +1105,7 @@ function deliveryStage(input: MapStatusInput, spec: StatusSpec): Evaluated {
         throw new Error(`${name} passed without a final commit`);
       }
       if (run.pullRequest !== null && run.pullRequest.state === "closed") {
-        // Closed unmerged: no longer checked on the timer; Check now reads a reopen (C4).
+        // Closed unmerged: no longer checked on the timer; Check now reads a reopen.
         return needsYou(
           `${name} passed · pull request closed`,
           `${Name} passed. Its pull request was closed on GitHub.`,
@@ -1150,7 +1143,7 @@ function deliveryStage(input: MapStatusInput, spec: StatusSpec): Evaluated {
       if (run.failure === null) {
         throw new Error(`${name} failed without a stored failure`);
       }
-      // The sentence the run's head shows, never the code (UX audit P1-1).
+      // The sentence the run's head shows, never the code.
       return needsYou(
         `${name} failed`,
         `${Name} failed.`,
@@ -1172,9 +1165,9 @@ function deliveryStage(input: MapStatusInput, spec: StatusSpec): Evaluated {
 type PerSpec = readonly { readonly spec: number; readonly evaluated: Evaluated }[];
 
 /**
- * A stage across several specs (D8, the demo's `specsStageStatus`): one spec reads as its own;
- * several read "k of n specs done", plus the first needs-you spec's line, else the first working
- * one's; all done is done; all later reads as the first; else idle.
+ * A stage across several specs: one spec reads as its own; several read "k of n specs done", plus
+ * the first needs-you spec's line, else the first working one's; all done is done; all later reads
+ * as the first; else idle.
  */
 function acrossSpecs(perSpec: PerSpec): { tone: StageTone; line: string } {
   const [first] = perSpec;
@@ -1222,10 +1215,10 @@ function fromSpecs(perSpec: PerSpec): StageEvaluation {
   };
 }
 
-/** A wait the map's Spec stage reads (slice 8b D9). */
+/** A wait the map's Spec stage reads. */
 type HeldWait = SpecWaitView & { readonly hold: NonNullable<SpecWaitView["hold"]> };
 
-/** The map's open waits that a hold keeps waiting: an unheld one gives no action (S8b-6, B4). */
+/** The map's open waits that a hold keeps waiting: an unheld one gives no action. */
 function heldWaits(input: Pick<MapStatusInput, "waits">): readonly HeldWait[] {
   return input.waits.flatMap((wait) =>
     !wait.released && wait.hold !== null ? [{ ...wait, hold: wait.hold }] : [],
@@ -1233,8 +1226,8 @@ function heldWaits(input: Pick<MapStatusInput, "waits">): readonly HeldWait[] {
 }
 
 /**
- * A held wait's action (S8b-16, the demo's `waitAction`): carried out on the holding map, which is
- * this map for its own active delivery run.
+ * A held wait's action: carried out on the holding map, which is this map for its own active
+ * delivery run.
  */
 function waitAction(wait: HeldWait): Action & { readonly spec: number } {
   return {
@@ -1251,8 +1244,8 @@ function waitAction(wait: HeldWait): Action & { readonly spec: number } {
 }
 
 /**
- * A released wait's Spec stage (tickets review B6): its release run, a spec-scoped `to_spec`
- * writing the map's next revision, working or stopped with Try again, until that revision lands.
+ * A released wait's Spec stage: its release run, a spec-scoped `to_spec` writing the map's next
+ * revision, working or stopped with Try again, until that revision lands.
  */
 function releasedWait(wait: SpecWaitView): Evaluated {
   const run = wait.run;
@@ -1269,11 +1262,10 @@ function releasedWait(wait: SpecWaitView): Evaluated {
 }
 
 /**
- * Why the Spec stage across the map is not reached yet (later), or null when it is (D8, slice 8b
- * D9): with the map's `to_spec` not stopped and no held wait, before any spec an idle `to_spec` on
- * an un-cleared map waits on Wayfinding; with specs (a released wait's unwritten one among them),
- * every one of them later reads as the first. `perSpec` is each spec's own Spec stage line when
- * later, else null.
+ * Why the Spec stage across the map is not reached yet (later), or null when it is: with the map's
+ * `to_spec` not stopped and no held wait, before any spec an idle `to_spec` on an un-cleared map
+ * waits on Wayfinding; with specs (a released wait's unwritten one among them), every one of them
+ * later reads as the first. `perSpec` is each spec's own Spec stage line when later, else null.
  */
 function specsStageWaits(
   context: SpecContext,
@@ -1305,10 +1297,10 @@ function reachedSpecLines(input: ReachedStageInput, context: SpecContext): (stri
 }
 
 /**
- * The Spec stage across the map (D8, slice 8b D9, the demo's `stageStatus`): before any spec, the
- * map's `to_spec` stopped or writing, else a held wait's holder, else waits on Wayfinding; with
- * specs, across them, the map's stopped re-clear first, and "· waits on another map" when nothing
- * there needs you or works. Each held wait adds its `another-map` action.
+ * The Spec stage across the map: before any spec, the map's `to_spec` stopped or writing, else a
+ * held wait's holder, else waits on Wayfinding; with specs, across them, the map's stopped re-clear
+ * first, and "· waits on another map" when nothing there needs you or works. Each held wait adds
+ * its `another-map` action.
  */
 function specsStage(
   context: SpecContext,
@@ -1353,9 +1345,9 @@ function specsStage(
       return withWaits({ tone: "idle", line: `Waits on “${first.hold.mapTitle}”`, actions: [] });
     }
     // An un-cleared map with no spec is later (`specsStageWaits`). A cleared map with no spec has
-    // its `to_spec` running or stopped (L108), or a held wait (a wait-only map, S8b-5). An open
+    // its `to_spec` running or stopped, or a held wait (a wait-only map). An open
     // wait nothing holds is released in the transaction that ends its hold while the map's writes
-    // are open (S8b-6), so it never reads here.
+    // are open, so it never reads here.
     throw new Error(
       "A cleared map with no spec has no to_spec running or stopped and no held wait",
     );
@@ -1394,7 +1386,7 @@ function quietAction(
       label: null,
       stage,
       headline: "Delivered and merged.",
-      // With several specs, every one of them is merged (D7).
+      // With several specs, every one of them is merged.
       detail: spec === null ? `${plural(input.specs.length, "spec")}.` : null,
       ...NOTHING,
       spec,
@@ -1424,7 +1416,7 @@ function quietAction(
 }
 
 /**
- * The one `nobody` entry of a map nothing moves on (slice 8b D9): its one spec's resting fact
+ * The one `nobody` entry of a map nothing moves on: its one spec's resting fact
  * (a replaced set, nothing to deliver); with several specs a replaced set's first, else the quiet
  * map's.
  */
@@ -1442,19 +1434,19 @@ function restingOn(
   return replaced ?? quietAction(input, stages);
 }
 
-/** A map's status and each spec's three stages (D7, D8), derived together from one input. */
+/** A map's status and each spec's three stages, derived together from one input. */
 export interface DerivedStatus {
   readonly status: MapStatus;
   /** Each spec's Spec, Tickets and Delivery stages, by spec id. */
   readonly specStages: ReadonlyMap<string, MapSpec["stages"]>;
 }
 
-/** Who a next action waits on, in the order the map lists them: yours first (the demo's order). */
+/** Who a next action waits on, in the order the map lists them: yours first. */
 const WHO_ORDER: readonly NextAction["who"][] = ["you", "agent", "another-map", "nobody"];
 
 /**
  * The map's released waits. A released wait's run writes the map's next revision of its spec until
- * that revision lands (B6): the spec's Spec stage is that run's, and a spec the map has not written
+ * that revision lands: the spec's Spec stage is that run's, and a spec the map has not written
  * yet reads as one.
  */
 function releasedWaits(waits: readonly SpecWaitView[]): readonly SpecWaitView[] {
@@ -1508,9 +1500,9 @@ export function reachedStage(input: ReachedStageInput): Stage {
 }
 
 /**
- * A map's status (slice 6a D8, slice 7 D8), pure: each stage's tone and line (across the map's
- * specs), every next action (yours first, then the agent's, each in stage and spec order; one
- * `nobody` entry for a quiet map), its Inbox group, and each spec's own three stages.
+ * A map's status, pure: each stage's tone and line (across the map's specs), every next action
+ * (yours first, then the agent's, each in stage and spec order; one `nobody` entry for a quiet
+ * map), its Inbox group, and each spec's own three stages.
  */
 export function deriveStatus(input: MapStatusInput): DerivedStatus {
   const context = specContext(input);
@@ -1591,7 +1583,7 @@ export function deriveStatus(input: MapStatusInput): DerivedStatus {
   };
 }
 
-/** A map's status (D8), without the per-spec stages. */
+/** A map's status, without the per-spec stages. */
 export function mapStatus(input: MapStatusInput): MapStatus {
   return deriveStatus(input).status;
 }

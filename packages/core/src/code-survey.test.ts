@@ -64,7 +64,7 @@ function factAt(path: string, line: number): CodeSurvey {
   return { ...SURVEY, entries: [{ ...entry, facts: [{ claim: "A fact.", path, line }] }] };
 }
 
-describe("scheduling the code survey (harness change #1)", () => {
+describe("scheduling the code survey", () => {
   test("a confirmed chart starts the survey, and no waypoint run until it completes", async () => {
     const mapId = await chartConfirmed(CONFIRMATION);
     expect(runLines(mapId)).toEqual(["chart:asked", "chart:completed", "survey:running"]);
@@ -149,7 +149,7 @@ describe("scheduling the code survey (harness change #1)", () => {
   });
 });
 
-describe("recording the code survey (harness change #1)", () => {
+describe("recording the code survey", () => {
   test("a path the project does not have is refused survey_source_unknown and retried", async () => {
     const mapId = await chartConfirmed(CONFIRMATION);
     const run = runningMapRun(context, mapId);

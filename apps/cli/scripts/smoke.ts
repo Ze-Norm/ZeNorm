@@ -23,7 +23,7 @@ import { PACKAGED_ASSET_DIRS } from "../src/packaged.ts";
 import { packedTarball } from "./packed.ts";
 
 /**
- * The install smoke test (1.1, 1.2, 1.4), run by CI on Linux after the `pack` task: installs
+ * The install smoke test, run by CI on Linux after the `pack` task: installs
  * the packed `@ze-norm/cli` with npm into an empty folder outside the repository and checks that
  * better-sqlite3 came from its bundled prebuild, with no node-gyp compile, and is the only
  * runtime dependency. `zenorm --help` and `--version` exit 0 and an unknown option is refused
@@ -80,7 +80,7 @@ function childEnv(): NodeJS.ProcessEnv {
 
 /**
  * Installs the tarball with npm into `installDir`, an empty folder with only a private manifest,
- * printing npm's output with every install script's (1.2): node-gyp logs each line with `gyp`, and
+ * printing npm's output with every install script's output: node-gyp logs each line with `gyp`, and
  * any compile writes `build/`. better-sqlite3 ships its binaries in `prebuilds/`, so a clean install
  * has no `build/`, and the installed copy must load and run a query.
  */
@@ -145,7 +145,7 @@ function runBin(bin: string, args: readonly string[]): BinRun {
 }
 
 /**
- * 1.4: the published manifest's only runtime dependency is better-sqlite3 (the command library is
+ * The published manifest's only runtime dependency is better-sqlite3 (the command library is
  * bundled); `zenorm --help` and `zenorm --version` exit 0, the version the manifest's; and an
  * unknown option exits 1 with one `arguments_invalid` JSON line on stderr, which is no terminal.
  */

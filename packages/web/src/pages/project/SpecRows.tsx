@@ -7,10 +7,10 @@ import { formatMoment } from "@/lib/map";
 import { specRowBadges } from "@/lib/tickets";
 
 /**
- * The project's specs (slice 7 D12, slice 8b D13; the demo's `SpecRow`), from `project.get`: each
- * spec once, with its delivery badge ("delivery run n active", "delivered · run n" or "not
- * delivered"), the latest revision when it is not the delivered one, and its revision chain: each
- * revision with its state, the map that wrote it and when.
+ * The project's specs, from `project.get`: each spec once, with its delivery badge ("delivery run n
+ * active", "delivered · run n" or "not delivered"), the latest revision when it is not the
+ * delivered one, and its revision chain: each revision with its state, the map that wrote it and
+ * when.
  */
 export function SpecRows({ specs }: { specs: readonly ProjectSpec[] }) {
   return (

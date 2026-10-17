@@ -1,8 +1,8 @@
 import type { WaypointTouchView } from "@zenorm/contracts";
 
 /**
- * The Touches card's sentence on the touched revision (slice 8b D13, the demo's `TouchesCard`): the
- * map that wrote it and whether a merged run delivered it.
+ * The Touches card's sentence on the touched revision: the map that wrote it and whether a merged
+ * run delivered it.
  */
 export function touchOrigin(
   touch: Pick<WaypointTouchView, "writerMapTitle" | "delivered">,

@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { formatMoment } from "@/lib/map";
 import { ticketsReviewPanel } from "@/lib/tickets";
 
-/** A finding's kind in words (slice 7c D1), for its label. */
+/** A finding's kind in words, for its label. */
 const KIND_LABEL: Record<TicketsReviewFindingKind, string> = {
   untraced_criterion: "untraced criterion",
   uncovered_clause: "uncovered clause",
@@ -18,10 +18,9 @@ const KIND_LABEL: Record<TicketsReviewFindingKind, string> = {
 };
 
 /**
- * The Tickets review (slice 7c D7, the demo's `TicketsReview`), as a full-width row under the
- * next-action card (UX audit A3, B4): its version, its badge, when it ran, then the running
- * sentence or the review's summary (clamped past four lines, L180 (4), E-3), each finding as a
- * ruled entry with its kind, explanation and the tickets and criteria it names, and every
+ * The Tickets review, as a full-width row under the next-action card: its version, its badge, when
+ * it ran, then the running sentence or the review's summary (clamped past four lines), each finding
+ * as a ruled entry with its kind, explanation and the tickets and criteria it names, and every
  * rejection of an earlier version with its reason, which the rewrite answered.
  */
 export function TicketsReviewPanel({

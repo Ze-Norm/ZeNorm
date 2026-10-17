@@ -77,8 +77,8 @@ afterEach(async () => {
 });
 
 // The overviews await the project's filesystem and git checks; a chart that completes during
-// that await must land wholly inside or wholly outside the snapshot (spec D4, review B1).
-describe("the overview is one snapshot (spec D4)", () => {
+// that await must land wholly inside or wholly outside the snapshot.
+describe("the overview is one snapshot", () => {
   test("map.overviews: a first chart completing during the project checks is read whole", async () => {
     const pending = listMapOverviews(context.db, RUNNERS);
     propose(context, mapId);
@@ -98,7 +98,7 @@ describe("the overview is one snapshot (spec D4)", () => {
   });
 });
 
-describe("the snapshot reads slice 6b's records (spec D6)", () => {
+describe("the snapshot reads the Wayfinding records", () => {
   const at = "2026-10-08T12:00:00.000Z";
 
   /** A completed run of `purpose`, on `waypointId` or the map. */
@@ -312,7 +312,7 @@ describe("the snapshot reads slice 6b's records (spec D6)", () => {
   });
 });
 
-describe("map.overview reads each spec's stages and next actions from stored rows (D7, D8, D13)", () => {
+describe("map.overview reads each spec's stages and next actions from stored rows", () => {
   test("two specs: one approved with its set approved, one a draft whose review passed", async () => {
     const cleared = await clearedMap(context, project);
     const drafting = runningMapRun(context, cleared);
@@ -377,7 +377,7 @@ describe("map.overview reads each spec's stages and next actions from stored row
       "idle",
       "needs-you",
     ]);
-    // Each spec's written, reviewed and approved lines name it (D13, L135 (b)).
+    // Each spec's written, reviewed and approved lines name it.
     for (const title of ["Export as CSV", "Export as JSON"]) {
       expect(
         activity.filter((line) => line.stage === "spec" && line.text.includes(title)).length,
@@ -389,7 +389,7 @@ describe("map.overview reads each spec's stages and next actions from stored row
   });
 });
 
-describe("map.overview's default spec on each spec stage (slice 7c D9, S7c-15)", () => {
+describe("map.overview's default spec on each spec stage", () => {
   /** A spec numbered `number` with the given tone on Spec, Tickets and Delivery. */
   function specWith(number: number, tones: readonly [StageTone, StageTone, StageTone]): MapSpec {
     return {
@@ -446,7 +446,7 @@ describe("map.overview's default spec on each spec stage (slice 7c D9, S7c-15)",
   });
 });
 
-describe("map.overview Delivery from stored runs (slice 8 S8-6, D13, S8-9)", () => {
+describe("map.overview Delivery from stored runs", () => {
   async function overview(id: string, held: boolean) {
     const result = await getMapOverview(context.db, id, { deliveryHeld: () => held });
     if (!result.ok) throw new Error(result.error.code);
@@ -469,7 +469,7 @@ describe("map.overview Delivery from stored runs (slice 8 S8-6, D13, S8-9)", () 
       (item) => item.map.id === set.mapId,
     );
     expect(listed?.status.group).toBe("needs-you");
-    // The passed line opens the run on the spec's Delivery page (D13).
+    // The passed line opens the run on the spec's Delivery page.
     expect(passed.activity.filter((line) => line.stage === "delivery")).toMatchObject([
       { spec: null },
       { spec: 1 },
@@ -500,7 +500,7 @@ describe("map.overview Delivery from stored runs (slice 8 S8-6, D13, S8-9)", () 
     expect(times).toEqual([...times].sort((a, b) => a - b));
   });
 
-  test("deleting a run's lines changes no stage, next action or ticket status (S8-9, B37)", async () => {
+  test("deleting a run's lines changes no stage, next action or ticket status", async () => {
     const set = await deliverableTicketSet(context, project);
     const run = await startedRun(context, set.ticketSetId);
     markTicketStarted(context, run.id, "T1");
@@ -533,7 +533,7 @@ describe("map.overview Delivery from stored runs (slice 8 S8-6, D13, S8-9)", () 
   });
 });
 
-describe("map.overview for revisions and waits (slice 8b D9, D14)", () => {
+describe("map.overview for revisions and waits", () => {
   let delivered: DeliveredSpec;
 
   beforeEach(async () => {
@@ -562,7 +562,7 @@ describe("map.overview for revisions and waits (slice 8b D9, D14)", () => {
   }
 
   test.each(["running", "stopped"] as const)(
-    "B6: a released wait's run %s on a spec the map has not written gives its action, no throw",
+    "a released wait's run %s on a spec the map has not written gives its action, no throw",
     async (run) => {
       const waiting = await clearedMap(context, project);
       const released = insertReleasedWait(context, {
@@ -593,7 +593,7 @@ describe("map.overview for revisions and waits (slice 8b D9, D14)", () => {
   );
 
   test.each(["awaiting_review", "review_passed"] as const)(
-    "S8b-9: a replaced set (%s) reads idle on Tickets and Delivery, never yours",
+    "a replaced set (%s) reads idle on Tickets and Delivery, never yours",
     async (state) => {
       replacedTicketSet(context, {
         specificationId: delivered.specificationId,
@@ -608,7 +608,7 @@ describe("map.overview for revisions and waits (slice 8b D9, D14)", () => {
     },
   );
 
-  test("S8b-9 guard (L180, L175 (3)): a failed, unheld tickets review with no repair throws", async () => {
+  test("guard: a failed, unheld tickets review with no repair throws", async () => {
     const next = insertNextRevision(context, {
       specificationId: delivered.specificationId,
       mapId: delivered.mapId,
@@ -629,7 +629,7 @@ describe("map.overview for revisions and waits (slice 8b D9, D14)", () => {
     );
   });
 
-  test("S8b-16: a wait on this map's own active delivery run names this map as the holder", async () => {
+  test("a wait on this map's own active delivery run names this map as the holder", async () => {
     const { run } = await holdByDelivery(context, {
       specificationId: delivered.specificationId,
       mapId: delivered.mapId,
@@ -650,7 +650,7 @@ describe("map.overview for revisions and waits (slice 8b D9, D14)", () => {
     expect(wait).toMatchObject({ label: null, onMap: delivered.mapId, stage: "spec", spec: 1 });
   });
 
-  test("S8b-8: with two approved revisions on the map, status reads the later one's set", async () => {
+  test("with two approved revisions on the map, status reads the later one's set", async () => {
     insertNextRevision(context, {
       specificationId: delivered.specificationId,
       mapId: delivered.mapId,
@@ -664,7 +664,7 @@ describe("map.overview for revisions and waits (slice 8b D9, D14)", () => {
     expect(detail.status.next[0]).toMatchObject({ who: "you", label: "Start delivery" });
   });
 
-  test("D9: Delivery ignores a run pinned to another map's revision", async () => {
+  test("Delivery ignores a run pinned to another map's revision", async () => {
     const other = await chartedMap(context, project);
     insertNextRevision(context, {
       specificationId: delivered.specificationId,
@@ -680,7 +680,7 @@ describe("map.overview for revisions and waits (slice 8b D9, D14)", () => {
     );
   });
 
-  test("D14: the wait line follows the stored hold after the live hold has moved on", async () => {
+  test("the wait line follows the stored hold after the live hold has moved on", async () => {
     const waiting = await clearedMap(context, project);
     const holder = await chartedMap(context, project);
     holdByTickets(context, {
@@ -717,7 +717,7 @@ describe("map.overview for revisions and waits (slice 8b D9, D14)", () => {
     ]);
   });
 
-  test("D14: a released wait adds its release line, opening the revision", async () => {
+  test("a released wait adds its release line, opening the revision", async () => {
     const waiting = await clearedMap(context, project);
     insertReleasedWait(context, {
       mapId: waiting,
@@ -734,7 +734,7 @@ describe("map.overview for revisions and waits (slice 8b D9, D14)", () => {
     ]);
   });
 
-  test("D14: a later map's revisions of a delivered spec give one Spec revised line", async () => {
+  test("a later map's revisions of a delivered spec give one Spec revised line", async () => {
     const other = await chartedMap(context, project);
     for (const mapOf of [other, delivered.mapId, other]) {
       insertNextRevision(context, {

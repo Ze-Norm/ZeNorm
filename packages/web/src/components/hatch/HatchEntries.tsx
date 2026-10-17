@@ -6,8 +6,8 @@ import { stoppedRun } from "@/lib/hatch";
 import { formatMoment, stageName } from "@/lib/map";
 
 /**
- * A message sent through the hatch (slice 7b D7): right-aligned on ink, "You · <time>"; a stopped
- * run shows under it "The agent couldn't reply." with **Try again** (L145 (5), L153).
+ * A message sent through the hatch: right-aligned on ink, "You · <time>"; a stopped run shows
+ * under it "The agent couldn't reply." with **Try again**.
  */
 export function MessageEntry({ message }: { message: HatchMessageView }) {
   const stopped = stoppedRun(message);
@@ -30,7 +30,7 @@ export function MessageEntry({ message }: { message: HatchMessageView }) {
 }
 
 /**
- * The agent's reply to a message (D7): the agent rule, "Agent", "<Stage> · <time>" by the
+ * The agent's reply to a message: the agent rule, "Agent", "<Stage> · <time>" by the
  * message's stage; a refusal is a reply (core's sentence).
  */
 export function ReplyEntry({
@@ -60,7 +60,7 @@ export function ReplyEntry({
   );
 }
 
-/** The pulsing working line while the agent is on a message (D7). */
+/** The pulsing working line while the agent is on a message. */
 export function ReplyingLine() {
   return (
     <li className="flex items-center gap-2 text-xs text-work">

@@ -13,7 +13,7 @@ ZeNorm's agents follow these skills. Product runs read them at run time, by abso
 
 [ZeNorm integration](zenorm-integration.md) is the shared reference every skill points to: authoritative context, tool-backed records and human input, revision rules and runtime responsibilities. [ZeNorm contracts](zenorm-contracts.md) describes the records the product skills write.
 
-The development skills use local planning records under `.scratch/` as their tracker. That directory is private and gitignored; product runs use ZeNorm's own records instead.
+The development skills use local planning files as their tracker, in the folder the session names; product runs use ZeNorm's own records instead.
 
 ## Attribution
 

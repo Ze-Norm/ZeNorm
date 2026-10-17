@@ -1,6 +1,6 @@
 /**
- * Slice 8b ticket 11: a map whose To Spec named only waits (a wait-only map, L206 (1), (2)) reads
- * its overview, status, Inbox, activity and notes without throwing, as the demo's waiting map.
+ * A map whose To Spec named only waits (a wait-only map) reads its overview, status, Inbox,
+ * activity and notes without throwing.
  */
 import { readMapRounds } from "./run-work.ts";
 import { MapOverviewDetail } from "@zenorm/contracts";
@@ -51,7 +51,7 @@ afterEach(async () => {
 });
 
 /**
- * S8b-03's repro: spec 1 approved and delivered-ready on a first map, a holder map's unapproved
+ * The failing case: spec 1 approved and delivered-ready on a first map, a holder map's unapproved
  * revision r2 of it, and a waiting map whose To Spec named only a wait on spec 1.
  */
 async function waitOnlyMap() {
@@ -82,7 +82,7 @@ async function overviewOf(mapId: string) {
   return read.value;
 }
 
-describe("a wait-only map (L206 (2), S8b-16)", () => {
+describe("a wait-only map", () => {
   test("its status waits on the holder: Spec idle, later stages, one another-map action, quiet", async () => {
     const { holder, waiting } = await waitOnlyMap();
 
@@ -103,7 +103,7 @@ describe("a wait-only map (L206 (2), S8b-16)", () => {
     expect(status.group).toBe("quiet");
   });
 
-  test("its wait carries the spec's latest revision, on the holder, for its Spec page (E-1)", async () => {
+  test("its wait carries the spec's latest revision, on the holder, for its Spec page", async () => {
     const { holder, waiting } = await waitOnlyMap();
 
     const { waits } = await overviewOf(waiting);
@@ -128,12 +128,12 @@ describe("a wait-only map (L206 (2), S8b-16)", () => {
     expect(row?.status.next.map((action) => action.who)).toEqual(["another-map"]);
   });
 
-  test("its activity has the wait line and no nothing-to-change line (the demo's waiting map)", async () => {
+  test("its activity has the wait line and no nothing-to-change line", async () => {
     const { waiting } = await waitOnlyMap();
 
     const { activity } = await overviewOf(waiting);
 
-    // The clear, then the wait: the run that named only a wait checked no spec (S7b-8's line).
+    // The clear, then the wait: the run that named only a wait checked no spec.
     expect(
       activity
         .filter((line) => line.stage === "spec")
@@ -144,7 +144,7 @@ describe("a wait-only map (L206 (2), S8b-16)", () => {
     ]);
   });
 
-  test("a note with no spec is accepted and its hatch request builds (S7b-2)", async () => {
+  test("a note with no spec is accepted and its hatch request builds", async () => {
     const { waiting } = await waitOnlyMap();
 
     const sent = await sendHatchMessage(
@@ -167,7 +167,7 @@ describe("a wait-only map (L206 (2), S8b-16)", () => {
     });
   });
 
-  test("a note naming the spec it waits on is refused spec_waiting, and writes nothing (L213 D-8)", async () => {
+  test("a note naming the spec it waits on is refused spec_waiting, and writes nothing", async () => {
     const { waiting } = await waitOnlyMap();
     insertSpec(context, project.id, 2);
 
@@ -203,8 +203,8 @@ function complete(run: PlanningRun): void {
   );
 }
 
-test("L209 guard (L175 (3)): an open wait nothing holds, on a cleared map with no spec and its to_spec idle, throws", async () => {
-  // Unreachable once S8b-6 releases such a wait in the transaction that ends its hold.
+test("guard: an open wait nothing holds, on a cleared map with no spec and its to_spec idle, throws", async () => {
+  // Unreachable in practice: the transaction that ends a hold releases such a wait.
   const first = await deliverableTicketSet(context, project);
   const waiting = await clearedMap(context, project);
   complete(runningMapRun(context, waiting));

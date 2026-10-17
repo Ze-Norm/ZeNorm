@@ -120,7 +120,7 @@ function codeOf(result: ReturnType<typeof prepare>): string | null {
   return result.ok ? null : result.error.code;
 }
 
-describe("the plugin set's startup checks (D16, S9-22)", () => {
+describe("the plugin set's startup checks", () => {
   test("no plugins and the app's local executor pass", () => {
     const prepared = prepare({});
     expect(prepared.ok && prepared.value.executor).toBe(LOCAL);
@@ -260,7 +260,7 @@ describe("the plugin set's startup checks (D16, S9-22)", () => {
     throw new Error("no credentials");
   };
 
-  test("plugin_start_failed: executors() throws, at the check before the database (CR9b-11)", () => {
+  test("plugin_start_failed: executors() throws, at the check before the database", () => {
     const result = check({ plugins: [plugin("example", { executors: throwing })] });
     expect(!result.ok && result.error).toMatchObject({
       code: "plugin_start_failed",
@@ -268,7 +268,7 @@ describe("the plugin set's startup checks (D16, S9-22)", () => {
     });
   });
 
-  test("plugin_start_failed: subscribers() throws (CR9b-11)", () => {
+  test("plugin_start_failed: subscribers() throws", () => {
     const result = prepare({ plugins: [plugin("example", { subscribers: throwing })] });
     expect(!result.ok && result.error).toMatchObject({
       code: "plugin_start_failed",
@@ -276,7 +276,7 @@ describe("the plugin set's startup checks (D16, S9-22)", () => {
     });
   });
 
-  test("plugin_start_failed: routes() throws (CR9b-11)", () => {
+  test("plugin_start_failed: routes() throws", () => {
     const result = prepare({ plugins: [plugin("example", { routes: throwing })] });
     expect(!result.ok && result.error).toMatchObject({
       code: "plugin_start_failed",
@@ -368,7 +368,7 @@ describe("the composed plugin set", () => {
   });
 });
 
-describe("plugins in the app (S9-17, S9-18)", () => {
+describe("plugins in the app", () => {
   let webDistDir: string;
 
   beforeEach(async () => {
@@ -481,7 +481,7 @@ describe("plugins in the app (S9-17, S9-18)", () => {
     expect(all.length).toBeGreaterThanOrEqual(projects.length);
   });
 
-  test("the context names a project from the database at call time; an unknown id is null (CR9b-1)", async () => {
+  test("the context names a project from the database at call time; an unknown id is null", async () => {
     const named: (string | null)[] = [];
     const client = clientOf(
       await appWith([
@@ -507,7 +507,7 @@ describe("plugins in the app (S9-17, S9-18)", () => {
     expect(named).toContain("refused");
   });
 
-  test("a raw route checks its request with the composed identify and checkAccess (CR9b-13)", async () => {
+  test("a raw route checks its request with the composed identify and checkAccess", async () => {
     let denied: string | null = null;
     const app = await appWith([
       plugin("example", {

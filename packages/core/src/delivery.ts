@@ -54,11 +54,11 @@ import { write } from "./writes.ts";
  */
 export type StoredDeliveryRun = typeof deliveryRuns.$inferSelect;
 
-/** A run's stored outcome (spec D7): `active` until it ends, then how it ended. */
+/** A run's stored outcome: `active` until it ends, then how it ended. */
 export type DeliveryOutcome = "active" | "passed" | "blocked" | "failed" | "cancelled";
 
 /**
- * The outcome derived from a stored run (spec D7), the one definition every read shares: no
+ * The outcome derived from a stored run, the one definition every read shares: no
  * `ended_at` is active; a verdict is `blocked` with a blocking finding, else `passed`; a failure
  * is `failed`; ended with neither is `cancelled`.
  */
@@ -80,7 +80,7 @@ export function deliveryOutcome(
 }
 
 /**
- * The pull request a stored run records (C1): its three columns, all set or all null (the table's
+ * The pull request a stored run records: its three columns, all set or all null (the table's
  * check); null for a run that opened none.
  */
 export function storedPullRequest(
@@ -97,9 +97,9 @@ export function storedPullRequest(
 }
 
 /**
- * A stored run with its derived state (slice 4 spec D7, D11; slice 8 S8-10): an ended run's
- * outcome; an active run the delivery runner holds is `running`, one it does not hold (after a
- * restart) is `interrupted`. `phase` is the stored phase on every state.
+ * A stored run with its derived state: an ended run's outcome; an active run the delivery runner
+ * holds is `running`, one it does not hold (after a restart) is `interrupted`. `phase` is the
+ * stored phase on every state.
  */
 export function toDeliveryRun(run: StoredDeliveryRun, held: boolean): DeliveryRun {
   const fields = {
@@ -137,7 +137,7 @@ export function toDeliveryRun(run: StoredDeliveryRun, held: boolean): DeliveryRu
 }
 
 /**
- * Stores the phase an active run is in (S8-10), guarded `ended_at IS NULL` so a late write never
+ * Stores the phase an active run is in, guarded `ended_at IS NULL` so a late write never
  * changes an ended run; true when it was written.
  */
 export function setDeliveryPhase(
@@ -157,7 +157,7 @@ export function setDeliveryPhase(
 }
 
 /**
- * Counts one repair attempt on an active run (C2), guarded `ended_at IS NULL` and on the run having
+ * Counts one repair attempt on an active run, guarded `ended_at IS NULL` and on the run having
  * an attempt left under its pinned limit, so a late write never changes an ended run and the count
  * never passes the limit; true when it was counted. A run from before `0033` (no pinned limit) is
  * never counted.
@@ -185,7 +185,7 @@ const BRANCH_SLUG_MAX_LENGTH = 40;
 const SPEC_ID_TAIL_LENGTH = 8;
 
 /**
- * The run branch (S7-22): `zenorm/<slug>-<last 8 chars of the spec id>-run-<number>`, where the slug
+ * The run branch: `zenorm/<slug>-<last 8 chars of the spec id>-run-<number>`, where the slug
  * is the spec title lowercased with each run of non-`[a-z0-9]` characters as one `-`, trimmed of
  * `-`, cut to 40 characters and trimmed of a trailing `-` again, or `spec` when empty.
  */
@@ -204,7 +204,7 @@ export function deliveryBranchName(
   return `zenorm/${name}-${specificationId.slice(-SPEC_ID_TAIL_LENGTH)}-run-${String(number)}`;
 }
 
-/** The git identity every session and check of a run commits as (spec D3). */
+/** The git identity every session and check of a run commits as. */
 export function deliveryIdentity(runId: string): GitIdentity {
   return { name: "ZeNorm delivery", email: `run-${runId}@zenorm.invalid` };
 }
@@ -231,7 +231,7 @@ export function deliveryIdentities(db: Reader, runId: string): GitIdentity[] {
   return identities;
 }
 
-/** A spec's stored runs, newest first (runs number per spec, S7-22). */
+/** A spec's stored runs, newest first (runs number per spec). */
 export function readSpecRuns(
   db: Pick<ZeNormDatabase, "select">,
   specificationId: string,
@@ -307,25 +307,24 @@ function readTicketSetContext(db: ZeNormDatabase, ticketSetId: string) {
     .get();
 }
 
-/** A started run and the folder its git works in, from the checkout seam (CR9b-3). */
+/** A started run and the folder its git works in, from the checkout seam. */
 export interface StartedDelivery {
   readonly run: StoredDeliveryRun;
   readonly folder: string;
 }
 
 /**
- * Starts a delivery run of an approved ticket set (slice 4 D8, slice 8 S8-3): refuses, writing
- * nothing, in order `ticket_set_not_found`, `ticket_set_not_approved`,
- * `delivery_nothing_to_deliver` (a zero-ticket set, S8b-15), `delivery_already_passed`,
- * then the project's first start blocker (`project_folder_missing`, `project_branch_missing`,
- * `project_checks_missing`, `project_repair_limit_missing`, `delivery_in_progress`; the folder
- * comes from the checkout seam), then
- * `delivery_branch_exists`, then the admission seam's `delivery_not_admitted` (S9-17). Otherwise it
+ * Starts a delivery run of an approved ticket set: refuses, writing nothing, in order
+ * `ticket_set_not_found`, `ticket_set_not_approved`, `delivery_nothing_to_deliver` (a zero-ticket
+ * set), `delivery_already_passed`, then the project's first start blocker
+ * (`project_folder_missing`, `project_branch_missing`, `project_checks_missing`,
+ * `project_repair_limit_missing`, `delivery_in_progress`; the folder comes from the checkout seam),
+ * then `delivery_branch_exists`, then the admission seam's `delivery_not_admitted`. Otherwise it
  * resolves the base commit and stores run `latest + 1` with the project's checks, base branch,
- * repair limit and fix commands pinned and no repair attempt, in `preparing`, and one ticket row per pinned ticket in order (S8-7), re-checking in the
- * same transaction; the run stores `executor`, the executor carrying it (CR9b-6). Starts no
- * session and touches no file. Returns the run with the folder the checkout seam gave: the one
- * folder the run's git works in until it ends (CR9b-3).
+ * repair limit and fix commands pinned and no repair attempt, in `preparing`, and one ticket row
+ * per pinned ticket in order, re-checking in the same transaction; the run stores `executor`, the
+ * executor carrying it. Starts no session and touches no file. Returns the run with the folder the
+ * checkout seam gave: the one folder the run's git works in until it ends.
  */
 export async function startDelivery(
   actor: UserActor,
@@ -480,7 +479,7 @@ async function startRun<E extends CodedError<string>>(
     return err(passed);
   }
   const seams = seamsOf(db);
-  // The checkout seam gives the folder the start works in (S9-17); core's is the stored folder.
+  // The checkout seam gives the folder the start works in; core's is the stored folder.
   const checkedOut = await seams.checkout(project);
   if (!checkedOut.ok) {
     return err(checkedOut.error);
@@ -548,7 +547,7 @@ async function startRun<E extends CodedError<string>>(
   const { baseBranch, baseCommit, startCommit, resumedFromRunId } = start.value;
   const carried = new Map(start.value.merged.map((row) => [row.ticket, row]));
 
-  // Run admission (S9-17), last: a wrapper refuses only a start core would make.
+  // Run admission, last: a wrapper refuses only a start core would make.
   const admitted = await seams.admitRun({
     kind: "delivery",
     projectId: project.id,
@@ -559,7 +558,7 @@ async function startRun<E extends CodedError<string>>(
     return err(admitted.error);
   }
   const id = uuidv7();
-  // The executor environment seam is called at the start; its result reaches no port (D18).
+  // The executor environment seam is called at the start; its result reaches no port.
   seams.executorEnv({ id, projectId: project.id });
   const run: StoredDeliveryRun = {
     id,
@@ -582,14 +581,14 @@ async function startRun<E extends CodedError<string>>(
     verdict: null,
     failure: null,
     mergedAt: null,
-    // A run started by a person takes that User (S9-11).
+    // A run started by a person takes that User.
     userId: actor.userId,
     executor,
-    // The project's repair rules, pinned: a settings change mid-run leaves the run's own (C2).
+    // The project's repair rules, pinned: a settings change mid-run leaves the run's own.
     repairLimit,
     repairAttempts: 0,
     fixCommands: [...fixCommands],
-    // A run opens its pull request, if any, at its end (C1).
+    // A run opens its pull request, if any, at its end.
     prNumber: null,
     prUrl: null,
     prState: null,
@@ -630,7 +629,7 @@ async function startRun<E extends CodedError<string>>(
     if (!isUniqueConstraintViolation(error)) {
       throw error;
     }
-    // A start in another connection won the per-project index (S8-4) between the re-check and
+    // A start in another connection won the per-project index between the re-check and
     // the insert.
     const winner = readActiveRun(db, project.id);
     if (winner === null) {
@@ -677,9 +676,9 @@ export interface PreparedDelivery {
   readonly ticketCount: number;
   /** The pinned tickets, in order. */
   readonly tickets: { id: string; title: string }[];
-  /** The pinned spec revision's number, for the runner's lines ("spec r<N>", L197 item 11). */
+  /** The pinned spec revision's number, for the runner's lines ("spec r<N>"). */
   readonly specRevision: number;
-  /** The pinned spec revision's title: the title of the pull request a passing run opens (C3). */
+  /** The pinned spec revision's title: the title of the pull request a passing run opens. */
   readonly specTitle: string;
   /** The pinned tickets already merged into the run branch (a resumed run's), in order. */
   readonly merged: string[];
@@ -720,7 +719,7 @@ function bullets(lines: readonly string[]): string[] {
   return lines.map((line) => `- ${line}`);
 }
 
-/** A clause source in the rendered spec: a waypoint, the destination, or the person's note (S7b-11). */
+/** A clause source in the rendered spec: a waypoint, the destination, or the person's note. */
 function sourceWords(source: ClauseSource): string {
   switch (source.kind) {
     case "waypoint":
@@ -732,7 +731,7 @@ function sourceWords(source: ClauseSource): string {
   }
 }
 
-/** The pinned approved revision as markdown (D2): its clauses and criteria by id, with sources. */
+/** The pinned approved revision as markdown: its clauses and criteria by id, with sources. */
 export function renderSpec(spec: SpecRevisionContent): string {
   const clauses = spec.clauses.flatMap((clause) => [
     `### ${clause.id} ${clause.title}`,
@@ -768,19 +767,19 @@ export function renderSpec(spec: SpecRevisionContent): string {
   ].join("\n");
 }
 
-/** Where a followed-up ticket was delivered (S8b-14): its run number and merged commit. */
+/** Where a followed-up ticket was delivered: its run number and merged commit. */
 export interface FollowedDelivery {
   readonly run: number;
   readonly commit: string;
 }
 
 /**
- * The pinned approved ticket set as markdown (D2): its tickets by id, each with its pointers. The
+ * The pinned approved ticket set as markdown: its tickets by id, each with its pointers. The
  * set's dispositions, slicing and execution are planning records no delivery session reads, so
  * they are left out.
  * A follow-up ticket names the ticket it changes with the run and commit that delivered it
  * (`followUps`, by the followed ticket's id), and a ticket a `removed` disposition names says which
- * criterion it takes out (slice 8b D6, S8b-14), so `implement-spec` sees what each ticket changes.
+ * criterion it takes out, so `implement-spec` sees what each ticket changes.
  */
 export function renderTickets(
   set: TicketSetContent,
@@ -828,7 +827,7 @@ export function renderTickets(
   return ["# Tickets", "", ...tickets].join("\n");
 }
 
-/** The delivery each follow-up of a revision's set names (S8b-14); one missing is a programmer error. */
+/** The delivery each follow-up of a revision's set names; one missing is a programmer error. */
 function followUpsOf(
   db: ZeNormDatabase,
   revision: { specificationId: string; revision: number },
@@ -922,10 +921,10 @@ async function checkOutSubmodules(
 }
 
 /**
- * Prepares a started run (spec D8 preparing): creates `<runDir>/tickets` and `<runDir>/inputs`
+ * Prepares a started run (its `preparing` phase): creates `<runDir>/tickets` and `<runDir>/inputs`
  * (and with them `runsDir`), adds the run worktree on a new run branch at the start commit (the
  * base commit, or a resumed run's branch head) from
- * `folder` (the one `startDelivery` resolved, CR9b-3), checks out its submodules from the
+ * `folder` (the one `startDelivery` resolved), checks out its submodules from the
  * project's own checkouts of them, and writes `inputs/spec.md` and `inputs/tickets.md` from the pinned rows.
  * A git or file failure is `delivery_worktree_failed`. An unknown `runId` is a programmer error
  * (the runner prepares the run it just started), so it throws.
@@ -1015,7 +1014,7 @@ export type VerifyDeliveryError = CodedError<
 >;
 
 /**
- * Verifies the orchestrator's work from git in the run worktree (spec D6), stopping at the first
+ * Verifies the orchestrator's work from git in the run worktree, stopping at the first
  * failure: on the run branch with a clean `git status --porcelain` (`delivery_worktree_dirty`,
  * naming the paths); `final` is the branch's commit; `baseCommit` is an ancestor of `final` and
  * `base..final` is not empty (`delivery_no_commits`); after a repair attempt, `repairedFrom` (the
@@ -1233,7 +1232,7 @@ export function checkLogPath(runDir: string, index: number): string {
 }
 
 /**
- * Runs every check in order in the run worktree (spec D2), each split on whitespace and spawned
+ * Runs every check in order in the run worktree, each split on whitespace and spawned
  * without a shell, detached in its own process group, its whole output written to
  * `checkLogPath(runDir, index)`. `env` is the complete environment each
  * check receives: the server's environment plus the run identity (`gitIdentityEnv`). A check
@@ -1253,7 +1252,7 @@ export async function runChecks(input: {
 }
 
 /**
- * `runChecks`, telling `onResult` each check's result as it finishes (D5), with the results so
+ * `runChecks`, telling `onResult` each check's result as it finishes, with the results so
  * far (this one last), before the next check starts; the runner stores them with
  * `storeCheckResults` so Verify reads "k of n" while it works.
  */
@@ -1289,7 +1288,7 @@ export async function runChecksReporting(
 }
 
 /**
- * Stores the check results so far on an active run (D5), guarded `ended_at IS NULL` so a late
+ * Stores the check results so far on an active run, guarded `ended_at IS NULL` so a late
  * write never changes an ended run; true when it was written.
  */
 export function storeCheckResults(
@@ -1350,7 +1349,7 @@ export type AcceptVerdictError = CodedError<
 >;
 
 /**
- * Accepts the reviewer's verdict (spec D6): `delivery_verdict_invalid` when it reviewed another
+ * Accepts the reviewer's verdict: `delivery_verdict_invalid` when it reviewed another
  * commit; `delivery_review_changed_worktree` when the branch head is no longer `finalCommit` or
  * `git status --porcelain` differs from the snapshot taken before the review.
  */
@@ -1398,7 +1397,7 @@ export type DeliveryEnd =
       readonly verdict: Verdict;
       readonly finalCommit: string;
       readonly checkResults: CheckResult[];
-      /** The pull request the run opened (C1); null when it opened none. */
+      /** The pull request the run opened; null when it opened none. */
       readonly pullRequest: PullRequest | null;
     }
   | {
@@ -1464,8 +1463,8 @@ export async function endDelivery(
     if (updated.changes === 0) {
       return false;
     }
-    // The run's end ends its `delivering` hold (slice 8b S8b-6): its map's due runs and a
-    // release run on its spec start in the same transaction.
+    // The run's end ends its `delivering` hold: its map's due runs and a release run on its spec
+    // start in the same transaction.
     planAndRelease(actor, tx, deliveryMapId(tx, found.value.ticketSetId));
     return true;
   });
@@ -1493,7 +1492,7 @@ function deliveryMapId(db: Reader, ticketSetId: string): string {
   return row.mapId;
 }
 
-/** Ends an active run as cancelled (spec D9): `ended_at` only, no verdict, no failure. */
+/** Ends an active run as cancelled: `ended_at` only, no verdict, no failure. */
 export async function cancelDelivery(
   actor: Actor,
   db: ZeNormDatabase,
@@ -1508,7 +1507,7 @@ export async function cancelDelivery(
 }
 
 /**
- * Checks the criterion each verdict finding names (S8-11): `delivery_verdict_invalid` when one is
+ * Checks the criterion each verdict finding names: `delivery_verdict_invalid` when one is
  * not a criterion id of the run's pinned revision; null is accepted. The runner calls it beside
  * `acceptVerdict`. An unknown run is a programmer error.
  */

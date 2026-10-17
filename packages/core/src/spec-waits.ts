@@ -1,5 +1,5 @@
 /**
- * A map's waits as `map.overview` shows them (slice 8b D2, D3): each open wait, and each released
+ * A map's waits as `map.overview` shows them: each open wait, and each released
  * one whose revision the map has not yet written, with its live hold and its release run.
  */
 import type { PlanningRun, SpecWaitView, Waypoint } from "@zenorm/contracts";

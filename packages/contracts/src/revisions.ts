@@ -3,20 +3,20 @@ import { z } from "zod";
 import { EntityId, MapTitle } from "./map.ts";
 import { Clause, ClauseId, ContentLine, Criterion, CriterionId, TicketId } from "./spec-content.ts";
 
-// The reads that compare a spec's revisions with each other and with what was delivered (slice 8b
-// D2, D5; the demo's `derive.ts`). Core derives them from stored rows; nothing stores them.
+// The reads that compare a spec's revisions with each other and with what was delivered. Core
+// derives them from stored rows; nothing stores them.
 
-/** How a clause of a revision differs from the revision before (the demo's `Change` less `moved`). */
+/** How a clause of a revision differs from the revision before. */
 export const ClauseChange = z.enum(["new", "changed", "unchanged"]);
 export type ClauseChange = z.infer<typeof ClauseChange>;
 
-/** How a criterion of a revision differs from the revision before (the demo's `Change`). */
+/** How a criterion of a revision differs from the revision before. */
 export const CriterionChange = z.enum(["new", "changed", "moved", "unchanged"]);
 export type CriterionChange = z.infer<typeof CriterionChange>;
 
 /**
  * What a revision changes from the revision before it, by clause and criterion id (CONTEXT Text
- * delta; the demo's `TextDelta`, with the revisions by number).
+ * delta), with the revisions by number.
  */
 export const TextDelta = z.strictObject({
   before: z.int().min(1),
@@ -35,15 +35,15 @@ export const TextDelta = z.strictObject({
 });
 export type TextDelta = z.infer<typeof TextDelta>;
 
-/** A disposition kind (the demo's `Disposition["kind"]`). */
+/** A disposition kind. */
 export const DispositionKind = z.enum(["work", "satisfied", "delivered", "retained", "removed"]);
 export type DispositionKind = z.infer<typeof DispositionKind>;
 
 /**
- * One criterion of a revision read against the text delta and the baseline (slice 8b S8b-13): its
- * change, what that leads one to expect (the demo's `expectation`), the delivery that last built it
- * (`baseline`) and, when the set's disposition departs from the expectation, the review's question
- * and the disposition's reason (`tension`).
+ * One criterion of a revision read against the text delta and the baseline: its change, what that
+ * leads one to expect (`expectation`), the delivery that last built it (`baseline`) and, when the
+ * set's disposition departs from the expectation, the review's question and the disposition's
+ * reason (`tension`).
  */
 export const CriterionReading = z.strictObject({
   change: CriterionChange,
@@ -62,15 +62,15 @@ export const CriterionReading = z.strictObject({
 });
 export type CriterionReading = z.infer<typeof CriterionReading>;
 
-/** What holds a spec against another map's change (slice 8b S8b-4). */
+/** What holds a spec against another map's change. */
 export const SpecHoldKind = z.enum(["revision", "revising", "tickets", "delivering"]);
 export type SpecHoldKind = z.infer<typeof SpecHoldKind>;
 
 /**
- * The hold on a spec: its kind, the holding map and the revision it holds (slice 8b D2). `revision`
- * is, by kind: `revision` the unapproved latest revision; `revising` the latest revision the run
- * writes the next one after; `tickets` the approved revision whose set the run writes or reviews;
- * `delivering` the revision whose set the active run delivers.
+ * The hold on a spec: its kind, the holding map and the revision it holds. `revision` is, by kind:
+ * `revision` the unapproved latest revision; `revising` the latest revision the run writes the next
+ * one after; `tickets` the approved revision whose set the run writes or reviews; `delivering` the
+ * revision whose set the active run delivers.
  */
 export const SpecHold = z.strictObject({
   kind: SpecHoldKind,

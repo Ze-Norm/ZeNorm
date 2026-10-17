@@ -11,13 +11,13 @@ import type { ExampleCounts } from "./manifest.ts";
 type SeamCounts = { -readonly [K in keyof ExampleCounts["seams"]]: number };
 
 /**
- * The example plugin's server entry (slice 9 spec S9-19, D17): a wrapper on every seam that
- * counts its calls (access denies the projects `deniedProjectNames` names; admission refuses a
- * delivery start on one `refusedDeliveryProjectNames` names), a `*` subscriber counting committed
- * rows per project, `GET /plugins/example/counts` (the projects the request's User may read), the
- * `example` executor, and `start` and `stop` that log once. Each call builds fresh in-memory
- * counts. A project's name is read through the context when a seam asks, so a denial holds from
- * the first request (CR9b-1); an id with no project is left to the procedure's own not-found.
+ * The example plugin's server entry: a wrapper on every seam that counts its calls (access denies
+ * the projects `deniedProjectNames` names; admission refuses a delivery start on one
+ * `refusedDeliveryProjectNames` names), a `*` subscriber counting committed rows per project, `GET
+ * /plugins/example/counts` (the projects the request's User may read), the `example` executor, and
+ * `start` and `stop` that log once. Each call builds fresh in-memory counts. A project's name is
+ * read through the context when a seam asks, so a denial holds from the first request; an id with
+ * no project is left to the procedure's own not-found.
  */
 export function createExamplePlugin(): ServerPlugin {
   const seams: SeamCounts = {
@@ -89,7 +89,7 @@ export function createExamplePlugin(): ServerPlugin {
       },
     }),
     subscribers: () => ({ "*": countRows }),
-    // The route checks its own request (CR9b-13): a project the User may not read is left out.
+    // The route checks its own request: a project the User may not read is left out.
     routes: (_config, context) =>
       new Hono().get("/counts", (c) => {
         const userId = context.identify(c.req.raw);

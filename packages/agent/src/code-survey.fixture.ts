@@ -1,6 +1,6 @@
 import type { CodeSurvey } from "@zenorm/contracts";
 
-/** A map's code survey for the prompt tests (harness change #1): one touched and one untouched area. */
+/** A map's code survey for the prompt tests: one touched and one untouched area. */
 export const SURVEY: CodeSurvey = {
   entries: [
     {

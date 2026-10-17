@@ -1,19 +1,17 @@
--- Slice 7 spec D1 and Existing Records: destructive, the slice's only destructive migration (7c's
--- tickets-review tables included, empty until 7c). Deletes the flat-shape (slice 3) spec revisions
--- and ticket sets in every state, the delivery runs on them (their branches and worktrees stay on
--- disk, as 0005), and every `to_spec` and `to_tickets` planning run, so none hides a due one; at
--- startup `planNext` starts `to_spec` on each cleared map with no revision. Every other planning run
--- gets null `specification_id` and `cancel_reason`. Maps, Wayfinding records, projects and every
--- other row are kept unchanged. `planning_runs` gains its columns by ALTER TABLE (no rebuild), so
--- the rows other tables reference keep their ids.
+-- Destructive; the tickets-review tables are created here too, empty. Deletes the flat-shape spec
+-- revisions and ticket sets in every state, the delivery runs on them (their branches and worktrees
+-- stay on disk, as 0005), and every `to_spec` and `to_tickets` planning run, so none hides a due
+-- one; at startup `planNext` starts `to_spec` on each cleared map with no revision. Every other
+-- planning run gets null `specification_id` and `cancel_reason`. Maps, Wayfinding records, projects
+-- and every other row are kept unchanged. `planning_runs` gains its columns by ALTER TABLE (no
+-- rebuild), so the rows other tables reference keep their ids.
 --
--- Departures from the domain model (sections 3.4, 3.5): `specifications` holds no title (a spec
--- shows its latest revision's) and no `tickets_numbered` (S7-14 derives it); `spec_revisions` has no
--- state enum (approved and superseded are timestamps, a rejection is a supersession with its
--- reason); a ticket set version's tickets, dispositions, slicing and execution are one typed
--- `content` document, not four tables; `spec_reviews.sources` lists the map's closed waypoints with
--- outcome and closing time (no input manifest); `planning_runs` scopes per spec (L27's keys
--- coarsened); delivery runs number per spec.
+-- `specifications` holds no title (a spec shows its latest revision's) and no `tickets_numbered`
+-- (it is derived); `spec_revisions` has no state enum (approved and superseded are timestamps, a
+-- rejection is a supersession with its reason); a ticket set version's tickets, dispositions,
+-- slicing and execution are one typed `content` document, not four tables; `spec_reviews.sources`
+-- lists the map's closed waypoints with outcome and closing time (no input manifest);
+-- `planning_runs` scopes per spec as well as per waypoint and map; delivery runs number per spec.
 DELETE FROM `delivery_runs`;
 --> statement-breakpoint
 DROP TABLE `delivery_runs`;

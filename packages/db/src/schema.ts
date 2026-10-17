@@ -111,9 +111,9 @@ const checkResultsColumn = zodJson(z.array(CheckResult));
 const verdictColumn = zodJson(Verdict);
 const deliveryFailureColumn = zodJson(DeliveryFailure);
 const researchFindingsColumn = zodJson(z.array(ResearchFinding));
-/** A research report's limitations or uncertainties (slice 6b spec D1). */
+/** A research report's limitations or uncertainties. */
 const researchNotesColumn = zodJson(z.array(z.string().min(1).max(WAYPOINT_QUESTION_MAX_LENGTH)));
-/** The resolved waypoints a consistency pass compared, each with its `resolved_at` (spec D5). */
+/** The resolved waypoints a consistency pass compared, each with its `resolved_at`. */
 const comparedColumn = zodJson(
   z.array(z.strictObject({ waypointId: EntityId, resolvedAt: z.iso.datetime() })),
 );
@@ -123,8 +123,7 @@ const waypointNumbersColumn = zodJson(z.array(z.int().min(1)).min(1));
 const hatchChangeColumn = zodJson(HatchChange);
 
 /**
- * One row per Project. Column rules live in the slice 1 spec's data shape; the name is not
- * stored but derived from the folder (slice 5 spec D3).
+ * One row per Project. The name is not stored but derived from the folder.
  */
 export const projects = sqliteTable("projects", {
   /** UUIDv7, generated in core. */
@@ -134,7 +133,7 @@ export const projects = sqliteTable("projects", {
   baseBranch: text("base_branch").notNull(),
   /** ISO 8601 UTC. */
   createdAt: text("created_at").notNull(),
-  /** 0–10 unique check commands (slice 8 S8-2); `[]` until saved, which blocks Start delivery. */
+  /** 0–10 unique check commands; `[]` until saved, which blocks Start delivery. */
   requiredChecks: projectChecksColumn("required_checks").notNull(),
   /** 0–10 repair attempts a run may make; null until saved, which blocks Start delivery. */
   repairLimit: integer("repair_limit"),
@@ -143,9 +142,9 @@ export const projects = sqliteTable("projects", {
 });
 
 /**
- * The one User of the instance (CONTEXT.md User; slice 9 spec D8, S9-10). The 9b migration
- * creates its one row; startup refuses zero rows (`user_missing`) or more (`user_ambiguous`). It
- * has no name, and nothing displays it (L97).
+ * The one User of the instance (CONTEXT.md User). Its migration creates its one row; startup
+ * refuses zero rows (`user_missing`) or more (`user_ambiguous`). It has no name, and nothing
+ * displays it.
  */
 export const users = sqliteTable("users", {
   /** 32 lowercase hex characters, `lower(hex(randomblob(16)))` (contracts `UserId`). */
@@ -167,7 +166,7 @@ function maxLength(name: string, column: string, max: number) {
   return check(name, sql.raw(`length("${column}") <= ${String(max)}`));
 }
 
-/** One row per map (slice 2 spec D9; slice 6a spec D1; slice 6b spec D1). */
+/** One row per map. */
 export const maps = sqliteTable(
   "maps",
   {
@@ -188,13 +187,13 @@ export const maps = sqliteTable(
     /** ISO 8601 UTC. */
     createdAt: text("created_at").notNull(),
     /**
-     * The position the map's next fog item takes (slice 6b D1, L116 (1)): positions are never
-     * reused, so a stale one is refused `fog_item_unknown`. 1 on a new map.
+     * The position the map's next fog item takes: positions are never reused, so a stale one is
+     * refused `fog_item_unknown`. 1 on a new map.
      */
     fogNextPosition: integer("fog_next_position").notNull(),
     /**
-     * The User who created the map (S9-11). Nullable in SQL (an added column, spec D9): the change
-     * feed's `TEMP` trigger refuses a null (`user_id_missing`, D8), and every insert sets it.
+     * The User who created the map. Nullable in SQL (an added column): the change feed's `TEMP`
+     * trigger refuses a null (`user_id_missing`), and every insert sets it.
      */
     userId: text("user_id")
       .notNull()
@@ -215,9 +214,9 @@ export const maps = sqliteTable(
 );
 
 /**
- * One row per planning run (slice 6a spec D1, D3). Its scope is its waypoint, else its map (L27):
- * at most one running run per scope (S6a-13), and one running `hatch` run per map beside it (slice 7b
- * S7b-3). Every purpose and state of `CONTEXT.md` is allowed (B43).
+ * One row per planning run. Its scope is its waypoint, else its map: at most one running run per
+ * scope, and one running `hatch` run per map beside it. Every purpose and state of `CONTEXT.md` is
+ * allowed.
  */
 export const planningRuns = sqliteTable(
   "planning_runs",
@@ -230,24 +229,24 @@ export const planningRuns = sqliteTable(
     /** Set for a `grilling`, `research` or `task` run. */
     waypointId: text("waypoint_id"),
     /**
-     * Set exactly for a `spec_review`, `tickets_review`, `to_tickets` or spec-scoped `to_spec` run
-     * (slice 7 D1); such a run's scope is its spec.
+     * Set exactly for a `spec_review`, `tickets_review`, `to_tickets` or spec-scoped `to_spec` run;
+     * such a run's scope is its spec.
      */
     specificationId: text("specification_id").references((): AnySQLiteColumn => specifications.id),
     purpose: text("purpose").$type<PlanningRunPurpose>().notNull(),
     state: text("state").$type<PlanningRunState>().notNull(),
-    /** The failed run this one retries; each run is retried at most once (S6a-12). */
+    /** The failed run this one retries; each run is retried at most once. */
     retryOfRunId: text("retry_of_run_id")
       .unique()
       .references((): AnySQLiteColumn => planningRuns.id),
     /** Set exactly when the run failed. */
     errorCode: text("error_code").$type<PlanningRunFailureCode>(),
     errorMessage: text("error_message"),
-    /** Set exactly when the run was cancelled (S7-25). */
+    /** Set exactly when the run was cancelled. */
     cancelReason: text("cancel_reason").$type<PlanningRunCancelReason>(),
     /**
      * The message a `hatch` run answers (required), or whose note started a `to_spec` or
-     * `to_tickets` run (S7b-13); null for every other purpose (slice 7b D1).
+     * `to_tickets` run; null for every other purpose.
      */
     hatchMessageId: text("hatch_message_id").references((): AnySQLiteColumn => hatchMessages.id),
     /** ISO 8601 UTC. */
@@ -270,8 +269,8 @@ export const planningRuns = sqliteTable(
     cacheCreationInputTokens: integer("cache_creation_input_tokens"),
     cacheReadInputTokens: integer("cache_read_input_tokens"),
     /**
-     * The User the run is attributed to (S9-11). Nullable in SQL (an added column, spec D9): the
-     * change feed's `TEMP` trigger refuses a null (`user_id_missing`, D8), and every insert sets it.
+     * The User the run is attributed to. Nullable in SQL (an added column): the change feed's
+     * `TEMP` trigger refuses a null (`user_id_missing`), and every insert sets it.
      */
     userId: text("user_id")
       .notNull()
@@ -312,7 +311,7 @@ export const planningRuns = sqliteTable(
       .where(
         sql`${t.state} = 'running' AND ${t.waypointId} IS NULL AND ${t.specificationId} IS NULL AND ${t.purpose} <> 'hatch'`,
       ),
-    // Each map's messages are answered one at a time (S7b-3), beside the map's own scope.
+    // Each map's messages are answered one at a time, beside the map's own scope.
     uniqueIndex("planning_runs_one_running_hatch_per_map")
       .on(t.mapId)
       .where(sql`${t.state} = 'running' AND ${t.purpose} = 'hatch'`),
@@ -326,9 +325,8 @@ export const planningRuns = sqliteTable(
 );
 
 /**
- * One row per waypoint of a map (slice 6a spec D1). Numbered per map; the resolution columns are
- * set exactly when it is resolved, `resolved_by_run` exactly when it was resolved by a run (S6a-5).
- * No user column (B40).
+ * One row per waypoint of a map. Numbered per map; the resolution columns are set exactly when it
+ * is resolved, `resolved_by_run` exactly when it was resolved by a run. No user column.
  */
 export const waypoints = sqliteTable(
   "waypoints",
@@ -358,7 +356,7 @@ export const waypoints = sqliteTable(
     createdByRun: text("created_by_run")
       .notNull()
       .references((): AnySQLiteColumn => planningRuns.id),
-    /** The latest hatch message that opened, reopened, reworded or directed it (S7b-10). */
+    /** The latest hatch message that opened, reopened, reworded or directed it. */
     hatchMessageId: text("hatch_message_id").references((): AnySQLiteColumn => hatchMessages.id),
     /**
      * True when a planning review finding routed `decision` opened or linked it: only the person
@@ -397,9 +395,8 @@ export const waypoints = sqliteTable(
 );
 
 /**
- * One row per blocker of a waypoint (slice 6a spec D1, S6a-6): both numbers name waypoints of the
- * same map, so a cross-map blocker is impossible; a waypoint never blocks itself. Cycles are
- * refused in core.
+ * One row per blocker of a waypoint: both numbers name waypoints of the same map, so a cross-map
+ * blocker is impossible; a waypoint never blocks itself. Cycles are refused in core.
  */
 export const waypointBlockers = sqliteTable(
   "waypoint_blockers",
@@ -432,10 +429,10 @@ export const waypointBlockers = sqliteTable(
 );
 
 /**
- * One row per question round (slice 6a spec D1): on a waypoint, or map-level (`waypoint_id` null).
- * Rounds are numbered per waypoint, and map-level rounds per map; at most one pending round per
- * waypoint and one pending map-level round per map (S6a-8). The first map-level round is never
- * `final`; a follow-up may be (destination rounds, DR-9). Submitted exactly when `answers` is set.
+ * One row per question round: on a waypoint, or map-level (`waypoint_id` null). Rounds are numbered
+ * per waypoint, and map-level rounds per map; at most one pending round per waypoint and one
+ * pending map-level round per map. The first map-level round is never `final`; a follow-up may be
+ * Submitted exactly when `answers` is set.
  */
 export const questionRounds = sqliteTable(
   "question_rounds",
@@ -462,7 +459,7 @@ export const questionRounds = sqliteTable(
     askedAt: text("asked_at").notNull(),
     /** ISO 8601 UTC; null until submitted. */
     submittedAt: text("submitted_at"),
-    /** ISO 8601 UTC; set exactly when withdrawn (slice 7b D1). */
+    /** ISO 8601 UTC; set exactly when withdrawn. */
     withdrawnAt: text("withdrawn_at"),
     /** Set exactly when withdrawn. */
     withdrawnReason: text("withdrawn_reason").$type<RoundWithdrawnReason>(),
@@ -506,9 +503,9 @@ export const questionRounds = sqliteTable(
 );
 
 /**
- * One row per message sent through the escape hatch (slice 7b D1): the stage and spec on screen when
- * it was sent, its text, and once replied the reply, a refusal code when core refused the change
- * (D4), and the change it applied (L147 Q1). No user column (B40).
+ * One row per message sent through the escape hatch: the stage and spec on screen when it was sent,
+ * its text, and once replied the reply, a refusal code when core refused the change, and the change
+ * it applied. No user column.
  */
 export const hatchMessages = sqliteTable(
   "hatch_messages",
@@ -527,9 +524,9 @@ export const hatchMessages = sqliteTable(
     /** The `hatch` run that replied; set exactly when replied. */
     runId: text("run_id").references((): AnySQLiteColumn => planningRuns.id),
     reply: text("reply"),
-    /** Set when core refused the reply's change (D4); the reply is then core's sentence for it. */
+    /** Set when core refused the reply's change; the reply is then core's sentence for it. */
     refusal: text("refusal").$type<HatchRefusal>(),
-    /** The change core applied with the reply (D3), written in its transaction; else null. */
+    /** The change core applied with the reply, written in its transaction; else null. */
     change: hatchChangeColumn("change"),
     /** ISO 8601 UTC; set exactly when replied. */
     repliedAt: text("replied_at"),
@@ -566,7 +563,7 @@ export const hatchMessages = sqliteTable(
   ],
 );
 
-/** One row per spec of a project (slice 7 D1, S7-2): numbered per project; its title is its latest revision's. */
+/** One row per spec of a project: numbered per project; its title is its latest revision's. */
 export const specifications = sqliteTable(
   "specifications",
   {
@@ -582,11 +579,11 @@ export const specifications = sqliteTable(
 );
 
 /**
- * One row per revision of a spec (slice 7 D1, S7-2, S7-3): numbered per spec from 1, naming the map
- * and run that wrote it. No state column: approved and superseded are timestamps, a rejection is a
- * supersession with its reason. Only a draft's content is updated: an agent's rewrite of a draft no
- * one has acted on (a review repair, a re-clear) replaces it in place, with `written_by_run` and
- * `removed`; once approved or superseded a revision never changes (L241).
+ * One row per revision of a spec: numbered per spec from 1, naming the map and run that wrote it.
+ * No state column: approved and superseded are timestamps, a rejection is a supersession with its
+ * reason. Only a draft's content is updated: an agent's rewrite of a draft no one has acted on (a
+ * review repair, a re-clear) replaces it in place, with `written_by_run` and `removed`; once
+ * approved or superseded a revision never changes.
  */
 export const specRevisions = sqliteTable(
   "spec_revisions",
@@ -602,16 +599,16 @@ export const specRevisions = sqliteTable(
     mapId: text("map_id")
       .notNull()
       .references(() => maps.id),
-    /** The `to_spec` run that wrote its content, on `map_id`: a draft's latest rewrite (L241). */
+    /** The `to_spec` run that wrote its content, on `map_id`: a draft's latest rewrite. */
     writtenByRun: text("written_by_run").notNull(),
     content: specRevisionContentColumn("content").notNull(),
     /**
      * The ids it drops from the revision before, with why, as a repair (`ReviseSpec`) declared
      * them; null when a map-scope To Spec run wrote it, or it is revision 1. A draft rewritten in
-     * place keeps it against the revision before the draft (L241).
+     * place keeps it against the revision before the draft.
      */
     removed: specRemovalsColumn("removed"),
-    /** ISO 8601 UTC: when it was first written; a rewrite in place keeps it (L241). */
+    /** ISO 8601 UTC: when it was first written; a rewrite in place keeps it. */
     createdAt: text("created_at").notNull(),
     /** ISO 8601 UTC; null until approved. */
     approvedAt: text("approved_at"),
@@ -642,8 +639,8 @@ export const specRevisions = sqliteTable(
 );
 
 /**
- * One row per ticket set, written for one approved spec revision (slice 7 D1). `version` is the
- * current version; each version's content is a `ticket_set_versions` row.
+ * One row per ticket set, written for one approved spec revision. `version` is the current version;
+ * each version's content is a `ticket_set_versions` row.
  */
 export const ticketSets = sqliteTable(
   "ticket_sets",
@@ -673,7 +670,7 @@ export const ticketSets = sqliteTable(
   ],
 );
 
-/** One row per version of a ticket set (slice 7 D1, S7-3): its content, never updated. */
+/** One row per version of a ticket set: its content, never updated. */
 export const ticketSetVersions = sqliteTable(
   "ticket_set_versions",
   {
@@ -692,7 +689,7 @@ export const ticketSetVersions = sqliteTable(
   (t) => [primaryKey({ columns: [t.ticketSetId, t.version] })],
 );
 
-/** The person's rejection of one ticket set version, with the reason (slice 7 D1, S7-18). */
+/** The person's rejection of one ticket set version, with the reason. */
 export const ticketSetRejections = sqliteTable(
   "ticket_set_rejections",
   {
@@ -714,10 +711,9 @@ export const ticketSetRejections = sqliteTable(
 );
 
 /**
- * One row per spec review (slice 7 D1, S7-6), pinned to the revision it reviewed: `passed` exactly
- * when it has no finding; `sources` the map's closed waypoints it read. A draft rewritten in place
- * (L241) gathers one review per rewrite; its current review is the one whose run started after its
- * `written_by_run`.
+ * One row per spec review, pinned to the revision it reviewed: `passed` exactly when it has no
+ * finding; `sources` the map's closed waypoints it read. A draft rewritten in place gathers one
+ * review per rewrite; its current review is the one whose run started after its `written_by_run`.
  */
 export const specReviews = sqliteTable(
   "spec_reviews",
@@ -735,7 +731,7 @@ export const specReviews = sqliteTable(
     summary: text("summary").notNull(),
     sources: specReviewSourcesColumn("sources").notNull(),
     /**
-     * The code survey's unverifiable items the review settled from the code (RC2); null on a review
+     * The code survey's unverifiable items the review settled from the code; null on a review
      * recorded before reviews settled them.
      */
     verified: surveyItemChecksColumn("verified"),
@@ -744,8 +740,8 @@ export const specReviews = sqliteTable(
 );
 
 /**
- * One row per finding of a spec review (slice 7 D1, S7-8): `waypoint_id` is the Grilling waypoint an
- * escalated finding opened or linked, set exactly when `escalated`.
+ * One row per finding of a spec review: `waypoint_id` is the Grilling waypoint an escalated finding
+ * opened or linked, set exactly when `escalated`.
  */
 export const specReviewFindings = sqliteTable(
   "spec_review_findings",
@@ -774,8 +770,7 @@ export const specReviewFindings = sqliteTable(
 );
 
 /**
- * One row per tickets review of a ticket set version (slice 7 D1, slice 7c S7c-2): `passed` exactly
- * when it has no finding.
+ * One row per tickets review of a ticket set version: `passed` exactly when it has no finding.
  */
 export const ticketsReviews = sqliteTable(
   "tickets_reviews",
@@ -802,8 +797,8 @@ export const ticketsReviews = sqliteTable(
 );
 
 /**
- * One row per finding of a tickets review (slice 7 D1, slice 7c D1): `route` and `question` as a
- * spec review finding has them (0009); `escalated` marks a finding that holds the set (S7c-5).
+ * One row per finding of a tickets review: `route` and `question` as a spec review finding has them
+ * (0009); `escalated` marks a finding that holds the set.
  */
 export const ticketsReviewFindings = sqliteTable(
   "tickets_review_findings",
@@ -830,10 +825,10 @@ export const ticketsReviewFindings = sqliteTable(
 );
 
 /**
- * One row per delivery run of an approved ticket set (slice 4 spec D7, slice 7 D1, S7-22, slice 8
- * D1). Numbered per spec. No status column: the outcome is derived (`deliveryOutcome` in core).
- * Active while `ended_at` is null, at most one active run per project (L98); an ended run holds a
- * verdict, a failure, or neither (cancelled). `phase` is the step it is in, or ended in.
+ * One row per delivery run of an approved ticket set. Numbered per spec. No status column: the
+ * outcome is derived (`deliveryOutcome` in core). Active while `ended_at` is null, at most one
+ * active run per project; an ended run holds a verdict, a failure, or neither (cancelled). `phase`
+ * is the step it is in, or ended in.
  */
 export const deliveryRuns = sqliteTable(
   "delivery_runs",
@@ -862,8 +857,8 @@ export const deliveryRuns = sqliteTable(
     baseCommit: text("base_commit").notNull(),
     /**
      * The commit the run branch is created at: `baseCommit`, or the resumed run's branch head.
-     * Nullable in SQL (an added column, spec D9); `0024` sets `base_commit` on the runs before it,
-     * and every insert sets it.
+     * Nullable in SQL (an added column); `0024` sets `base_commit` on the runs before it, and every
+     * insert sets it.
      */
     startCommit: text("start_commit").notNull(),
     /** The failed, blocked or cancelled run this run resumes; null for a run started from clean. */
@@ -872,7 +867,7 @@ export const deliveryRuns = sqliteTable(
     ),
     /** The project's required checks, pinned at the start. */
     checks: deliveryChecksColumn("checks").notNull(),
-    /** The step the run is in; kept at the end (S8-10). */
+    /** The step the run is in; kept at the end. */
     phase: text("phase").$type<DeliveryPhase>().notNull(),
     /** ISO 8601 UTC. */
     startedAt: text("started_at").notNull(),
@@ -886,25 +881,25 @@ export const deliveryRuns = sqliteTable(
     verdict: verdictColumn("verdict"),
     /** Null unless the run ended failed. */
     failure: deliveryFailureColumn("failure"),
-    /** ISO 8601 UTC; set by Mark merged once git shows the final commit in the base branch (S8-5). */
+    /** ISO 8601 UTC; set by Mark merged once git shows the final commit in the base branch. */
     mergedAt: text("merged_at"),
     /**
-     * The User the run is attributed to (S9-11). Nullable in SQL (an added column, spec D9): the
-     * change feed's `TEMP` trigger refuses a null (`user_id_missing`, D8), and every insert sets it.
+     * The User the run is attributed to. Nullable in SQL (an added column): the change feed's
+     * `TEMP` trigger refuses a null (`user_id_missing`), and every insert sets it.
      */
     userId: text("user_id")
       .notNull()
       .references(() => users.id),
     /**
-     * The name of the delivery executor carrying the run (`delivery.executor` at its start,
-     * CR9b-6). Nullable in SQL (an added column, spec D9); `0020` sets `"local"` on the runs before
-     * it, and every insert sets it.
+     * The name of the delivery executor carrying the run (`delivery.executor` at its start).
+     * Nullable in SQL (an added column); `0020` sets `"local"` on the runs before it, and every
+     * insert sets it.
      */
     executor: text("executor").notNull(),
     /**
      * The pull request the run opened on its project's origin repository on github.com once its
-     * verdict passed (C1): its number, URL and state, all set or all null. Null on every other run,
-     * and on every run from before `0030`.
+     * verdict passed: its number, URL and state, all set or all null. Null on every other run, and
+     * on every run from before `0030`.
      */
     prNumber: integer("pr_number"),
     prUrl: text("pr_url"),
@@ -953,8 +948,8 @@ export const deliveryRuns = sqliteTable(
 );
 
 /**
- * One row per pinned ticket of a run started after `0010` (slice 8 D1, S8-7), inserted in the
- * start transaction in the set's order. Started and merged are recorded while the run is active.
+ * One row per pinned ticket of a run started after `0010`, inserted in the start transaction in the
+ * set's order. Started and merged are recorded while the run is active.
  */
 export const deliveryRunTickets = sqliteTable(
   "delivery_run_tickets",
@@ -986,7 +981,7 @@ export const deliveryRunTickets = sqliteTable(
   ],
 );
 
-/** One line of a run's activity (slice 8 D1, D5, S8-9), numbered per run from 1; display only. */
+/** One line of a run's activity, numbered per run from 1; display only. */
 export const deliveryRunEvents = sqliteTable(
   "delivery_run_events",
   {
@@ -1014,9 +1009,8 @@ export const deliveryRunEvents = sqliteTable(
 );
 
 /**
- * One row per fog item of a map (slice 6b spec D1): in-scope uncertainty not yet a waypoint. A
- * graduated or excluded item's row is deleted; positions come from `maps.fog_next_position` and are
- * never reused.
+ * One row per fog item of a map: in-scope uncertainty not yet a waypoint. A graduated or excluded
+ * item's row is deleted; positions come from `maps.fog_next_position` and are never reused.
  */
 export const mapFog = sqliteTable(
   "map_fog",
@@ -1041,8 +1035,8 @@ export const mapFog = sqliteTable(
 );
 
 /**
- * One row per Out of scope line of a map (slice 6b spec D1): a waypoint's (S6b-5), at most one per
- * waypoint, or the map's (`waypoint_id` null: a chart's line or a fog item moved out of scope).
+ * One row per Out of scope line of a map: a waypoint's, at most one per waypoint, or the map's
+ * (`waypoint_id` null: a chart's line or a fog item moved out of scope).
  */
 export const mapExclusions = sqliteTable(
   "map_exclusions",
@@ -1158,8 +1152,8 @@ export const mapProposals = sqliteTable(
 );
 
 /**
- * One row per research run's report (slice 6b spec D1, S6b-7), keyed by the run. An answered
- * report has no gap; an unanswered one names it.
+ * One row per research run's report, keyed by the run. An answered report has no gap; an unanswered
+ * one names it.
  */
 export const researchReports = sqliteTable(
   "research_reports",
@@ -1187,7 +1181,7 @@ export const researchReports = sqliteTable(
   ],
 );
 
-/** One row per source of a research report, by position (slice 6b spec D1). */
+/** One row per source of a research report, by position. */
 export const researchSources = sqliteTable(
   "research_sources",
   {
@@ -1211,8 +1205,8 @@ export const researchSources = sqliteTable(
 );
 
 /**
- * One row per Task run that ended `done` or `failed` (slice 6b spec D1, S6b-8). `facts` are never
- * empty: for `failed`, what stopped it.
+ * One row per Task run that ended `done` or `failed`. `facts` are never empty: for `failed`, what
+ * stopped it.
  */
 export const taskOutcomes = sqliteTable(
   "task_outcomes",
@@ -1238,8 +1232,8 @@ export const taskOutcomes = sqliteTable(
 );
 
 /**
- * One row per consistency pass of a map (slice 6b spec D1, S6b-10): the resolved waypoints it
- * compared, each with its `resolved_at` (spec D5).
+ * One row per consistency pass of a map: the resolved waypoints it compared, each with its
+ * `resolved_at`.
  */
 export const consistencyPasses = sqliteTable(
   "consistency_passes",
@@ -1262,7 +1256,7 @@ export const consistencyPasses = sqliteTable(
 );
 
 /**
- * The map's current code survey (harness change #1): one row per map, written by the `survey` run
+ * The map's current code survey: one row per map, written by the `survey` run
  * that produced it. `content` is the run's `CodeSurvey`, Zod-parsed on read.
  */
 export const codeSurveys = sqliteTable(
@@ -1286,8 +1280,7 @@ export const codeSurveys = sqliteTable(
 );
 
 /**
- * One row per finding of a consistency pass (slice 6b spec D1, S6b-10), keyed by the Grilling
- * waypoint it opened.
+ * One row per finding of a consistency pass, keyed by the Grilling waypoint it opened.
  */
 export const consistencyFindings = sqliteTable(
   "consistency_findings",
@@ -1319,9 +1312,9 @@ export const consistencyFindings = sqliteTable(
 );
 
 /**
- * One row per spec a charted waypoint touches (slice 8b D1, S8b-2): the spec's latest approved
- * revision when the chart named it and criteria of that revision. Only a confirming chart writes
- * one, with its waypoint; a touch never changes.
+ * One row per spec a charted waypoint touches: the spec's latest approved revision when the chart
+ * named it and criteria of that revision. Only a confirming chart writes one, with its waypoint; a
+ * touch never changes.
  */
 export const waypointTouches = sqliteTable(
   "waypoint_touches",
@@ -1338,7 +1331,7 @@ export const waypointTouches = sqliteTable(
   },
   (t) => [
     primaryKey({ columns: [t.waypointId, t.specificationId] }),
-    // A touch names a stored revision of its spec (CR-6).
+    // A touch names a stored revision of its spec.
     foreignKey({
       name: "waypoint_touches_revision_fk",
       columns: [t.specificationId, t.revision],
@@ -1353,10 +1346,10 @@ export const waypointTouches = sqliteTable(
 );
 
 /**
- * One row per wait of a map on a spec another map holds (slice 8b D1, D3, S8b-5–S8b-7): the change
- * it waits to make (`note`), the hatch message it came from (a note's wait), and the hold when it
- * was recorded, written once and never updated. Released exactly when `released_by_run` names the
- * run that writes the map's revision; at most one open wait per map and spec.
+ * One row per wait of a map on a spec another map holds: the change it waits to make (`note`), the
+ * hatch message it came from (a note's wait), and the hold when it was recorded, written once and
+ * never updated. Released exactly when `released_by_run` names the run that writes the map's
+ * revision; at most one open wait per map and spec.
  */
 export const specWaits = sqliteTable(
   "spec_waits",
@@ -1370,7 +1363,7 @@ export const specWaits = sqliteTable(
       .notNull()
       .references(() => specifications.id),
     note: text("note").notNull(),
-    /** Set for a note's wait (S8b-7); null for a wait recorded by To Spec. */
+    /** Set for a note's wait; null for a wait recorded by To Spec. */
     hatchMessageId: text("hatch_message_id").references(() => hatchMessages.id),
     /** ISO 8601 UTC. */
     since: text("since").notNull(),
@@ -1386,7 +1379,7 @@ export const specWaits = sqliteTable(
     releasedByRun: text("released_by_run").references(() => planningRuns.id),
   },
   (t) => [
-    // The hold's revision is a stored revision of the spec (CR-6).
+    // The hold's revision is a stored revision of the spec.
     foreignKey({
       name: "spec_waits_hold_revision_fk",
       columns: [t.specificationId, t.holdRevision],
@@ -1402,7 +1395,7 @@ export const specWaits = sqliteTable(
     uniqueIndex("spec_waits_one_open_per_map_spec")
       .on(t.mapId, t.specificationId)
       .where(sql`${t.releasedAt} IS NULL`),
-    // `releaseWaits` reads a spec's open waits; `releasedWaitOf`/`followRelease` by run (CR-5).
+    // `releaseWaits` reads a spec's open waits; `releasedWaitOf`/`followRelease` by run.
     index("spec_waits_open_by_spec")
       .on(t.specificationId)
       .where(sql`${t.releasedAt} IS NULL`),
@@ -1411,8 +1404,8 @@ export const specWaits = sqliteTable(
 );
 
 /**
- * The Actor columns' rule (domain model §3.8): a `user` names its User only, a run actor its run
- * and its User, `system` neither.
+ * The Actor columns' rule: a `user` names its User only, a run actor its run and its User, `system`
+ * neither.
  */
 function actorColumnsCheck(name: string, table: string) {
   return check(
@@ -1424,10 +1417,10 @@ function actorColumnsCheck(name: string, table: string) {
 }
 
 /**
- * The change feed (CONTEXT.md Change feed; slice 9 spec D10, S9-12): one row per insert, update and
- * delete on a core table, appended in the same transaction by the `TEMP` triggers `feed.ts`
- * installs. Never read to decide (S9-14): only `packages/db`, core's `writes.ts` and the server's
- * event route may import it (lint). `project_id` has no foreign key, so a deleted project's rows stay.
+ * The change feed (CONTEXT.md Change feed): one row per insert, update and delete on a core table,
+ * appended in the same transaction by the `TEMP` triggers `feed.ts` installs. Never read to decide:
+ * only `packages/db`, core's `writes.ts` and the server's event route may import it (lint).
+ * `project_id` has no foreign key, so a deleted project's rows stay.
  */
 export const changeFeed = sqliteTable(
   "change_feed",
@@ -1455,9 +1448,9 @@ export const changeFeed = sqliteTable(
 );
 
 /**
- * The Actor of the write in progress (slice 9 spec D10): core's `write(db, actor, fn)` fills its one
- * row at the start of an immediate transaction and empties it before commit; the feed triggers read
- * it, and raise `actor_missing` when it is empty.
+ * The Actor of the write in progress: core's `write(db, actor, fn)` fills its one row at the start
+ * of an immediate transaction and empties it before commit; the feed triggers read it, and raise
+ * `actor_missing` when it is empty.
  */
 export const writeActor = sqliteTable(
   "write_actor",

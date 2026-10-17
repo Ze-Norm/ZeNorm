@@ -204,7 +204,7 @@ describe("clauseFooter", () => {
     ]);
   });
 
-  it("keeps each destination's map, once per map (CR-2)", () => {
+  it("keeps each destination's map, once per map", () => {
     const both: ClauseSourceView[] = [
       { kind: "destination", mapId: EARLIER, mapTitle: "Earlier" },
       { kind: "destination", mapId: THIS, mapTitle: "This" },
@@ -228,7 +228,7 @@ describe("clauseFooter", () => {
     ]);
   });
 
-  it("names a note source last, as your note (slice 7b S7b-11)", () => {
+  it("names a note source last, as your note", () => {
     const noted: ClauseSourceView[] = [
       { kind: "note", mapId: THIS, mapTitle: "This" },
       second,
@@ -242,7 +242,7 @@ describe("clauseFooter", () => {
   });
 });
 
-/** The demo's `separator` r1 → r2 delta: 1.1 kept, 1.2 changed, 2.1 removed, 2.2 new, 1.3 moved. */
+/** An r1 → r2 delta: 1.1 kept, 1.2 changed, 2.1 removed, 2.2 new, 1.3 moved. */
 const DELTA: TextDelta = {
   before: 1,
   after: 2,
@@ -265,7 +265,7 @@ const DELTA: TextDelta = {
   outOfScopeDropped: [],
 };
 
-describe("changeTally (the demo's)", () => {
+describe("changeTally", () => {
   it("counts each change, removed from the removed criteria, leaving out none", () => {
     expect(changeTally(DELTA)).toBe("1 new · 2 changed · 1 moved · 1 removed · 1 unchanged");
     expect(
@@ -361,7 +361,7 @@ describe("deliveredUnder", () => {
     ).toEqual([{ revision: 2, tickets: ["T1"] }]);
   });
 
-  it("names one revision per group, oldest first (E-2)", () => {
+  it("names one revision per group, oldest first", () => {
     const dispositions: Disposition[] = [
       { criterion: "1.1", kind: "delivered", ticket: "T4", reason: null },
       { criterion: "1.2", kind: "delivered", ticket: "T1", reason: null },
@@ -388,7 +388,7 @@ describe("deliveredUnder", () => {
   });
 });
 
-describe("actionSpec (tickets review B6)", () => {
+describe("actionSpec", () => {
   const specs = [spec(1, "done")];
   const wait: SpecWaitView = {
     specNumber: 4,
@@ -449,7 +449,7 @@ describe("ownRevisions", () => {
   });
 });
 
-describe("ownTicketSets and runsOn (slice 8b D9, the demo's runsOn)", () => {
+describe("ownTicketSets and runsOn", () => {
   const revision = (n: number, mapId: string): SpecRevisionView => ({
     id: `0000000000000000000000000${String(n)}`,
     revision: n,
@@ -489,7 +489,7 @@ describe("ownTicketSets and runsOn (slice 8b D9, the demo's runsOn)", () => {
     expect(runsOn(shared, "b").map((run) => run.number)).toEqual([2]);
   });
 
-  it("marks a clause from this map's latest run: failing criteria, and a tick once merged (L212 (2))", () => {
+  it("marks a clause from this map's latest run: failing criteria, and a tick once merged", () => {
     const finding = (criterion: string | null, severity: "blocking" | "note") => ({
       axis: "spec" as const,
       severity,
@@ -519,7 +519,7 @@ describe("ownTicketSets and runsOn (slice 8b D9, the demo's runsOn)", () => {
     expect(clauseRunMarks(merged, "b", ["1.1"], ["T2"])).toEqual({ failing: [], merged: false });
   });
 
-  it("gives a later map no run while only the earlier map's run exists (mid QA D-4)", () => {
+  it("gives a later map no run while only the earlier map's run exists", () => {
     const earlierOnly = { ...shared, runs: [{ number: 1, ticketSetId: first.id }] };
     expect(runsOn(earlierOnly, "b")).toEqual([]);
     expect(() => shownRun(runsOn(earlierOnly, "b"), undefined)).toThrow();

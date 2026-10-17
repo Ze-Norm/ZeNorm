@@ -1,19 +1,18 @@
--- Slice 8 spec D1 and Existing Records. Adds `projects.required_checks` (`[]` on every existing
--- project, by the column's SQL DEFAULT, which only backfills: core writes the value on every new
--- project and `schema.ts` declares no default; nothing is copied from old runs, L184 (1)). SQLite
--- cannot drop a column default, so every database keeps this one although `0010_snapshot.json`
--- shows none: a raw insert without the column gets `[]`. A later migration that rebuilds
--- `projects` drops it (L197 item 14, N-Std-1).
--- Rebuilds `delivery_runs` with `project_id` (the run's spec's), `base_branch` (the project's, which
--- nothing could change before this migration), the stored `phase` and `merged_at`. `phase` is
+-- Adds `projects.required_checks` (`[]` on every existing project, by the column's SQL DEFAULT,
+-- which only backfills: core writes the value on every new project and `schema.ts` declares no
+-- default; nothing is copied from old runs). SQLite cannot drop a column default, so every database
+-- keeps this one although `0010_snapshot.json` shows none: a raw insert without the column gets
+-- `[]`. A later migration that rebuilds `projects` drops it.
+-- Rebuilds `delivery_runs` with `project_id` (the run's spec's), `base_branch` (the project's,
+-- which nothing could change before this migration), the stored `phase` and `merged_at`. `phase` is
 -- `failure.phase` for a failed run, `reviewing` for a passed or blocked one, and for a cancelled or
 -- active one the web's evidence rule: check results, `reviewing`; a final commit, `verifying`; else
--- `implementing`. `phase` then leaves `failure` (L44), and every verdict finding gains
--- `"criterion": null` (S8-11). Where a project has several active runs, all but the newest (by
+-- `implementing`. `phase` then leaves `failure`, and every verdict finding gains
+-- `"criterion": null`. Where a project has several active runs, all but the newest (by
 -- `started_at`, then `id`) end cancelled at the migration time before the per-project index is
--- created (L98). Adds `delivery_run_tickets` and `delivery_run_events`, empty: older runs get no
--- ticket rows and no lines. The rebuild runs with foreign keys off (`migrateDatabase`) and ends by
--- refusing any foreign key violation (L163).
+-- created. Adds `delivery_run_tickets` and `delivery_run_events`, empty: older runs get no ticket
+-- rows and no lines. The rebuild runs with foreign keys off (`migrateDatabase`) and ends by
+-- refusing any foreign key violation.
 ALTER TABLE `projects` ADD `required_checks` text DEFAULT '[]' NOT NULL;
 --> statement-breakpoint
 CREATE TABLE `__new_delivery_runs` (

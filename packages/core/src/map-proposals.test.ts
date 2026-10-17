@@ -67,14 +67,14 @@ const SCHEDULES: ProposedMap = {
 const RULING_REASON = "Columns are fixed by the importer.";
 const RULING_IDEA = "Rework the importer.";
 
-/** The draft ideas no run may write (criterion 1.1). */
+/** The draft ideas no run may write. */
 const IDEAS_OUT_OF_BOUNDS: readonly [string, string][] = [
   ["an empty idea", ""],
   ["a blank idea", "   "],
   ["an idea over 4000 characters", "i".repeat(4001)],
 ];
 
-/** The proposals no run may write: each idea above, and a line over 500 characters (1.1). */
+/** The proposals no run may write: each idea above, and a line over 500 characters. */
 const OUT_OF_BOUNDS: readonly [string, ProposedMap][] = [
   ...IDEAS_OUT_OF_BOUNDS.map(([name, idea]): [string, ProposedMap] => [
     name,
@@ -147,7 +147,7 @@ async function wayfinding() {
   return overview.value.wayfinding;
 }
 
-describe("runs save their proposals of new maps (C1)", () => {
+describe("runs save their proposals of new maps", () => {
   test("a confirming chart saves each proposal pending, with its own line and no Out of scope line yet", async () => {
     const chart = runningMapRun(context, mapId);
     confirmWith({ ...CONFIRMATION, proposals: [IMPORTS] });
@@ -195,7 +195,7 @@ describe("runs save their proposals of new maps (C1)", () => {
     expect((await wayfinding()).proposals).toMatchObject([{ waypoint: 1, line: null }]);
   });
 
-  test("a fog item settled as a proposal leaves the fog with no Out of scope line (1.2)", () => {
+  test("a fog item settled as a proposal leaves the fog with no Out of scope line", () => {
     confirmWith({ ...CONFIRMATION, fog: ["Fog 1.", "Fog 2."] });
     resolveAll();
     const fogRun = runningMapRun(context, mapId);
@@ -260,7 +260,7 @@ describe("runs save their proposals of new maps (C1)", () => {
   });
 });
 
-describe("a proposal outside its bounds fails its run agent_output_invalid and saves nothing (1.1)", () => {
+describe("a proposal outside its bounds fails its run agent_output_invalid and saves nothing", () => {
   test.each(OUT_OF_BOUNDS)("a confirming chart with %s", (_, proposal) => {
     const chart = runningMapRun(context, mapId);
     const recorded = recordChart(context.user, context.db, chart.id, {
@@ -322,7 +322,7 @@ describe("a proposal outside its bounds fails its run agent_output_invalid and s
   });
 });
 
-describe("confirming a proposal (C4)", () => {
+describe("confirming a proposal", () => {
   test("creates a charting map in the same project, split from the map and run, and links the line; the map is otherwise unchanged", async () => {
     const chart = runningMapRun(context, mapId);
     confirmWith({ ...CONFIRMATION, fog: ["Fog 1."], proposals: [IMPORTS] });
@@ -350,7 +350,7 @@ describe("confirming a proposal (C4)", () => {
       splitFromRunId: chart.id,
     });
     expect(readMap(context.db, map.id)).toEqual(map);
-    // Its chart starts at once, and the map is the confirming User's (C4).
+    // Its chart starts at once, and the map is the confirming User's.
     expect(runsOf(context, map.id)).toMatchObject([
       { purpose: "chart", state: "running", retryOfRunId: null },
     ]);
@@ -367,13 +367,13 @@ describe("confirming a proposal (C4)", () => {
     expect(exclusionRows()).toMatchObject([
       { mapId, text: IMPORTS.line, waypointId: null, splitMapId: map.id, createdByRun: chart.id },
     ]);
-    // The map's destination, waypoints and fog are unchanged (3.3).
+    // The map's destination, waypoints and fog are unchanged.
     expect(readMap(context.db, mapId)).toEqual(before.map);
     expect(readWaypoints(context.db, mapId)).toEqual(before.waypoints);
     expect(readFog(context.db, mapId)).toEqual(before.fog);
   });
 
-  test("a ruled-out waypoint's line gains the link and keeps its waypoint (4.2)", async () => {
+  test("a ruled-out waypoint's line gains the link and keeps its waypoint", async () => {
     confirmWith(CONFIRMATION);
     ruleOutWaypointOne();
 
@@ -394,7 +394,7 @@ describe("confirming a proposal (C4)", () => {
     ]);
   });
 
-  test("confirming or dismissing a decided proposal is refused proposal_already_decided and changes nothing (3.2)", async () => {
+  test("confirming or dismissing a decided proposal is refused proposal_already_decided and changes nothing", async () => {
     confirmWith({ ...CONFIRMATION, proposals: [IMPORTS] });
     const proposalId = onlyProposal().id;
     const first = await confirmProposal(
@@ -419,7 +419,7 @@ describe("confirming a proposal (C4)", () => {
     expect(onlyProposal()).toMatchObject({ state: "confirmed", idea: IMPORTS.idea });
   });
 
-  test("a missing project folder is refused project_folder_missing; the proposal stays pending (4.1)", async () => {
+  test("a missing project folder is refused project_folder_missing; the proposal stays pending", async () => {
     confirmWith({ ...CONFIRMATION, proposals: [IMPORTS] });
     const proposalId = onlyProposal().id;
     const mapsBefore = mapCount();
@@ -449,7 +449,7 @@ describe("confirming a proposal (C4)", () => {
   });
 });
 
-describe("dismissing a proposal (C5)", () => {
+describe("dismissing a proposal", () => {
   test("saves the proposal's own line plain, and creates no map", () => {
     const chart = runningMapRun(context, mapId);
     confirmWith({ ...CONFIRMATION, proposals: [IMPORTS] });
@@ -468,7 +468,7 @@ describe("dismissing a proposal (C5)", () => {
     ]);
   });
 
-  test("a waypoint-attached proposal leaves exactly one unlinked line for that waypoint (5.1)", () => {
+  test("a waypoint-attached proposal leaves exactly one unlinked line for that waypoint", () => {
     confirmWith(CONFIRMATION);
     ruleOutWaypointOne();
 

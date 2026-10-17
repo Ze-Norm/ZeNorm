@@ -12,8 +12,8 @@ import { formatMoment } from "@/lib/map";
 import { cn } from "@/lib/utils";
 
 /**
- * A revision's state badge (D9): draft or approved, and rejected (L97). A superseded revision keeps
- * the draft badge (L130 (2)).
+ * A revision's state badge: draft or approved, and rejected. A superseded revision keeps the draft
+ * badge.
  */
 const stateBadge: Record<
   SpecRevisionState,
@@ -25,7 +25,7 @@ const stateBadge: Record<
   superseded: { variant: "secondary", label: "draft" },
 };
 
-/** A revision's planning review, in the demo's badge (D9). */
+/** A revision's planning review, as a badge. */
 export function ReviewBadge({ review }: { review: SpecRevisionView["review"] }) {
   switch (review.state) {
     case "pending":
@@ -45,10 +45,10 @@ export function ReviewBadge({ review }: { review: SpecRevisionView["review"] }) 
 }
 
 /**
- * **Revisions · planning review** (D9): every revision of the spec, newest first, on whichever map,
- * with its state ("delivered" once a merged run delivered it, slice 8b D11), its review, the map
- * that wrote it and each finding's title. Each opens by `?revision=` (D1, L100). A full-width row
- * of the page under its head, one line per revision (UX audit A3, C2).
+ * **Revisions · planning review**: every revision of the spec, newest first, on whichever map,
+ * with its state ("delivered" once a merged run delivered it), its review, the map that wrote it
+ * and each finding's title. Each opens by `?revision=`. A full-width row of the page under its
+ * head, one line per revision.
  */
 export function DraftHistory({
   mapId,
@@ -76,7 +76,7 @@ export function DraftHistory({
         </div>
         <ol className="grid grid-cols-[minmax(0,1fr)]">
           {rows.map((entry) => {
-            // An approved revision whose set a merged run delivered reads "delivered" (D11).
+            // An approved revision whose set a merged run delivered reads "delivered".
             const badge =
               entry.state === "approved" && entry.deliveredRun !== null
                 ? { variant: "ok" as const, label: "delivered" }

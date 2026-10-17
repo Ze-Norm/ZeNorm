@@ -97,7 +97,7 @@ afterEach(async () => {
   await rm(home, { recursive: true, force: true });
 });
 
-describe("the platform and Node refusals (2.3)", () => {
+describe("the platform and Node refusals", () => {
   test("native Windows is platform_unsupported, exit 1, before the arguments or any command", async () => {
     const { commands, run } = stubCommands();
     for (const argv of [["run"], ["run", "--config", join(home, "config.json")], ["bogus"]]) {
@@ -159,7 +159,7 @@ describe("the platform and Node refusals (2.3)", () => {
   });
 });
 
-describe("help and the version (2.4)", () => {
+describe("help and the version", () => {
   test.each([
     { name: "--help", argv: ["--help"] },
     { name: "-h", argv: ["-h"] },
@@ -198,13 +198,13 @@ describe("help and the version (2.4)", () => {
     },
   );
 
-  test("the program's help lists exactly the COMMANDS table's commands (8.1)", async () => {
+  test("the program's help lists exactly the COMMANDS table's commands", async () => {
     expect(await runCli(input({ argv: ["--help"] }), COMMANDS, report)).toBe(0);
     expect(helpCommandNames(written.join(""))).toEqual(COMMANDS.map((entry) => entry.name));
   });
 });
 
-describe("malformed command lines are arguments_invalid (2.5)", () => {
+describe("malformed command lines are arguments_invalid", () => {
   test.each([
     { name: "no command", argv: [] },
     { name: "an unknown command", argv: ["bogus"] },
@@ -247,8 +247,8 @@ describe("malformed command lines are arguments_invalid (2.5)", () => {
   );
 });
 
-describe("zenorm run's config path (C2)", () => {
-  test("with neither --config nor ZENORM_CONFIG, config_file_missing names ~/.config/zenorm/config.json (2.2)", async () => {
+describe("zenorm run's config path", () => {
+  test("with neither --config nor ZENORM_CONFIG, config_file_missing names ~/.config/zenorm/config.json", async () => {
     expect(await runCli(input({ argv: ["run"] }), COMMANDS, report)).toBe(1);
     expect(reportedCodes()).toEqual([
       { code: "config_file_missing", subject: join(home, ".config", "zenorm", "config.json") },
@@ -315,7 +315,7 @@ function isJson(line: string): boolean {
   }
 }
 
-describe("refusals piped and at a terminal (C7)", () => {
+describe("refusals piped and at a terminal", () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
@@ -327,7 +327,7 @@ describe("refusals piped and at a terminal (C7)", () => {
   ];
 
   test.each(refusals)(
-    "$code with stderr not a terminal is exactly one JSON line with code, message and subject (7.1)",
+    "$code with stderr not a terminal is exactly one JSON line with code, message and subject",
     async ({ code, overrides }) => {
       const stderr = captureStderr();
       expect(await runCli(input(overrides), COMMANDS, refusalReporter(false))).toBe(1);
@@ -343,7 +343,7 @@ describe("refusals piped and at a terminal (C7)", () => {
   );
 
   test.each(refusals)(
-    "$code with stderr a terminal is readable text naming its code, with no JSON line (7.2)",
+    "$code with stderr a terminal is readable text naming its code, with no JSON line",
     async ({ code, overrides }) => {
       const stderr = captureStderr();
       expect(await runCli(input(overrides), COMMANDS, refusalReporter(true))).toBe(1);
@@ -368,7 +368,7 @@ describe("refusals piped and at a terminal (C7)", () => {
   });
 });
 
-describe("the package (C1, 2.1)", () => {
+describe("the package", () => {
   test("ships the zenorm bin and dist, needs Node 26.11.1 or newer, and declares no os field", () => {
     expect(manifest).toMatchObject({
       name: "@ze-norm/cli",

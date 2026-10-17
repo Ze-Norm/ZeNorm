@@ -21,11 +21,11 @@ import type { StartedZeNorm } from "@zenorm/zenorm/startup";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 /**
- * Repairs through the real `example` executor (spec 2.3, 2.5): ZeNorm started as `apps/zenorm`
- * does, with the example plugin and `delivery.executor: "example"`, and one map driven over
- * `/rpc` by the stand-in claude to an approved ticket set. A required check looks for the file the
- * executor commits on a repair attempt (`example-executor/repair-<n>.txt`). The executor is wrapped
- * only to record the requests it is given.
+ * Repairs through the real `example` executor: ZeNorm started as `apps/zenorm` does, with the
+ * example plugin and `delivery.executor: "example"`, and one map driven over `/rpc` by the stand-in
+ * claude to an approved ticket set. A required check looks for the file the executor commits on a
+ * repair attempt (`example-executor/repair-<n>.txt`). The executor is wrapped only to record the
+ * requests it is given.
  */
 
 /** The stand-in `claude` of `apps/zenorm`'s e2e, for the planning sessions. */
@@ -252,7 +252,7 @@ async function deliver(
   return { started, ended, folderPath };
 }
 
-describe("repairs through the example executor (2.3, 2.5)", () => {
+describe("repairs through the example executor", () => {
   test(
     "a check looking for the repair file fails before the attempt and passes after it: passed with one attempt",
     async () => {

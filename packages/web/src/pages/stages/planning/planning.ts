@@ -9,7 +9,7 @@ import { orpc } from "@/orpc";
 
 /**
  * Refetches what a planning mutation changes: the map's overview (which carries each spec's
- * delivery runs, slice 8 S8-14), the Inbox's overviews and the project.
+ * delivery runs), the Inbox's overviews and the project.
  */
 export function useInvalidatePlanning(): () => Promise<void> {
   const queryClient = useQueryClient();
@@ -57,7 +57,7 @@ export function ticketSetDecisionRefusalMessage(error: TicketSetDecisionError): 
 
 /**
  * The draft a stage shows: the latest when `number` is undefined, else the one with that number.
- * An unknown number throws, so the route shows its error (spec D1; L100).
+ * An unknown number throws, so the route shows its error.
  */
 export function viewedDraft<TDraft>(
   drafts: readonly TDraft[],

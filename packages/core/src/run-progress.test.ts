@@ -98,7 +98,7 @@ function rowOf(runId: string, ticket: string): StoredRunTicket {
   return row;
 }
 
-describe("a ticket's started record (S8-7, D4 Started)", () => {
+describe("a ticket's started record", () => {
   test("is recorded once: a repeat writes nothing and keeps the first time", async () => {
     const set = await deliverableTicketSet(context, project);
     const run = await startedRun(context, set.ticketSetId);
@@ -128,7 +128,7 @@ describe("a ticket's started record (S8-7, D4 Started)", () => {
   });
 });
 
-describe("a ticket's merged record (S8-7, D4 Merged)", () => {
+describe("a ticket's merged record", () => {
   test("records the ticket branch's head as the commit, with the summary", async () => {
     const run = await preparedRun();
     const head = await ticketWork(run, "T1");
@@ -189,7 +189,7 @@ describe("a ticket's merged record (S8-7, D4 Merged)", () => {
     expect(rowOf(run.id, "T1")).toMatchObject({ mergedAt: null, commit: null, summary: null });
   });
 
-  test("a branch missing while the run is active writes nothing and reads branch_missing; verifying then fails delivery_ticket_unmerged (L197 item 10)", async () => {
+  test("a branch missing while the run is active writes nothing and reads branch_missing; verifying then fails delivery_ticket_unmerged", async () => {
     const run = await preparedRun();
     await ticketWork(run, "T1");
     const finalCommit = mergeIntoRun(run, "T1");
@@ -234,7 +234,7 @@ describe("a ticket's merged record (S8-7, D4 Merged)", () => {
   });
 });
 
-describe("merges verified from git (S8-8)", () => {
+describe("merges verified from git", () => {
   test("a ticket merged by the commands but not reported is recorded at its branch head", async () => {
     const run = await preparedRun();
     await ticketWork(run, "T1");

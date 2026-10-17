@@ -97,7 +97,7 @@ function feed(): unknown[] {
     .all();
 }
 
-describe("installChangeFeed (S9-12, spec D10)", () => {
+describe("installChangeFeed", () => {
   test("gives every core table in sqlite_master its three TEMP feed triggers, and the user_id refusals", () => {
     installChangeFeed(db);
     // Installing again drops and recreates them: one of each still.
@@ -182,7 +182,7 @@ describe("installChangeFeed (S9-12, spec D10)", () => {
     ]);
   });
 
-  test("refuses a null user_id on insert and on update with user_id_missing (spec D8)", () => {
+  test("refuses a null user_id on insert and on update with user_id_missing", () => {
     installChangeFeed(db);
     setActor("system", null, null);
     insertProject();
@@ -207,7 +207,7 @@ describe("installChangeFeed (S9-12, spec D10)", () => {
   });
 });
 
-describe("changeFeedEnds and pruneChangeFeed (CR9b-17)", () => {
+describe("changeFeedEnds and pruneChangeFeed", () => {
   function seqs(): unknown[] {
     return db.$client.prepare("select seq from change_feed order by seq").pluck().all();
   }

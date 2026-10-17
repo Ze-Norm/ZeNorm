@@ -4,7 +4,7 @@ import { EntityId } from "./map.ts";
 import { ActiveRun } from "./project.ts";
 import type { CodedError } from "./result.ts";
 
-/** Codes `project.inspect` returns, in the order they are checked; the first wins (spec D3). */
+/** Codes `project.inspect` returns, in the order they are checked; the first wins. */
 export const InspectProjectErrorCode = z.enum([
   "project_folder_missing",
   "project_already_added",
@@ -42,7 +42,7 @@ export type InspectProjectError = {
   };
 }[InspectProjectErrorCode];
 
-/** Codes `project.create` returns: the inspection's, then the branch rule's (spec D3). */
+/** Codes `project.create` returns: the inspection's, then the branch rule's. */
 export const CreateProjectErrorCode = z.enum([
   ...InspectProjectErrorCode.options,
   "project_branch_invalid",
@@ -107,7 +107,7 @@ export type PlanningAgentError = {
   };
 }[PlanningAgentErrorCode];
 
-/** Codes `map.create` returns for expected refusals; it never waits on the agent (S6a-2). */
+/** Codes `map.create` returns for expected refusals; it never waits on the agent. */
 export const CreateMapErrorCode = z.enum(["project_not_found", "project_folder_missing"]);
 export type CreateMapErrorCode = z.infer<typeof CreateMapErrorCode>;
 
@@ -248,7 +248,7 @@ export type SubmitAnswersError = {
   };
 }[SubmitAnswersErrorCode];
 
-/** Codes a confirming chart's blockers are refused with; nothing is written (S6a-6). */
+/** Codes a confirming chart's blockers are refused with; nothing is written. */
 export const WaypointBlockerErrorCode = z.enum([
   "waypoint_blocker_unknown",
   "waypoint_blocker_cycle",
@@ -257,8 +257,7 @@ export type WaypointBlockerErrorCode = z.infer<typeof WaypointBlockerErrorCode>;
 
 /**
  * Codes a waypoint run's map changes, a write's fog, a consistency pass's findings and a confirming
- * chart's touches are refused with; nothing is written (slice 6b S6b-3, S6b-4, S6b-10; slice 8b
- * S8b-2).
+ * chart's touches are refused with; nothing is written.
  */
 export const MapChangesErrorCode = z.enum([
   "fog_item_unknown",
@@ -270,10 +269,10 @@ export const MapChangesErrorCode = z.enum([
 export type MapChangesErrorCode = z.infer<typeof MapChangesErrorCode>;
 
 /**
- * Codes a slice 7 planning run's output is refused with; nothing is written (slice 7 D2): a spec
- * revision breaking D2 or the id rules, a ticket set breaking D2, a review naming an element
- * or waypoint the revision or map does not have, and a tickets review missing a
- * `disposition_without_reason` finding for a reasonless departure (slice 8b S8b-13).
+ * Codes a spec, ticket set or review run's output is refused with; nothing is written: a spec
+ * revision breaking its document's shape or the id rules, a ticket set breaking its shape, a review
+ * naming an element or waypoint the revision or map does not have, and a tickets review missing a
+ * `disposition_without_reason` finding for a reasonless departure.
  */
 export const SpecOutputErrorCode = z.enum([
   "spec_content_invalid",
@@ -284,17 +283,17 @@ export const SpecOutputErrorCode = z.enum([
 export type SpecOutputErrorCode = z.infer<typeof SpecOutputErrorCode>;
 
 /**
- * The code a `survey` run's output is refused with; nothing is written (harness change #1): an
- * area, fact or identifier naming a path the project does not have, or a line past its file's end.
+ * The code a `survey` run's output is refused with; nothing is written: an area, fact or identifier
+ * naming a path the project does not have, or a line past its file's end.
  */
 export const SurveyOutputErrorCode = z.enum(["survey_source_unknown"]);
 export type SurveyOutputErrorCode = z.infer<typeof SurveyOutputErrorCode>;
 
 /**
- * The code a planning run fails with, stored on the run (spec D3): the planning agent's codes, a
- * missing project folder, a refused output or map change, a run left running at startup (S6a-13),
- * `planning_run_internal_error` for a port that threw, and a hatch change naming an unknown waypoint,
- * fog position or a blocker cycle (`hatch_change_invalid`, S7b-4).
+ * The code a planning run fails with, stored on the run: the planning agent's codes, a missing
+ * project folder, a refused output or map change, a run left running at startup,
+ * `planning_run_internal_error` for a port that threw, and a hatch change naming an unknown
+ * waypoint, fog position or a blocker cycle (`hatch_change_invalid`).
  */
 export const PlanningRunFailureCode = z.enum([
   ...PlanningAgentErrorCode.options,
@@ -310,7 +309,7 @@ export const PlanningRunFailureCode = z.enum([
 ]);
 export type PlanningRunFailureCode = z.infer<typeof PlanningRunFailureCode>;
 
-/** Codes `planningRun.tryAgain` returns for expected refusals (S6a-12). */
+/** Codes `planningRun.tryAgain` returns for expected refusals. */
 export const TryAgainErrorCode = z.enum(["planning_run_not_found", "planning_run_not_stopped"]);
 export type TryAgainErrorCode = z.infer<typeof TryAgainErrorCode>;
 
@@ -327,8 +326,8 @@ export type TryAgainError = {
 }[TryAgainErrorCode];
 
 /**
- * Codes `spec.approve` returns, in the order they are checked (S7-11); `spec.reject` checks the
- * first four (S7-12). Each writes nothing.
+ * Codes `spec.approve` returns, in the order they are checked; `spec.reject` checks the first four.
+ * Each writes nothing.
  */
 export const SpecDecisionErrorCode = z.enum([
   "spec_revision_not_found",
@@ -345,7 +344,7 @@ export const SpecDecisionErrorData = {
   spec_revision_not_found: SpecRevisionErrorData,
   /** Not the spec's latest draft: approved, superseded, or a later revision exists. */
   spec_revision_decided: SpecRevisionErrorData,
-  /** The revision's map is un-cleared, or its map-scope `to_spec` runs (S7-10, S7-11). */
+  /** The revision's map is un-cleared, or its map-scope `to_spec` runs. */
   map_uncleared: SpecRevisionErrorData,
   /** The revision's review is running or due. */
   review_in_flight: SpecRevisionErrorData,
@@ -360,8 +359,7 @@ export type SpecDecisionError = {
 }[SpecDecisionErrorCode];
 
 /**
- * Codes `ticketSet.approve` and `ticketSet.reject` return, in the order they are checked (S7-17,
- * S7-18, slice 7c S7c-6, S7c-7, slice 8b D7).
+ * Codes `ticketSet.approve` and `ticketSet.reject` return, in the order they are checked.
  */
 export const TicketSetDecisionErrorCode = z.enum([
   "ticket_set_not_found",
@@ -378,14 +376,14 @@ export const TicketSetDecisionErrorData = {
   ticket_set_not_found: TicketSetErrorData,
   /** The set is approved. */
   ticket_set_decided: TicketSetErrorData,
-  /** The set's revision is no longer its spec's latest: the set is replaced (slice 8b S8b-9). */
+  /** The set's revision is no longer its spec's latest: the set is replaced. */
   revision_not_latest: TicketSetErrorData,
   /**
    * The set's `to_tickets` or `tickets_review` runs or awaits its retry, or a `to_tickets` stopped
-   * after a failed retry (S7c-6).
+   * after a failed retry.
    */
   review_in_flight: TicketSetErrorData,
-  /** The current version's review did not pass: none yet, stopped, failed or held (S7c-6). */
+  /** The current version's review did not pass: none yet, stopped, failed or held. */
   ticket_set_review_not_passed: TicketSetErrorData,
 } satisfies Record<TicketSetDecisionErrorCode, z.ZodType>;
 
@@ -421,8 +419,8 @@ export type DeliveryAgentError = {
 }[DeliveryAgentErrorCode];
 
 /**
- * Codes `delivery.start` returns for expected refusals, in the order they are checked (S8-3, the
- * demo's `deliveryBlockers`); each writes nothing.
+ * Codes `delivery.start` returns for expected refusals, in the order they are checked; each writes
+ * nothing.
  */
 export const StartDeliveryErrorCode = z.enum([
   "ticket_set_not_found",
@@ -445,7 +443,7 @@ const TicketSetStateErrorData = z.strictObject({ ticketSetId: EntityId });
 export const StartDeliveryErrorData = {
   ticket_set_not_found: TicketSetDecisionErrorData.ticket_set_not_found,
   ticket_set_not_approved: TicketSetStateErrorData,
-  /** The approved set has no ticket (slice 8b S8b-15). */
+  /** The approved set has no ticket. */
   delivery_nothing_to_deliver: TicketSetStateErrorData,
   /** The ticket set already has a passed run. */
   delivery_already_passed: TicketSetStateErrorData,
@@ -453,17 +451,17 @@ export const StartDeliveryErrorData = {
   project_folder_missing: CreateProjectErrorData.project_folder_missing,
   /** The stored base branch has no commit. */
   project_branch_missing: CreateProjectErrorData.project_branch_missing,
-  /** The project has no required checks (S8-2). */
+  /** The project has no required checks. */
   project_checks_missing: ProjectNotFoundErrorData,
   /** The project has no saved repair limit. */
   project_repair_limit_missing: ProjectNotFoundErrorData,
-  /** The project's active run (L98), `interrupted` included. */
+  /** The project's active run, `interrupted` included. */
   delivery_in_progress: ActiveRun,
   /** `branch` is the run branch that already exists in the project's repository. */
   delivery_branch_exists: z.strictObject({ branch: z.string() }),
   /**
-   * The run admission seam refused the start (slice 9 S9-17); `reason` is the refusing wrapper's
-   * sentence, shown on the page as the message is. Core always admits.
+   * The run admission seam refused the start; `reason` is the refusing wrapper's sentence, shown on
+   * the page as the message is. Core always admits.
    */
   delivery_not_admitted: z.strictObject({ reason: z.string().min(1) }),
 } satisfies Record<StartDeliveryErrorCode, z.ZodType>;
@@ -474,7 +472,7 @@ export type StartDeliveryError = {
   };
 }[StartDeliveryErrorCode];
 
-/** Codes `project.saveSettings` returns for expected refusals (S8-2); each writes nothing. */
+/** Codes `project.saveSettings` returns for expected refusals; each writes nothing. */
 export const SaveProjectSettingsErrorCode = z.enum([
   "project_not_found",
   "project_branch_invalid",
@@ -486,7 +484,7 @@ export type SaveProjectSettingsErrorCode = z.infer<typeof SaveProjectSettingsErr
 export const SaveProjectSettingsErrorData = {
   project_not_found: ProjectNotFoundErrorData,
   project_branch_invalid: CreateProjectErrorData.project_branch_invalid,
-  /** The first check that needs a shell (L197 item 9). */
+  /** The first check that needs a shell. */
   project_check_invalid: z.strictObject({ command: z.string() }),
   /** The first fix command that needs a shell. */
   project_fix_command_invalid: z.strictObject({ command: z.string() }),
@@ -500,7 +498,7 @@ export type SaveProjectSettingsError = {
 
 const DeliveryRunErrorData = z.strictObject({ runId: EntityId });
 
-/** Codes `delivery.markMerged` returns, in the order they are checked (S8-5); each writes nothing. */
+/** Codes `delivery.markMerged` returns, in the order they are checked; each writes nothing. */
 export const MarkMergedErrorCode = z.enum([
   "delivery_run_not_found",
   "delivery_not_passed",
@@ -602,12 +600,12 @@ export const SpecNotFoundErrorData = z.strictObject({
 });
 
 /**
- * Why core refused a hatch reply's change at the write (spec D4): the message's reply is then core's
- * fixed sentence for the reason, stored with this code, and nothing else is written (S7b-5).
- * `spec_approved` is no longer returned (slice 8b S8b-7) but stays for stored replies; `spec_waiting`
- * refuses a note on a spec the map already waits on. A `propose_map` naming an Out of scope line
- * position the map does not have is `exclusion_not_found`, one naming a line already linked to a map
- * `exclusion_already_split` (map proposals).
+ * Why core refused a hatch reply's change at the write: the message's reply is then core's fixed
+ * sentence for the reason, stored with this code, and nothing else is written. `spec_approved` is
+ * no longer returned but stays for stored replies; `spec_waiting` refuses a note on a spec the map
+ * already waits on. A `propose_map` naming an Out of scope line position the map does not have is
+ * `exclusion_not_found`, one naming a line already linked to a map `exclusion_already_split` (map
+ * proposals).
  */
 export const HatchRefusal = z.enum([
   "spec_in_flight",
@@ -624,8 +622,8 @@ export const HatchRefusal = z.enum([
 export type HatchRefusal = z.infer<typeof HatchRefusal>;
 
 /**
- * Codes `hatch.send` returns for expected refusals (S7b-2); each writes nothing. `spec_waiting`:
- * the map wrote no revision of the spec but waits on it (slice 8b S8b-7, L213 D-8).
+ * Codes `hatch.send` returns for expected refusals; each writes nothing. `spec_waiting`: the map
+ * wrote no revision of the spec but waits on it.
  */
 export const SendHatchMessageErrorCode = z.enum([
   "map_not_found",
@@ -652,8 +650,8 @@ export type SendHatchMessageError = {
 }[SendHatchMessageErrorCode];
 
 /**
- * Why the publishing step failed (C2): gh cannot run, gh is not signed in to github.com, the
- * sign-in check timed out, the push of the run branch failed, or opening the pull request failed.
+ * Why the publishing step failed: gh cannot run, gh is not signed in to github.com, the sign-in
+ * check timed out, the push of the run branch failed, or opening the pull request failed.
  */
 export const PublishFailureCode = z.enum([
   "delivery_gh_missing",
@@ -665,9 +663,9 @@ export const PublishFailureCode = z.enum([
 export type PublishFailureCode = z.infer<typeof PublishFailureCode>;
 
 /**
- * Codes `delivery.checkPullRequest` (Check now, C4) returns, in the order they are checked; each
- * writes nothing: no such run, a run that opened no pull request, then gh's sign-in check (gh cannot
- * run, gh is not signed in to github.com, or GitHub could not be reached, which reading the pull
+ * Codes `delivery.checkPullRequest` (Check now) returns, in the order they are checked; each writes
+ * nothing: no such run, a run that opened no pull request, then gh's sign-in check (gh cannot run,
+ * gh is not signed in to github.com, or GitHub could not be reached, which reading the pull
  * request's state failing is too).
  */
 export const CheckPullRequestErrorCode = z.enum([
@@ -715,8 +713,7 @@ export const DeliveryFailureCode = z.enum([
 export type DeliveryFailureCode = z.infer<typeof DeliveryFailureCode>;
 
 /**
- * The refusal of a procedure that names a project or a map the access check denies (slice 9 spec
- * D17); ticket 09 adds it to those procedures.
+ * The refusal of a procedure that names a project or a map the access check denies.
  */
 export const AccessErrorCode = z.enum(["access_denied"]);
 export type AccessErrorCode = z.infer<typeof AccessErrorCode>;
@@ -787,8 +784,8 @@ export const DomainCode = z.enum([
 export type DomainCode = z.infer<typeof DomainCode>;
 
 /**
- * The plugin set's startup codes (slice 9 spec D16, S9-22). The server refuses with the first
- * thirteen before it listens; the web shows the last two as a blocking error page.
+ * The plugin set's startup codes. The server refuses with the first thirteen before it listens; the
+ * web shows the last two as a blocking error page.
  */
 export const PluginStartupCode = z.enum([
   "plugin_id_invalid",
@@ -851,8 +848,8 @@ export const StartupCode = z.enum([
 export type StartupCode = z.infer<typeof StartupCode>;
 
 /**
- * The plugin contribution whose throw or rejection is `plugin_start_failed` (CR9b-11): its
- * `executors()`, `subscribers()` or `routes()` at startup, or its `start`.
+ * The plugin contribution whose throw or rejection is `plugin_start_failed`: its `executors()`,
+ * `subscribers()` or `routes()` at startup, or its `start`.
  */
 export const PluginStartPhase = z.enum(["executors", "subscribers", "routes", "start"]);
 export type PluginStartPhase = z.infer<typeof PluginStartPhase>;

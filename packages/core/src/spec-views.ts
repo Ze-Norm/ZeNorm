@@ -115,11 +115,11 @@ function reviewView(
 
 /**
  * Each clause's sources in revision `n`, walked back through every revision up to `n` that holds
- * the clause (the demo's `clauseSources`): a revision keeps the sources of the clause it carries
- * over and adds its own map's, each once. A revision adds its sources only where it wrote the
- * clause or changed it (title, text, criteria or sources) from the revision before: a clause
- * carried over unchanged lists no sources of its own in the demo, so its sources stay credited to
- * the maps that wrote it, though the agent repeats them (S8b-16, N-2).
+ * the clause: a revision keeps the sources of the clause it carries over and adds its own map's,
+ * each once. A revision adds its sources only where it wrote the clause or changed it (title, text,
+ * criteria or sources) from the revision before: a clause carried over unchanged lists no sources
+ * of its own, so its sources stay credited to the maps that wrote it, though the agent repeats
+ * them.
  */
 function clauseSources(
   db: Reader,
@@ -213,7 +213,7 @@ function revisionView(
 }
 
 /**
- * The earlier delivered ticket each ticket of the set follows up (S8b-14): the newest earlier set's
+ * The earlier delivered ticket each ticket of the set follows up: the newest earlier set's
  * ticket of that id that a merged run delivered.
  */
 function followUpsOf(
@@ -247,7 +247,7 @@ function followUpsOf(
 }
 
 /**
- * The set written for `revision`, with its review from the one read (slice 7c D11);
+ * The set written for `revision`, with its review from the one read;
  * `latestApproved` when the revision is the spec's latest approved one, whose set its runs act on.
  */
 function ticketSetView(
@@ -289,9 +289,9 @@ function ticketSetView(
 }
 
 /**
- * The specs the map wrote a revision of (D7), by number, each with its revisions on every map,
+ * The specs the map wrote a revision of, by number, each with its revisions on every map,
  * its ticket sets, its `to_tickets`, its three stages, which `stagesOf` derives, and its delivery
- * runs, which `runsOf` reads (slice 8 D2).
+ * runs, which `runsOf` reads.
  */
 export function mapSpecViews(
   db: Reader,
@@ -347,7 +347,7 @@ export function mapSpecViews(
   });
 }
 
-/** The project's specs once each (D12): number, latest title, state and writing map. */
+/** The project's specs once each: number, latest title, state and writing map. */
 export function projectSpecs(db: Reader, projectId: string): ProjectSpec[] {
   return readProjectSpecs(db, projectId).map((spec) => {
     const revisions = readSpecRevisions(db, spec.id);
@@ -381,7 +381,7 @@ export function projectSpecs(db: Reader, projectId: string): ProjectSpec[] {
   });
 }
 
-/** `project.get` (D12): the project with each of its specs once, or `project_not_found`. */
+/** `project.get`: the project with each of its specs once, or `project_not_found`. */
 export async function getProjectDetail(
   db: ZeNormDatabase,
   projectId: string,

@@ -97,17 +97,17 @@ export interface PlanningCallSession {
   /** Called once with the CLI result's usage, before the port returns, when the CLI printed one. */
   readonly onUsage: (usage: PlanningRunUsage) => void;
   /**
-   * Aborted only by the planning runner's stop (spec D2): the port then stops its CLI and returns
+   * Aborted only by the planning runner's stop: the port then stops its CLI and returns
    * `agent_cancelled`.
    */
   readonly signal: AbortSignal;
 }
 
-/** The most new waypoints one waypoint run may chart through its map changes (spec D3). */
+/** The most new waypoints one waypoint run may chart through its map changes. */
 export const MAP_CHANGES_NEW_WAYPOINTS_MAX_COUNT = 6;
-/** The most fog items one waypoint run may add (spec D3). */
+/** The most fog items one waypoint run may add. */
 export const MAP_CHANGES_NEW_FOG_MAX_COUNT = 4;
-/** The most findings one consistency pass may return (S6b-10). */
+/** The most findings one consistency pass may return. */
 export const CONSISTENCY_FINDINGS_MAX_COUNT = 3;
 /** A waypoint's title as a run writes it, within its model's limits (`agent.models`). */
 function draftWaypointTitle(limits: ModelLimits) {
@@ -139,13 +139,13 @@ function draftMapLine(limits: ModelLimits) {
   return z.string().min(1).max(limits.mapLine.max);
 }
 
-/** One new waypoint a run charts: numbered on from the map's highest by core (S6b-3). */
+/** One new waypoint a run charts: numbered on from the map's highest by core. */
 export function newWaypoint(limits: ModelLimits) {
   return z.strictObject({
     kind: WaypointKind,
     title: draftWaypointTitle(limits),
     question: draftWaypointQuestion(limits),
-    /** Numbers of existing waypoints that block this one; core refuses an unknown one (S6b-3). */
+    /** Numbers of existing waypoints that block this one; core refuses an unknown one. */
     blockedBy: z.array(z.int().min(1)),
     /** The fog item this question graduates from (deleted with it), or null. */
     fromFog: z.int().min(1).nullable(),
@@ -187,7 +187,7 @@ export function decidedFog(limits: ModelLimits) {
 }
 export type DecidedFog = z.infer<ReturnType<typeof decidedFog>>;
 
-/** What a waypoint run that asks no round changes on its map (spec D3). */
+/** What a waypoint run that asks no round changes on its map. */
 export function mapChanges(limits: ModelLimits) {
   return z.strictObject({
     newWaypoints: z.array(newWaypoint(limits)).max(MAP_CHANGES_NEW_WAYPOINTS_MAX_COUNT),
@@ -251,9 +251,9 @@ function mapProposals(limits: ModelLimits) {
 }
 
 /**
- * A run's ruling that its own waypoint is out of scope; the reason becomes its Out of scope line
- * (S6b-5). The run may attach a proposal of a new map for the ruled-out work: a title and a draft
- * idea only, since the reason is its line.
+ * A run's ruling that its own waypoint is out of scope; the reason becomes its Out of scope line.
+ * The run may attach a proposal of a new map for the ruled-out work: a title and a draft idea only,
+ * since the reason is its line.
  */
 export function outOfScopeRuling(limits: ModelLimits) {
   return z.strictObject({
@@ -288,10 +288,10 @@ export const SpecRevisionRef = z.strictObject({
 export type SpecRevisionRef = z.infer<typeof SpecRevisionRef>;
 
 /**
- * A spec a waypoint touches as a run reads it (slice 8b D6): the touched revision and each named
- * criterion with its text there and its baseline, the delivered ticket, run and commit that last
- * built it (S8b-11), or null, so research reads the delivered code; and the touched revision's
- * text, since specs live in ZeNorm, not the repository (L213 D-7).
+ * A spec a waypoint touches as a run reads it: the touched revision and each named criterion with
+ * its text there and its baseline, the delivered ticket, run and commit that last built it, or
+ * null, so research reads the delivered code; and the touched revision's text, since specs live in
+ * ZeNorm, not the repository.
  */
 export const RunTouch = z.strictObject({
   specNumber: z.int().min(1),
@@ -313,23 +313,23 @@ export const RunTouch = z.strictObject({
 export type RunTouch = z.infer<typeof RunTouch>;
 
 /**
- * Another spec of the project as a planning run reads it (slice 8b D6): its latest revision, whether
- * it was delivered (a merged run), and what holds it against this map (S8b-4), null when unheld.
+ * Another spec of the project as a planning run reads it: its latest revision, whether it was
+ * delivered (a merged run), and what holds it against this map, null when unheld.
  */
 /**
- * The clause and criterion ids an earlier revision of a spec used and its latest revision drops
- * (E-3): retired, so the next revision may not use them again; ascending by clause, then criterion.
+ * The clause and criterion ids an earlier revision of a spec used and its latest revision drops:
+ * retired, so the next revision may not use them again; ascending by clause, then criterion.
  */
 export const RetiredIds = z.array(SpecElementId);
 export type RetiredIds = z.infer<typeof RetiredIds>;
 
 export const ProjectSpecContext = z.strictObject({
   latest: SpecRevisionRef,
-  /** Its retired ids (E-3): a revision a run writes of it avoids them. */
+  /** Its retired ids: a revision a run writes of it avoids them. */
   retiredIds: RetiredIds,
   /**
-   * Its latest approved revision, the one a touch names (S8b-2, L213 D-5): `latest` when that is
-   * approved, an earlier one while another map's draft is latest; null when none is approved.
+   * Its latest approved revision, the one a touch names: `latest` when that is approved, an earlier
+   * one while another map's draft is latest; null when none is approved.
    */
   approved: SpecRevisionRef.nullable(),
   delivered: z.boolean(),
@@ -347,7 +347,7 @@ const ResolvedWaypointFields = {
   gist: WaypointGist,
   /** The calls in its resolution the agent made without asking the person; empty when none. */
   agentDecided: WaypointAgentDecided,
-  /** The specs it touches (slice 8b D6), by spec number. */
+  /** The specs it touches, by spec number. */
   touches: z.array(RunTouch),
 };
 
@@ -360,8 +360,8 @@ const ResearchBasis = z.strictObject({
 });
 
 /**
- * One resolved waypoint as a spec run reads it (S6a-11, S6b-11); a research one carries the facts
- * of the report its resolution summarises.
+ * One resolved waypoint as a spec run reads it; a research one carries the facts of the report its
+ * resolution summarises.
  */
 const ResolvedWaypoint = z.discriminatedUnion("kind", [
   z.strictObject({
@@ -375,14 +375,14 @@ const ResolvedWaypoint = z.discriminatedUnion("kind", [
   }),
 ]);
 
-/** The most waypoints one chart may save (spec D2): later waypoints come from resolving runs (6b). */
+/** The most waypoints one chart may save: later waypoints come from resolving runs. */
 export const CHART_WAYPOINTS_MAX_COUNT = 12;
-/** The most fog items, and the most Out of scope lines, one confirming chart may save (S6b-2). */
+/** The most fog items, and the most Out of scope lines, one confirming chart may save. */
 export const CHART_MAP_LINES_MAX_COUNT = 8;
 
 /**
- * One map-level round so far (DR-1): its questions, once submitted its answers (one per question),
- * and whether it was asked as the destination's final round.
+ * One map-level round so far: its questions, once submitted its answers (one per question), and
+ * whether it was asked as the destination's final round.
  */
 export const MapRound = z.strictObject({
   questions: RoundQuestions,
@@ -434,7 +434,7 @@ const ProjectSuggestionContext = {
   projectMaps: z.array(ProjectMapContext),
 };
 
-/** What the planning agent needs to chart a map (spec D2). */
+/** What the planning agent needs to chart a map. */
 export const ChartMapRequest = z
   .strictObject({
     projectName: ProjectName,
@@ -446,19 +446,19 @@ export const ChartMapRequest = z
     /** The map-level rounds so far, oldest first, every one submitted; `chartStep` reads them. */
     mapRounds: z.array(MapRound),
     /**
-     * The map's stored title, summary and proposed destination (DR-3): what the last round was asked
+     * The map's stored title, summary and proposed destination: what the last round was asked
      * about. Null exactly when `mapRounds` is empty (the first chart proposes them).
      */
     proposed: z
       .strictObject({ title: MapTitle, summary: MapSummary, destination: MapDestination })
       .nullable(),
-    /** The project's specs, by number, each with its latest revision and hold (slice 8b D6). */
+    /** The project's specs, by number, each with its latest revision and hold. */
     projectSpecs: z.array(ProjectSpecContext),
     /** The maps the first chart offered to split off, oldest first, with the person's decisions. */
     split: z.array(ChartSplit),
     /**
      * The problem core refused this chart's previous attempt with (`agent_output_invalid`), so this
-     * attempt can correct it (L142, L156 (1), DR-8); null otherwise.
+     * attempt can correct it; null otherwise.
      */
     refusedAttempt: z.strictObject({ problem: z.string().min(1) }).nullable(),
   })
@@ -474,15 +474,15 @@ function draftDestination(limits: ModelLimits) {
 
 /** The most maps one first chart may offer to split off an idea too big for one map. */
 export const CHART_SPLIT_MAX_COUNT = 3;
-/** The most map-level rounds a map asks on its destination: the first and up to 2 follow-ups (D3). */
+/** The most map-level rounds a map asks on its destination: the first and up to 2 follow-ups. */
 export const DESTINATION_ROUNDS_MAX_COUNT = 3;
-/** The most questions one follow-up round on the destination asks (D3); the first asks up to 5. */
+/** The most questions one follow-up round on the destination asks; the first asks up to 5. */
 export const DESTINATION_FOLLOW_UP_QUESTIONS_MAX_COUNT = 3;
 
 /**
- * What a chart may return (DR-2, D1): `propose` before any map-level round; `confirm` after a final
- * round or at `DESTINATION_ROUNDS_MAX_COUNT` rounds; otherwise `choose`, a confirmation or a
- * follow-up round. The agent picks its schema from it and core checks the outcome against it.
+ * What a chart may return: `propose` before any map-level round; `confirm` after a final round or
+ * at `DESTINATION_ROUNDS_MAX_COUNT` rounds; otherwise `choose`, a confirmation or a follow-up
+ * round. The agent picks its schema from it and core checks the outcome against it.
  */
 export type ChartStep = "propose" | "choose" | "confirm";
 
@@ -499,7 +499,7 @@ export function chartStep(mapRounds: readonly MapRound[]): ChartStep {
 }
 
 /**
- * Whether a map-level round is the destination's last (DR-18): `final`, or numbered
+ * Whether a map-level round is the destination's last: `final`, or numbered
  * `DESTINATION_ROUNDS_MAX_COUNT`; after it the chart can only confirm.
  */
 export function isLastMapRound(round: {
@@ -527,15 +527,15 @@ export function chartProposal(limits: ModelLimits) {
 }
 export type ChartProposal = z.infer<ReturnType<typeof chartProposal>>;
 
-/** One waypoint a confirming chart saves, of any kind (S6b-2). */
-/** The most touches one charted waypoint names (slice 8b D2). */
+/** One waypoint a confirming chart saves, of any kind. */
+/** The most touches one charted waypoint names. */
 export const WAYPOINT_TOUCHES_MAX_COUNT = 3;
-/** The most criteria one touch names (slice 8b D1). */
+/** The most criteria one touch names. */
 export const TOUCH_CRITERIA_MAX_COUNT = 12;
 
 /**
- * A spec of the project a charted waypoint changes (slice 8b S8b-2; the demo's `Touches`): its
- * latest approved revision and criteria of that revision. Core checks them against the project.
+ * A spec of the project a charted waypoint changes: its latest approved revision and criteria of
+ * that revision. Core checks them against the project.
  */
 export const Touch = z.strictObject({
   specNumber: z.int().min(1),
@@ -551,7 +551,7 @@ export function chartedWaypoint(limits: ModelLimits) {
     question: draftWaypointQuestion(limits),
     /** 1-based positions of the waypoints in the same list that block this one. */
     blockedBy: z.array(z.int().min(1)).max(CHART_WAYPOINTS_MAX_COUNT - 1),
-    /** The delivered or approved specs the waypoint changes (slice 8b S8b-2); stored with it. */
+    /** The delivered or approved specs the waypoint changes; stored with it. */
     touches: z.array(Touch).max(WAYPOINT_TOUCHES_MAX_COUNT),
   });
 }
@@ -560,10 +560,9 @@ export type ChartedWaypoint = z.infer<typeof ChartedWaypoint>;
 
 /**
  * A confirming chart's output, after the map-level round is submitted: the map's title, summary and
- * destination, which the confirmation may refine (DR-5, L253), 0 to 12 waypoints, 0 to 8
- * fog items and 0 to 8 Out of scope lines, each line saying why (S6b-2), and 0 to 4 proposals of new
- * maps for outside work, each with its own line; its texts within the run's model's limits
- * (`agent.models`).
+ * destination, which the confirmation may refine, 0 to 12 waypoints, 0 to 8 fog items and 0 to 8
+ * Out of scope lines, each line saying why, and 0 to 4 proposals of new maps for outside work, each
+ * with its own line; its texts within the run's model's limits (`agent.models`).
  */
 export function chartConfirmation(limits: ModelLimits) {
   return z.strictObject({
@@ -581,10 +580,10 @@ export const ChartConfirmation = chartConfirmation(STORED_LIMITS);
 export type ChartConfirmation = z.infer<typeof ChartConfirmation>;
 
 /**
- * A follow-up on the destination (DR-5, DR-7): the revised title, summary and proposed destination,
- * and the next map-level round of 1 to `DESTINATION_FOLLOW_UP_QUESTIONS_MAX_COUNT` questions, `final`
- * when the agent expects its answers to settle the destination; its intro states the revised
- * destination. Texts within the run's model's limits (`agent.models`).
+ * A follow-up on the destination: the revised title, summary and proposed destination, and the next
+ * map-level round of 1 to `DESTINATION_FOLLOW_UP_QUESTIONS_MAX_COUNT` questions, `final` when the
+ * agent expects its answers to settle the destination; its intro states the revised destination.
+ * Texts within the run's model's limits (`agent.models`).
  */
 export function chartFollowUp(limits: ModelLimits) {
   return z.strictObject({
@@ -622,7 +621,7 @@ export type ChartMap = (
 
 /**
  * The person's direction about a waypoint: the hatch message that last opened, reopened, reworded
- * or directed it (S7b-10), with when it was sent.
+ * or directed it, with when it was sent.
  */
 export const WaypointNote = z.strictObject({ text: HatchMessageText, sentAt: z.iso.datetime() });
 export type WaypointNote = z.infer<typeof WaypointNote>;
@@ -634,7 +633,7 @@ const AnsweredRound = z.strictObject({
   final: z.boolean(),
 });
 
-/** What the planning agent needs to grill one waypoint (spec D2). */
+/** What the planning agent needs to grill one waypoint. */
 export const GrillWaypointRequest = z.strictObject({
   projectName: ProjectName,
   /** The project's repository; the agent runs with it as its working directory. */
@@ -654,13 +653,13 @@ export const GrillWaypointRequest = z.strictObject({
     /** The waypoint's answered rounds since its latest reopen (all of them when never reopened), oldest first. */
     rounds: z.array(AnsweredRound),
     /**
-     * True when the waypoint was resolved and then reopened (S7b-6): its earlier decision no longer
-     * stands, and a resolution needs a round asked since the reopen (S7b-7, L156 (1)).
+     * True when the waypoint was resolved and then reopened: its earlier decision no longer stands,
+     * and a resolution needs a round asked since the reopen.
      */
     reopened: z.boolean(),
     /**
      * The rounds answered before its latest reopen, oldest first: context the reopen superseded,
-     * not live answers (S7b-7, L156 (1)); empty when never reopened.
+     * not live answers; empty when never reopened.
      */
     supersededRounds: z.array(AnsweredRound),
     /**
@@ -668,7 +667,7 @@ export const GrillWaypointRequest = z.strictObject({
      * settles it, so a resolution or out-of-scope ruling needs an answered round first.
      */
     personDecides: z.boolean(),
-    /** The specs it touches with their criteria's baselines (slice 8b D6), by spec number. */
+    /** The specs it touches with their criteria's baselines, by spec number. */
     touches: z.array(RunTouch),
   }),
   /** The map's other waypoints, by number; `gist` is null until resolved. */
@@ -681,9 +680,9 @@ export const GrillWaypointRequest = z.strictObject({
   fog: z.array(FogItem),
   /** The map's Out of scope lines, by position. */
   outOfScope: z.array(MapLine),
-  /** The map's code survey (harness change #1); null for a map whose survey has not run (one that predates surveys, or a hatch reply before the chart). */
+  /** The map's code survey; null for a map whose survey has not run (one that predates surveys, or a hatch reply before the chart). */
   survey: CodeSurvey.nullable(),
-  /** The consistency finding that opened this waypoint (S6b-10), or null. */
+  /** The consistency finding that opened this waypoint, or null. */
   finding: z
     .strictObject({
       kind: ConsistencyFindingKind,
@@ -701,9 +700,9 @@ export const GrillWaypointRequest = z.strictObject({
     })
     .nullable(),
   /**
-   * The planning review findings that sent this waypoint on (slice 7 S7-8, L136 (a)), each with the
-   * spec it was found in and the clause and criterion ids it names: the one that opened it, then
-   * any later review's that raised the same problem. Empty for a waypoint no review sent on.
+   * The planning review findings that sent this waypoint on, each with the spec it was found in and
+   * the clause and criterion ids it names: the one that opened it, then any later review's that
+   * raised the same problem. Empty for a waypoint no review sent on.
    */
   reviewFindings: z.array(
     z.strictObject({
@@ -713,13 +712,13 @@ export const GrillWaypointRequest = z.strictObject({
       elementIds: SpecReviewFinding.shape.elementIds,
     }),
   ),
-  /** The person's note about this waypoint (S7b-10), or null. */
+  /** The person's note about this waypoint, or null. */
   note: WaypointNote.nullable(),
-  /** True for a run started after a `final` round: it can only resolve (S6a-10). */
+  /** True for a run started after a `final` round: it can only resolve. */
   afterFinal: z.boolean(),
   /**
    * The problem core refused this run's previous attempt with (`agent_output_invalid`), so this
-   * attempt can correct it (L142, L156 (1)); null otherwise.
+   * attempt can correct it; null otherwise.
    */
   refusedAttempt: z.strictObject({ problem: z.string().min(1) }).nullable(),
 });
@@ -736,9 +735,9 @@ export function grillRound(limits: ModelLimits) {
 export type GrillRound = z.infer<ReturnType<typeof grillRound>>;
 
 /**
- * A grilling run's output (spec D2): exactly one of a round, a resolution and an out-of-scope
- * ruling; `mapChanges` is set exactly when no round is asked. The rules are refinements, so the
- * CLI's `--json-schema` (which omits them) keeps one object root, and a breach fails the parse.
+ * A grilling run's output: exactly one of a round, a resolution and an out-of-scope ruling;
+ * `mapChanges` is set exactly when no round is asked. The rules are refinements, so the CLI's
+ * `--json-schema` (which omits them) keeps one object root, and a breach fails the parse.
  */
 export function grillOutcome(limits: ModelLimits) {
   return z
@@ -762,8 +761,8 @@ export function grillOutcome(limits: ModelLimits) {
 export type GrillOutcome = z.infer<ReturnType<typeof grillOutcome>>;
 
 /**
- * A grilling run's output after a `final` round: no round (S6a-10), so exactly one of a resolution
- * and an out-of-scope ruling, plus its map changes.
+ * A grilling run's output after a `final` round: no round, so exactly one of a resolution and an
+ * out-of-scope ruling, plus its map changes.
  */
 export function grillResolutionOutcome(limits: ModelLimits) {
   return z
@@ -785,8 +784,8 @@ export type GrillWaypoint = (
 ) => Promise<Result<GrillOutcome, PlanningAgentError | CancelledError>>;
 
 /**
- * A research report (S6b-7). An answered one has at least one finding and a gist and no gap; an
- * unanswered one names its gap and has no gist. Every finding's source positions exist.
+ * A research report. An answered one has at least one finding and a gist and no gap; an unanswered
+ * one names its gap and has no gist. Every finding's source positions exist.
  */
 export function researchReport(limits: ModelLimits) {
   const note = z.string().min(1).max(limits.researchNote.max);
@@ -829,7 +828,7 @@ export function researchReport(limits: ModelLimits) {
 export const ResearchReport = researchReport(STORED_LIMITS);
 export type ResearchReport = z.infer<typeof ResearchReport>;
 
-/** The map context every Research and Task run reads (spec D2). */
+/** The map context every Research and Task run reads. */
 const WaypointRunContext = {
   projectName: ProjectName,
   /** The project's repository; the agent runs with it as its working directory. */
@@ -839,7 +838,7 @@ const WaypointRunContext = {
   ...ProjectSuggestionContext,
   title: MapTitle,
   destination: MapDestination,
-  /** The map-level rounds, oldest first: the person's answers bind the run as the destination does (DR-14). */
+  /** The map-level rounds, oldest first: the person's answers bind the run as the destination does. */
   mapRounds: z.array(MapRound),
   /** The map's other waypoints, by number. */
   otherWaypoints: z.array(MapWaypointContext),
@@ -847,9 +846,9 @@ const WaypointRunContext = {
   fog: z.array(FogItem),
   /** The map's Out of scope lines. */
   outOfScope: z.array(MapLine),
-  /** The map's code survey (harness change #1); null for a map whose survey has not run (one that predates surveys, or a hatch reply before the chart). */
+  /** The map's code survey; null for a map whose survey has not run (one that predates surveys, or a hatch reply before the chart). */
   survey: CodeSurvey.nullable(),
-  /** The person's note about the waypoint the run works (S7b-10), or null. */
+  /** The person's note about the waypoint the run works, or null. */
   note: WaypointNote.nullable(),
 };
 
@@ -861,12 +860,12 @@ const RunWaypoint = z.strictObject({
   question: WaypointQuestion,
 });
 
-/** What the planning agent needs to research one waypoint (spec D2). */
+/** What the planning agent needs to research one waypoint. */
 export const ResearchWaypointRequest = z.strictObject({
   ...WaypointRunContext,
   waypoint: z.strictObject({
     ...RunWaypoint.shape,
-    /** The specs it touches with their criteria's baselines (slice 8b D6), by spec number. */
+    /** The specs it touches with their criteria's baselines, by spec number. */
     touches: z.array(RunTouch),
   }),
   /** This waypoint's earlier reports, oldest first (each unanswered: an answered one resolves it). */
@@ -897,12 +896,12 @@ export type ResearchWaypoint = (
   session: PlanningCallSession,
 ) => Promise<Result<ResearchOutcome, PlanningAgentError | CancelledError>>;
 
-/** The most questions one Task round asks (spec D2). */
+/** The most questions one Task round asks. */
 export const TASK_ROUND_QUESTIONS_MAX_COUNT = 3;
 
 /**
- * A Task run's question round, 1 to 3 questions (S6b-8) within the drafting bounds: like every
- * round, each question has 2 to 4 options with the recommendation first.
+ * A Task run's question round, 1 to 3 questions within the drafting bounds: like every round, each
+ * question has 2 to 4 options with the recommendation first.
  */
 export function taskRound(limits: ModelLimits) {
   return z.strictObject({
@@ -912,7 +911,7 @@ export function taskRound(limits: ModelLimits) {
 }
 export type TaskRound = z.infer<ReturnType<typeof taskRound>>;
 
-/** What a Task run did and the facts it found: `facts` resolve the waypoint (S6b-8). */
+/** What a Task run did and the facts it found: `facts` resolve the waypoint. */
 export function taskDone(limits: ModelLimits) {
   return z.strictObject({
     action: z.string().min(1).max(limits.taskAction.max),
@@ -924,7 +923,7 @@ export function taskDone(limits: ModelLimits) {
 export const TaskDone = taskDone(STORED_LIMITS);
 export type TaskDone = z.infer<typeof TaskDone>;
 
-/** What a Task run tried and what stopped it (S6b-8). */
+/** What a Task run tried and what stopped it. */
 export function taskFailed(limits: ModelLimits) {
   return z.strictObject({
     action: z.string().min(1).max(limits.taskAction.max),
@@ -934,7 +933,7 @@ export function taskFailed(limits: ModelLimits) {
 export const TaskFailed = taskFailed(STORED_LIMITS);
 export type TaskFailed = z.infer<typeof TaskFailed>;
 
-/** An earlier outcome of the same Task waypoint (L116). */
+/** An earlier outcome of the same Task waypoint. */
 const EarlierTaskOutcome = z.strictObject({
   outcome: TaskOutcomeKind,
   action: TaskDone.shape.action,
@@ -947,16 +946,16 @@ const AnsweredTaskRound = z.strictObject({
   answers: Answers,
 });
 
-/** What the planning agent needs to work one Task waypoint (spec D2). */
+/** What the planning agent needs to work one Task waypoint. */
 export const WorkTaskRequest = z.strictObject({
   ...WaypointRunContext,
   waypoint: RunWaypoint.extend({
     /** The task's answered rounds, oldest first. */
     rounds: z.array(AnsweredTaskRound),
-    /** The specs it touches with the touched revision's text (L213 D-7), by spec number. */
+    /** The specs it touches with the touched revision's text, by spec number. */
     touches: z.array(RunTouch),
   }),
-  /** The task's earlier outcomes, oldest first (L116). */
+  /** The task's earlier outcomes, oldest first. */
   earlierOutcomes: z.array(EarlierTaskOutcome),
 });
 export type WorkTaskRequest = z.infer<typeof WorkTaskRequest>;
@@ -994,7 +993,7 @@ export type WorkTask = (
   session: PlanningCallSession,
 ) => Promise<Result<TaskOutcome, PlanningAgentError | CancelledError>>;
 
-/** What the planning agent needs for a consistency pass over a map's resolved waypoints (spec D2). */
+/** What the planning agent needs for a consistency pass over a map's resolved waypoints. */
 export const CheckConsistencyRequest = z.strictObject({
   projectName: ProjectName,
   /** The project's repository; the agent runs with it as its working directory. */
@@ -1004,10 +1003,10 @@ export const CheckConsistencyRequest = z.strictObject({
   ...ProjectSuggestionContext,
   title: MapTitle,
   destination: MapDestination,
-  /** The map-level rounds, oldest first (DR-14). */
+  /** The map-level rounds, oldest first. */
   mapRounds: z.array(MapRound),
   outOfScope: z.array(MapLine),
-  /** The map's code survey (harness change #1); null for a map whose survey has not run (one that predates surveys, or a hatch reply before the chart). */
+  /** The map's code survey; null for a map whose survey has not run (one that predates surveys, or a hatch reply before the chart). */
   survey: CodeSurvey.nullable(),
   /** Every resolved waypoint, by number. */
   waypoints: z.array(
@@ -1037,7 +1036,7 @@ export const CheckConsistencyRequest = z.strictObject({
 });
 export type CheckConsistencyRequest = z.infer<typeof CheckConsistencyRequest>;
 
-/** One problem a pass found; core saves it as a new Grilling waypoint (S6b-10). */
+/** One problem a pass found; core saves it as a new Grilling waypoint. */
 export function consistencyFinding(limits: ModelLimits) {
   return z.strictObject({
     kind: ConsistencyFindingKind,
@@ -1055,8 +1054,8 @@ export const ConsistencyFinding = consistencyFinding(STORED_LIMITS);
 export type ConsistencyFinding = z.infer<typeof ConsistencyFinding>;
 
 /**
- * A consistency pass's output: 0 to 3 findings (S6b-10) and 0 to 4 proposals of new maps for
- * outside work it noticed, within the run's model's limits.
+ * A consistency pass's output: 0 to 3 findings and 0 to 4 proposals of new maps for outside work it
+ * noticed, within the run's model's limits.
  */
 export function consistencyOutcome(limits: ModelLimits) {
   return z.strictObject({
@@ -1075,8 +1074,8 @@ export type CheckConsistency = (
 ) => Promise<Result<ConsistencyOutcome, PlanningAgentError | CancelledError>>;
 
 /**
- * What the planning agent needs to survey a map's project code (harness change #1): the map as its
- * confirming chart left it. The survey runs once, before any waypoint run.
+ * What the planning agent needs to survey a map's project code: the map as its confirming chart
+ * left it. The survey runs once, before any waypoint run.
  */
 export const SurveyCodeRequest = z.strictObject({
   projectName: ProjectName,
@@ -1102,9 +1101,9 @@ export type SurveyCode = (
 ) => Promise<Result<CodeSurveyDraft, PlanningAgentError | CancelledError>>;
 
 /**
- * What the planning agent needs to settle a map's fog (harness change #4): once no waypoint is open
- * or claimed and fog remains, core runs one `fog` run that sees every waypoint, the code survey and
- * the fog, instead of making the last waypoint run settle fog it did not own.
+ * What the planning agent needs to settle a map's fog: once no waypoint is open or claimed and fog
+ * remains, core runs one `fog` run that sees every waypoint, the code survey and the fog, instead
+ * of making the last waypoint run settle fog it did not own.
  */
 export const SettleFogRequest = z.strictObject({
   projectName: ProjectName,
@@ -1115,7 +1114,7 @@ export const SettleFogRequest = z.strictObject({
   ...ProjectSuggestionContext,
   title: MapTitle,
   destination: MapDestination,
-  /** The map-level rounds, oldest first (DR-14). */
+  /** The map-level rounds, oldest first. */
   mapRounds: z.array(MapRound),
   outOfScope: z.array(MapLine),
   /** The map's code survey; null for a map whose survey has not run (one that predates surveys). */
@@ -1149,11 +1148,11 @@ export const FogForPerson = fogForPerson(STORED_LIMITS);
 export type FogForPerson = z.infer<typeof FogForPerson>;
 
 /**
- * A fog run's output (harness change #4): every fog item settled exactly once, by an existing
- * resolution (`fogSettledBy`, the resolved waypoint's number), decided by the agent (`fogDecided`),
- * moved out of scope (`fogOutOfScope`), opened for the person (`fogForPerson`) or proposed as a new
- * map (`fogProposed`: deleted from the fog, its line saved only when the person decides the
- * proposal). Core refuses an item left out or named twice.
+ * A fog run's output: every fog item settled exactly once, by an existing resolution
+ * (`fogSettledBy`, the resolved waypoint's number), decided by the agent (`fogDecided`), moved out
+ * of scope (`fogOutOfScope`), opened for the person (`fogForPerson`) or proposed as a new map
+ * (`fogProposed`: deleted from the fog, its line saved only when the person decides the proposal).
+ * Core refuses an item left out or named twice.
  */
 export function fogSettlementOutcome(limits: ModelLimits) {
   return z.strictObject({
@@ -1176,13 +1175,13 @@ export type SettleFog = (
   session: PlanningCallSession,
 ) => Promise<Result<FogSettlementOutcome, PlanningAgentError | CancelledError>>;
 
-/** A planning call's refusal when its `session.signal` aborted and its CLI was stopped (spec D2). */
+/** A planning call's refusal when its `session.signal` aborted and its CLI was stopped. */
 export type CancelledError = Extract<DeliveryAgentError, { code: "agent_cancelled" }>;
 
-/** A skill-following call's refusal when its SKILL.md is missing; no CLI starts (S7-23). */
+/** A skill-following call's refusal when its SKILL.md is missing; no CLI starts. */
 export type SkillMissingError = Extract<DeliveryAgentError, { code: "agent_skill_missing" }>;
 
-/** The map a spec run reads (spec D3): what core reads from the map's stored rows. */
+/** The map a spec run reads: what core reads from the map's stored rows. */
 const SpecMapContext = {
   projectName: ProjectName,
   /** The project's repository; the agent runs with it as its working directory. */
@@ -1196,9 +1195,9 @@ const SpecMapContext = {
   waypoints: z.array(ResolvedWaypoint),
   /** The map's Out of scope lines, by position. */
   outOfScope: z.array(MapLine),
-  /** The map's code survey (harness change #1); null for a map whose survey has not run (one that predates surveys, or a hatch reply before the chart). */
+  /** The map's code survey; null for a map whose survey has not run (one that predates surveys, or a hatch reply before the chart). */
   survey: CodeSurvey.nullable(),
-  /** The map's open waits, by spec number, each with its note (slice 8b D6). */
+  /** The map's open waits, by spec number, each with its note. */
   waits: z.array(
     z.strictObject({
       specNumber: z.int().min(1),
@@ -1207,15 +1206,15 @@ const SpecMapContext = {
   ),
 };
 
-/** The project's other specs a To Spec run reads (slice 8b D6). */
+/** The project's other specs a To Spec run reads. */
 const ProjectSpecs = {
   /** Every spec of the project the map has not written, by number. */
   projectSpecs: z.array(ProjectSpecContext),
 };
 
 /**
- * Why a revision gets a next one: its failed review's findings, the person's rejection reason, or the person's
- * note through the escape hatch (S7b-11).
+ * Why a revision gets a next one: its failed review's findings, the person's rejection reason, or
+ * the person's note through the escape hatch.
  */
 export const SpecFeedback = z.discriminatedUnion("kind", [
   z.strictObject({
@@ -1226,9 +1225,9 @@ export const SpecFeedback = z.discriminatedUnion("kind", [
   z.strictObject({ kind: z.literal("rejection"), reason: RejectionReason }),
   z.strictObject({ kind: z.literal("note"), text: HatchMessageText }),
   /**
-   * A released wait's note (slice 8b S8b-6): the change the map waited with. `noteDirected` when
-   * the wait came from a note through the escape hatch: the revision may then cite the note; a
-   * wait To Spec recorded cites the map's waypoints or its destination (S8b-16, N-1).
+   * A released wait's note: the change the map waited with. `noteDirected` when the wait came from
+   * a note through the escape hatch: the revision may then cite the note; a wait To Spec recorded
+   * cites the map's waypoints or its destination.
    */
   z.strictObject({
     kind: z.literal("wait"),
@@ -1239,10 +1238,10 @@ export const SpecFeedback = z.discriminatedUnion("kind", [
 export type SpecFeedback = z.infer<typeof SpecFeedback>;
 
 /**
- * The findings of a spec's earlier failed reviews, oldest first, each with the revision it reviewed:
- * the repair loop's memory, so a repair closes them and a review does not raise a closed one again.
- * One entry per review: a draft rewritten in place (L241) has one per review of its earlier content.
- * Empty when no earlier review failed.
+ * The findings of a spec's earlier failed reviews, oldest first, each with the revision it
+ * reviewed: the repair loop's memory, so a repair closes them and a review does not raise a closed
+ * one again. One entry per review: a draft rewritten in place has one per review of its earlier
+ * content. Empty when no earlier review failed.
  */
 export const EarlierFindings = z.array(
   z.strictObject({
@@ -1263,35 +1262,35 @@ const MapSpec = z.strictObject({
   feedback: SpecFeedback.nullable(),
 });
 
-/** What the planning agent needs to write a cleared map's specs (spec D3). */
+/** What the planning agent needs to write a cleared map's specs. */
 export const DraftSpecsRequest = z.strictObject({
   ...SpecMapContext,
-  /** The map-level rounds, oldest first (DR-14); apart from `SpecMapContext`, which To Tickets spreads too (D5). */
+  /** The map-level rounds, oldest first; apart from `SpecMapContext`, which To Tickets spreads too. */
   mapRounds: z.array(MapRound),
   ...ProjectSpecs,
   /** The map's specs, by number; empty on the map's first clear. */
   specs: z.array(MapSpec),
   /**
    * The problem core refused this run's previous attempt with (`spec_content_invalid`), so this
-   * attempt can correct it (S7b-15, L142); null when the previous attempt was not so refused.
+   * attempt can correct it; null when the previous attempt was not so refused.
    */
   refusedAttempt: z.strictObject({ problem: z.string().min(1) }).nullable(),
 });
 export type DraftSpecsRequest = z.infer<typeof DraftSpecsRequest>;
 
 /**
- * The most specs one To Spec run writes (spec D3). A map is one spec by default; this is the
- * backstop, not a target.
+ * The most specs one To Spec run writes. A map is one spec by default; this is the backstop, not a
+ * target.
  */
 export const DRAFT_SPECS_MAX_COUNT = 4;
 
-/** The most waits one To Spec run names, one per held spec the map changes (slice 8b S8b-5). */
+/** The most waits one To Spec run names, one per held spec the map changes. */
 export const DRAFT_SPECS_WAITS_MAX_COUNT = 12;
 
 /**
  * A To Spec run's output: a next revision for an unapproved spec of the map (`specNumber`) or a new
- * spec (`specNumber` null). Core checks the numbers against the map, and accepts zero specs only on a
- * re-clear whose listed specs are all approved (S7b-8).
+ * spec (`specNumber` null). Core checks the numbers against the map, and accepts zero specs only on
+ * a re-clear whose listed specs are all approved.
  */
 export function draftSpecsOutcome(limits: ModelLimits) {
   return z.strictObject({
@@ -1303,7 +1302,7 @@ export function draftSpecsOutcome(limits: ModelLimits) {
         }),
       )
       .max(DRAFT_SPECS_MAX_COUNT),
-    /** Each held spec the map changes, with the note its change is written from (slice 8b S8b-5). */
+    /** Each held spec the map changes, with the note its change is written from. */
     waits: z
       .array(
         z.strictObject({
@@ -1323,10 +1322,10 @@ export type DraftSpecs = (
 ) => Promise<Result<DraftSpecsOutcome, PlanningAgentError | CancelledError | SkillMissingError>>;
 
 /**
- * One thing a clause relies on, with the code around it (RC1): core resolves each `reliesOn` entry
- * of a revision to its file and line and reads the lines either side, so a repair and a review read
- * the code a clause depends on without searching for it. `meaning` is FACTS' meaning when FACTS
- * names it. A reliance that no longer resolves (the code moved) has null `line` and `excerpt`.
+ * One thing a clause relies on, with the code around it: core resolves each `reliesOn` entry of a
+ * revision to its file and line and reads the lines either side, so a repair and a review read the
+ * code a clause depends on without searching for it. `meaning` is FACTS' meaning when FACTS names
+ * it. A reliance that no longer resolves (the code moved) has null `line` and `excerpt`.
  */
 export const ClauseReference = z.strictObject({
   clauseId: ClauseId,
@@ -1338,26 +1337,26 @@ export const ClauseReference = z.strictObject({
 });
 export type ClauseReference = z.infer<typeof ClauseReference>;
 
-/** What the planning agent needs to repair one spec (spec D3). */
+/** What the planning agent needs to repair one spec. */
 export const ReviseSpecRequest = z.strictObject({
   ...SpecMapContext,
-  /** The map-level rounds, oldest first (DR-14); apart from `SpecMapContext`, which To Tickets spreads too (D5). */
+  /** The map-level rounds, oldest first; apart from `SpecMapContext`, which To Tickets spreads too. */
   mapRounds: z.array(MapRound),
   ...ProjectSpecs,
   latest: SpecRevisionRef,
-  /** What `latest`'s clauses rely on, with the code around each (RC1). */
+  /** What `latest`'s clauses rely on, with the code around each. */
   references: z.array(ClauseReference),
-  /** The spec's retired ids (E-3): every revision run, a release's or a note's too, avoids them. */
+  /** The spec's retired ids: every revision run, a release's or a note's too, avoids them. */
   retiredIds: RetiredIds,
   feedback: SpecFeedback,
   /**
-   * The failed reviews of the revisions before `latest` and of `latest`'s content a rewrite in place
-   * replaced (L241); its current review is `feedback`.
+   * The failed reviews of the revisions before `latest` and of `latest`'s content a rewrite in
+   * place replaced; its current review is `feedback`.
    */
   earlierFindings: EarlierFindings,
   /**
    * The problem core refused this repair's previous attempt with (`spec_content_invalid`), so this
-   * attempt can correct it (L141); null when the previous attempt was not so refused.
+   * attempt can correct it; null when the previous attempt was not so refused.
    */
   refusedAttempt: z.strictObject({ problem: z.string().min(1) }).nullable(),
 });
@@ -1378,17 +1377,17 @@ export type ReviseSpec = (
   session: PlanningCallSession,
 ) => Promise<Result<ReviseSpecOutcome, PlanningAgentError | CancelledError | SkillMissingError>>;
 
-/** What the planning agent needs to review one spec revision (spec D3, D5). */
+/** What the planning agent needs to review one spec revision. */
 export const ReviewSpecRequest = z.strictObject({
   ...SpecMapContext,
-  /** The map-level rounds, oldest first (DR-14); apart from `SpecMapContext`, which To Tickets spreads too (D5). */
+  /** The map-level rounds, oldest first; apart from `SpecMapContext`, which To Tickets spreads too. */
   mapRounds: z.array(MapRound),
   revision: SpecRevisionRef,
-  /** What the reviewed revision's clauses rely on, with the code around each (RC1). */
+  /** What the reviewed revision's clauses rely on, with the code around each. */
   references: z.array(ClauseReference),
   /**
-   * The revision before it, on whichever map, with the merged run that delivered its set (slice 8b
-   * D8), or null; null for revision 1.
+   * The revision before it, on whichever map, with the merged run that delivered its set, or null;
+   * null for revision 1.
    */
   before: z
     .strictObject({
@@ -1397,11 +1396,11 @@ export const ReviewSpecRequest = z.strictObject({
     })
     .nullable(),
   /**
-   * What the reviewed revision changes since the spec's latest approved revision before it (S8b-17,
-   * L213 D-6): that revision's number, whether this map wrote it (else its map's title), the
-   * reviewed revision's clauses new or changed since it, through every revision between, and those
-   * unchanged since it, which carry approved decisions and are context. Null when no earlier
-   * revision is approved: the whole revision is this map's.
+   * What the reviewed revision changes since the spec's latest approved revision before it: that
+   * revision's number, whether this map wrote it (else its map's title), the reviewed revision's
+   * clauses new or changed since it, through every revision between, and those unchanged since it,
+   * which carry approved decisions and are context. Null when no earlier revision is approved: the
+   * whole revision is this map's.
    */
   changes: z
     .strictObject({
@@ -1426,12 +1425,12 @@ export const ReviewSpecRequest = z.strictObject({
   otherSpecs: z.array(SpecRevisionRef),
   /**
    * The person's latest rejection of an earlier revision of the spec, with the revision it
-   * rejected: it outranks earlier resolutions (L141, issue 21). Null when none was rejected.
+   * rejected: it outranks earlier resolutions. Null when none was rejected.
    */
   rejection: z.strictObject({ revision: z.int().min(1), reason: RejectionReason }).nullable(),
   /**
    * The spec's revisions written from a note through the escape hatch, oldest first, each with its
-   * note: a note outranks earlier resolutions as a rejection does (S7b-11, L141).
+   * note: a note outranks earlier resolutions as a rejection does.
    */
   noteDirectedRevisions: z.array(
     z.strictObject({ revision: z.int().min(1), note: HatchMessageText }),
@@ -1446,8 +1445,8 @@ export type ReviewSpec = (
 ) => Promise<Result<SpecReviewOutcome, PlanningAgentError | CancelledError | SkillMissingError>>;
 
 /**
- * A tickets review's output (slice 7c D2): passed exactly when it has no finding (S7c-2); the
- * summary within the run's model's limits (`agent.models`).
+ * A tickets review's output: passed exactly when it has no finding; the summary within the run's
+ * model's limits (`agent.models`).
  */
 export function ticketsReviewOutcome(limits: ModelLimits) {
   return z.strictObject({
@@ -1466,9 +1465,8 @@ export type TicketSetVersionRef = z.infer<typeof TicketSetVersionRef>;
 
 /**
  * A ticket set version written from what the person asked for since the set's revision was
- * approved (L180 (2), issue 21, L141): the reason they rejected the version before it, or the note
- * through the escape hatch it was written from. A version a review repair or the first run wrote
- * has none.
+ * approved: the reason they rejected the version before it, or the note through the escape hatch it
+ * was written from. A version a review repair or the first run wrote has none.
  */
 export const DirectedVersion = z.discriminatedUnion("kind", [
   z.strictObject({
@@ -1480,7 +1478,7 @@ export const DirectedVersion = z.discriminatedUnion("kind", [
 ]);
 export type DirectedVersion = z.infer<typeof DirectedVersion>;
 
-/** A resolved waypoint of the map that touches the set's spec, with its resolution (slice 8b D6). */
+/** A resolved waypoint of the map that touches the set's spec, with its resolution. */
 export const TouchingWaypoint = z.strictObject({
   number: z.int().min(1),
   title: WaypointTitle,
@@ -1488,7 +1486,7 @@ export const TouchingWaypoint = z.strictObject({
 });
 export type TouchingWaypoint = z.infer<typeof TouchingWaypoint>;
 
-/** One ticket of an earlier set of the spec (slice 8b D6), with where it was delivered or null. */
+/** One ticket of an earlier set of the spec, with where it was delivered or null. */
 export const EarlierTicket = z.strictObject({
   id: TicketId,
   title: z.string().min(1),
@@ -1499,16 +1497,16 @@ export const EarlierTicket = z.strictObject({
 });
 export type EarlierTicket = z.infer<typeof EarlierTicket>;
 
-/** What both ticket set runs read against the text delta and the baseline (slice 8b D6). */
+/** What both ticket set runs read against the text delta and the baseline. */
 const Reconciliation = {
   /** What the approved revision changes from the revision before; null for revision 1. */
   delta: TextDelta.nullable(),
-  /** Each criterion of the revision, and each it takes out, by id (S8b-13). */
+  /** Each criterion of the revision, and each it takes out, by id. */
   readings: z.record(CriterionId, CriterionReading),
   /**
    * Every criterion the approved revision takes out, with the clause it sat in (core's
-   * `removedCriteria`, S8b-12): the delta's, and one dropped in a middle revision that no approved
-   * set took out yet (L213 D-1). Each needs a `removed` disposition.
+   * `removedCriteria`): the delta's, and one dropped in a middle revision that no approved set took
+   * out yet. Each needs a `removed` disposition.
    */
   takenOut: z.array(z.strictObject({ clause: Clause, criterion: Criterion })),
   /** The resolved waypoints of the map touching the spec, by number. */
@@ -1538,7 +1536,7 @@ export const TicketsEarlierFindings = z.array(
 );
 export type TicketsEarlierFindings = z.infer<typeof TicketsEarlierFindings>;
 
-/** What the planning agent needs to review one ticket set version (slice 7c D2). */
+/** What the planning agent needs to review one ticket set version. */
 export const ReviewTicketSetRequest = z.strictObject({
   projectName: ProjectName,
   /** The project's repository; the agent reads it, read-only, as its working directory. */
@@ -1551,25 +1549,25 @@ export const ReviewTicketSetRequest = z.strictObject({
   /** The version under review. */
   ticketSet: TicketSetVersionRef,
   /**
-   * The set's directed versions up to the one under review, oldest first: what each asks for is
-   * the person's word and counts as traced (L180 (2), L141).
+   * The set's directed versions up to the one under review, oldest first: what each asks for is the
+   * person's word and counts as traced.
    */
   directedVersions: z.array(DirectedVersion),
   /** The set's failed reviews of versions before the one under review, since its last passed one. */
   earlierFindings: TicketsEarlierFindings,
-  /** The map's code survey (harness change #1); null for a map that predates surveys. */
+  /** The map's code survey; null for a map that predates surveys. */
   survey: CodeSurvey.nullable(),
   ...Reconciliation,
 });
 export type ReviewTicketSetRequest = z.infer<typeof ReviewTicketSetRequest>;
 
-/** The port behind which a tickets review's call sits (slice 7c D2). */
+/** The port behind which a tickets review's call sits. */
 export type ReviewTicketSet = (
   request: ReviewTicketSetRequest,
   session: PlanningCallSession,
 ) => Promise<Result<TicketsReviewOutcome, PlanningAgentError | CancelledError | SkillMissingError>>;
 
-/** What the planning agent needs to write the tickets of an approved revision (spec D3). */
+/** What the planning agent needs to write the tickets of an approved revision. */
 export const DraftTicketSetRequest = z.strictObject({
   /**
    * The map the spec came from, as To Spec reads it: its destination, Out of scope lines and every
@@ -1579,18 +1577,18 @@ export const DraftTicketSetRequest = z.strictObject({
   ...SpecMapContext,
   /** The approved revision. */
   approved: SpecRevisionRef,
-  /** The id the set's first ticket takes (S8b-12): one past the spec's highest approved ticket. */
+  /** The id the set's first ticket takes: one past the spec's highest approved ticket. */
   firstTicketNumber: z.int().min(1),
   ...Reconciliation,
   /**
-   * Each earlier approved set's tickets, by revision then ticket (slice 8b D6); a replaced or
-   * never-approved set's are never listed (L213 D-2).
+   * Each earlier approved set's tickets, by revision then ticket; a replaced or never-approved
+   * set's are never listed.
    */
   earlierTickets: z.array(EarlierTicket),
   /**
    * On a rewrite: the set's current version, the failed review's findings on it (empty when it had
-   * no failed review) and the person's reason, a rejection reason or a note, which outranks the findings
-   * (L141); `reason` is null on a review repair (slice 7c D4). Null for the first version.
+   * no failed review) and the person's reason, a rejection reason or a note, which outranks the
+   * findings; `reason` is null on a review repair. Null for the first version.
    */
   rewrite: z
     .strictObject({
@@ -1599,8 +1597,8 @@ export const DraftTicketSetRequest = z.strictObject({
       findings: z.array(TicketsReviewFinding).max(TICKETS_REVIEW_FINDINGS_MAX_COUNT),
       reason: RejectionReason.nullable(),
       /**
-       * The set's directed versions up to the current one, oldest first: a rewrite keeps what
-       * each asks for, so a review repair never undoes it (L180 (2), L141).
+       * The set's directed versions up to the current one, oldest first: a rewrite keeps what each
+       * asks for, so a review repair never undoes it.
        */
       directedVersions: z.array(DirectedVersion),
     })
@@ -1624,16 +1622,16 @@ export const DraftTicketSetRequest = z.strictObject({
 });
 export type DraftTicketSetRequest = z.infer<typeof DraftTicketSetRequest>;
 
-/** The port behind which a To Tickets run's call sits (spec D3). */
+/** The port behind which a To Tickets run's call sits. */
 export type DraftTicketSet = (
   request: DraftTicketSetRequest,
   session: PlanningCallSession,
 ) => Promise<Result<TicketSetContent, PlanningAgentError | CancelledError | SkillMissingError>>;
 
-/** The most earlier messages a hatch request carries, the latest ones (spec D2). */
+/** The most earlier messages a hatch request carries, the latest ones. */
 export const HATCH_EARLIER_MESSAGES_MAX_COUNT = 20;
 
-/** What runs on one spec when a hatch run starts (D4's `spec_in_flight` and the agent's context). */
+/** What runs on one spec when a hatch run starts (the `spec_in_flight` refusal and the agent's context). */
 export const HatchSpecWork = z.enum([
   "spec_review",
   "to_spec",
@@ -1643,7 +1641,7 @@ export const HatchSpecWork = z.enum([
 ]);
 export type HatchSpecWork = z.infer<typeof HatchSpecWork>;
 
-/** One waypoint of the map as the hatch reads it (spec D2). */
+/** One waypoint of the map as the hatch reads it. */
 export const HatchWaypoint = z
   .strictObject({
     number: z.int().min(1),
@@ -1659,11 +1657,11 @@ export const HatchWaypoint = z
     gist: WaypointGist.nullable(),
     /** Null until resolved. */
     agentDecided: WaypointAgentDecided.nullable(),
-    /** Why it waits on the person after a completed run (S6b-6); null when it does not wait. */
+    /** Why it waits on the person after a completed run; null when it does not wait. */
     waiting: WaitingReason.nullable(),
     /**
-     * The unanswered report it waits on, so an `accept_report` gist restates it (L162 (4)); set
-     * exactly when `waiting` is `research_unanswered`.
+     * The unanswered report it waits on, so an `accept_report` gist restates it; set exactly when
+     * `waiting` is `research_unanswered`.
      */
     report: z
       .strictObject({
@@ -1672,8 +1670,8 @@ export const HatchWaypoint = z
       })
       .nullable(),
     /**
-     * Its scope stopped after a failed retry (S6a-12): `run_waypoint` or Try again runs it again
-     * (L157, L164). `waiting` stays as Try again reads it.
+     * Its scope stopped after a failed retry: `run_waypoint` or Try again runs it again. `waiting`
+     * stays as Try again reads it.
      */
     stopped: z.boolean(),
   })
@@ -1686,8 +1684,8 @@ export const HatchWaypoint = z
   );
 
 /**
- * The tickets review of a ticket set's current version as the hatch reads it (slice 7c D8): `held`
- * when it failed with an escalated finding (S7c-5), `failed` when it failed without one.
+ * The tickets review of a ticket set's current version as the hatch reads it: `held` when it failed
+ * with an escalated finding, `failed` when it failed without one.
  */
 export const HatchTicketsReview = z.enum([
   "none",
@@ -1699,7 +1697,7 @@ export const HatchTicketsReview = z.enum([
 ]);
 export type HatchTicketsReview = z.infer<typeof HatchTicketsReview>;
 
-/** A spec's current ticket set as the hatch reads it (spec D2, slice 7c D8). */
+/** A spec's current ticket set as the hatch reads it. */
 const HatchTicketSet = z
   .strictObject({
     version: z.int().min(1),
@@ -1716,7 +1714,7 @@ const HatchTicketSet = z
     path: ["heldFindings"],
   });
 
-/** One of the map's specs as the hatch reads it (spec D2). */
+/** One of the map's specs as the hatch reads it. */
 const HatchSpec = z.strictObject({
   latest: SpecRevisionRef,
   state: SpecRevisionState,
@@ -1734,7 +1732,7 @@ const HatchMessage = z.strictObject({
   text: HatchMessageText,
 });
 
-/** What the planning agent needs to reply to one message through the escape hatch (spec D2). */
+/** What the planning agent needs to reply to one message through the escape hatch. */
 export const ReplyThroughHatchRequest = z.strictObject({
   projectName: ProjectName,
   /** The project's repository; the agent runs with it as its working directory. */
@@ -1747,8 +1745,8 @@ export const ReplyThroughHatchRequest = z.strictObject({
   /** The proposed or confirmed destination; null until the first chart. */
   destination: MapDestination.nullable(),
   /**
-   * The map-level rounds, oldest first, a pending one with null answers (D7: the hatch reads it,
-   * never changes it); empty until the first chart.
+   * The map-level rounds, oldest first, a pending one with null answers (the hatch reads it, never
+   * changes it); empty until the first chart.
    */
   mapRounds: z.array(MapRound),
   /** Every waypoint of the map, by number. */
@@ -1757,13 +1755,13 @@ export const ReplyThroughHatchRequest = z.strictObject({
   fog: z.array(FogItem),
   /** The map's Out of scope lines, by position. */
   outOfScope: z.array(MapLine),
-  /** The map's code survey (harness change #1); null for a map whose survey has not run (one that predates surveys, or a hatch reply before the chart). */
+  /** The map's code survey; null for a map whose survey has not run (one that predates surveys, or a hatch reply before the chart). */
   survey: CodeSurvey.nullable(),
   /** The map's specs, by number. */
   specs: z.array(HatchSpec),
   /**
-   * The map's open waits, by spec number, each with its note (slice 8b S8b-7, S8b-14 E-4): a spec
-   * the map waits on may be one it wrote no revision of.
+   * The map's open waits, by spec number, each with its note: a spec the map waits on may be one it
+   * wrote no revision of.
    */
   waits: z.array(
     z.strictObject({
@@ -1779,7 +1777,7 @@ export const ReplyThroughHatchRequest = z.strictObject({
   message: HatchMessage,
   /**
    * The problem core failed this reply's previous attempt with (`hatch_change_invalid`), so this
-   * attempt can correct it (L142); null otherwise.
+   * attempt can correct it; null otherwise.
    */
   refusedAttempt: z.strictObject({ problem: z.string().min(1) }).nullable(),
 });
@@ -1788,13 +1786,13 @@ export type ReplyThroughHatchRequest = z.infer<typeof ReplyThroughHatchRequest>;
 const WaypointNumber = z.int().min(1);
 
 /**
- * The one change a hatch reply makes (spec D3), told apart by `kind`. A waypoint's kind is
- * `waypointKind`, since `kind` names the change. `fog` is the settlement of 6b D3 (`MapChanges`);
- * fog it leaves goes to the map's fog run once no waypoint is open or claimed (harness change #4). The spec changes
- * carry no content: core starts the slice 7 runs that write them (L115). `propose_map` proposes a
- * new map (map proposals): a draft idea with exactly one of its own Out of scope line (`line`) and
- * the position of an existing Out of scope line of the map it splits off (`splitsLine`); the rule is
- * a refinement, so the `--json-schema` keeps the member an object.
+ * The one change a hatch reply makes, told apart by `kind`. A waypoint's kind is `waypointKind`,
+ * since `kind` names the change. `fog` is a fog settlement, as in `MapChanges`; fog it leaves goes
+ * to the map's fog run once no waypoint is open or claimed. The spec changes carry no content: core
+ * starts the spec and ticket runs that write them. `propose_map` proposes a new map (map
+ * proposals): a draft idea with exactly one of its own Out of scope line (`line`) and the position
+ * of an existing Out of scope line of the map it splits off (`splitsLine`); the rule is a
+ * refinement, so the `--json-schema` keeps the member an object.
  */
 export function hatchChange(limits: ModelLimits) {
   return z.discriminatedUnion("kind", [
@@ -1852,7 +1850,7 @@ export type HatchChange = z.infer<ReturnType<typeof hatchChange>>;
 /** A hatch change as stored and read back: within the stored caps, whatever model wrote it. */
 export const HatchChange = hatchChange(STORED_LIMITS);
 
-/** A hatch run's output (S7b-4): the reply, and the one change it states or null. */
+/** A hatch run's output: the reply, and the one change it states or null. */
 export function hatchOutcome(limits: ModelLimits) {
   return z.strictObject({
     reply: z.string().min(1).max(limits.hatchReply.max),
@@ -1861,7 +1859,7 @@ export function hatchOutcome(limits: ModelLimits) {
 }
 export type HatchOutcome = z.infer<ReturnType<typeof hatchOutcome>>;
 
-/** The port behind which a hatch reply's call sits (spec D2). */
+/** The port behind which a hatch reply's call sits. */
 export type ReplyThroughHatch = (
   request: ReplyThroughHatchRequest,
   session: PlanningCallSession,

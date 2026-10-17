@@ -118,10 +118,10 @@ const startDeliveryErrors = {
 } as const;
 
 /**
- * The access check's refusal (S9-17, D17). Every procedure that names a project, or a record
- * rooted in one (a map, round, planning run, spec revision, ticket set or delivery run), declares
- * it. `project.list` and `map.overviews` name no project and filter their lists instead;
- * `project.inspect` and `project.create` name a folder, not a stored project, so they declare none.
+ * The access check's refusal. Every procedure that names a project, or a record rooted in one (a
+ * map, round, planning run, spec revision, ticket set or delivery run), declares it. `project.list`
+ * and `map.overviews` name no project and filter their lists instead; `project.inspect` and
+ * `project.create` name a folder, not a stored project, so they declare none.
  */
 const accessDenied = {
   access_denied: { status: FORBIDDEN, data: AccessDeniedErrorData },
@@ -185,7 +185,7 @@ export const contract = {
   project: {
     /** Every project, oldest first. */
     list: oc.output(z.array(Project)),
-    /** The project with each of its specs once (slice 7 D12). */
+    /** The project with each of its specs once. */
     get: oc
       .errors({ ...projectNotFound, ...accessDenied })
       .input(GetProjectInput)
@@ -208,8 +208,8 @@ export const contract = {
       .input(CreateProjectInput)
       .output(Project),
     /**
-     * Stores the base branch, the required checks (S8-2), the repair limit and the fix commands; a
-     * missing folder does not refuse it.
+     * Stores the base branch, the required checks, the repair limit and the fix commands; a missing
+     * folder does not refuse it.
      */
     saveSettings: oc
       .errors({
@@ -242,7 +242,7 @@ export const contract = {
       .output(z.array(MapRecord)),
     /**
      * Stores the map and its first `chart` run in one transaction and returns without waiting on
-     * the agent, which charts it in the background (S6a-2).
+     * the agent, which charts it in the background.
      */
     create: oc
       .errors({
@@ -339,7 +339,7 @@ export const contract = {
       .output(QuestionRound),
   },
   planningRun: {
-    /** Starts a fresh run in a scope stopped on this failed retry (S6a-12); returns the overview. */
+    /** Starts a fresh run in a scope stopped on this failed retry; returns the overview. */
     tryAgain: oc
       .errors({
         ...accessDenied,
@@ -356,12 +356,12 @@ export const contract = {
       .output(MapOverviewDetail),
   },
   spec: {
-    /** Approves the spec's latest draft revision and starts its `to_tickets` (S7-11); returns the overview. */
+    /** Approves the spec's latest draft revision and starts its `to_tickets`; returns the overview. */
     approve: oc
       .errors({ ...specDecision, ...accessDenied })
       .input(ApproveSpecInput)
       .output(MapOverviewDetail),
-    /** Supersedes the spec's latest draft revision with a reason (S7-12); returns the overview. */
+    /** Supersedes the spec's latest draft revision with a reason; returns the overview. */
     reject: oc
       .errors({
         ...accessDenied,
@@ -374,12 +374,12 @@ export const contract = {
       .output(MapOverviewDetail),
   },
   ticketSet: {
-    /** Approves the set's current version (S7-17); returns the overview. */
+    /** Approves the set's current version; returns the overview. */
     approve: oc
       .errors({ ...ticketSetDecision, ...accessDenied })
       .input(ApproveTicketSetInput)
       .output(MapOverviewDetail),
-    /** Records a rejection of the set's current version (S7-18); returns the overview. */
+    /** Records a rejection of the set's current version; returns the overview. */
     reject: oc
       .errors({ ...ticketSetDecision, ...accessDenied })
       .input(RejectTicketSetInput)
@@ -387,7 +387,7 @@ export const contract = {
   },
   hatch: {
     /**
-     * Stores a message sent through the escape hatch and starts nothing itself (S7b-2); returns the
+     * Stores a message sent through the escape hatch and starts nothing itself; returns the
      * overview, whose messages list it queued.
      */
     send: oc
@@ -448,7 +448,7 @@ export const contract = {
       })
       .input(CancelDeliveryInput)
       .output(DeliveryRun),
-    /** Records a passed run as merged once git shows its final commit in the base branch (S8-5). */
+    /** Records a passed run as merged once git shows its final commit in the base branch. */
     markMerged: oc
       .errors({
         ...accessDenied,
@@ -474,7 +474,7 @@ export const contract = {
       .input(MarkMergedInput)
       .output(DeliveryRun),
     /**
-     * Check now (C4): reads the run's pull request's state on GitHub at once and records it: merged
+     * Check now: reads the run's pull request's state on GitHub at once and records it: merged
      * records the run merged, closed records it closed, open (a reopen) records it open.
      */
     checkPullRequest: oc
@@ -503,7 +503,7 @@ export const contract = {
       })
       .input(CheckPullRequestInput)
       .output(DeliveryRun),
-    /** A run's activity lines, oldest first (S8-9). */
+    /** A run's activity lines, oldest first. */
     activity: oc
       .errors({
         ...accessDenied,

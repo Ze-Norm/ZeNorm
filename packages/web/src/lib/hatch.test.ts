@@ -170,7 +170,7 @@ describe("aboutSpec", () => {
     };
   }
   const specs = [spec(1, "done"), spec(2, "needs-you")];
-  // The defaults are core's (D9); the tones above do not decide them here.
+  // The defaults are core's; the tones above do not decide them here.
   const detail = { specs, defaultSpecs: { spec: 1, tickets: 2, delivery: 2 }, waits: [] };
 
   it("names the spec the page renders: the route's, else the overview's default", () => {
@@ -190,7 +190,7 @@ describe("aboutSpec", () => {
     expect(aboutSpec(none, "spec", undefined)).toBeNull();
   });
 
-  it("names a spec the map only waits on, on its Spec and Tickets pages (slice 8b E-1)", () => {
+  it("names a spec the map only waits on, on its Spec and Tickets pages", () => {
     const wait: SpecWaitView = {
       specNumber: 4,
       specTitle: "Slugify",
@@ -215,7 +215,7 @@ describe("aboutSpec", () => {
       waits: [wait],
     };
     expect(aboutSpec(waiting, "spec", 4)).toBe(4);
-    // A typed Tickets route of the waited spec names it too (S8b-16, N-4).
+    // A typed Tickets route of the waited spec names it too.
     expect(aboutSpec(waiting, "tickets", 4)).toBe(4);
     expect(aboutSpec(waiting, "spec", undefined)).toBeNull();
     expect(() => aboutSpec(waiting, "spec", 5)).toThrow();

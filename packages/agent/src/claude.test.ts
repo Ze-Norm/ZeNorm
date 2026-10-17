@@ -179,11 +179,11 @@ function recordedArgv(file: string): string[] {
 const LOGGED_IN = JSON.stringify({ loggedIn: true, authMethod: "claude.ai" });
 
 /**
- * The headless CLI run every planning port shares (slice 2 spec D4), exercised through the chart
- * proposal: its argv, working directory and each failure code.
+ * The headless CLI run every planning port shares, exercised through the chart proposal: its argv,
+ * working directory and each failure code.
  */
 describe("the planning agent's headless run, through claudeCodeChartMap", () => {
-  test("returns the parsed draft and spawns D4's two commands in the project folder", async () => {
+  test("returns the parsed draft and spawns the auth check and the headless run in the project folder", async () => {
     const claudePath = writeStandIn({
       auth: { stdout: LOGGED_IN },
       run: { stdout: successResult(PROPOSAL_OUTPUT), exitCode: 0 },
@@ -363,7 +363,7 @@ describe("the planning agent's headless run, through claudeCodeChartMap", () => 
     expect(existsSync(join(dir, "term"))).toBe(true);
   });
 
-  test("returns agent_cancelled and records no usage when session.signal aborts the run (spec D2)", async () => {
+  test("returns agent_cancelled and records no usage when session.signal aborts the run", async () => {
     const claudePath = writeStandIn({
       auth: { stdout: LOGGED_IN },
       run: {
@@ -647,8 +647,8 @@ const RECORDING_SLEEPER = [
 ].join("\n");
 
 /**
- * The session record `runProcess` keeps while a process runs (spec D3): written right after the
- * spawn, removed once the process (and, after an abort or a timeout, its group) is gone.
+ * The session record `runProcess` keeps while a process runs: written right after the spawn,
+ * removed once the process (and, after an abort or a timeout, its group) is gone.
  */
 describe("the session records", () => {
   let sessionsDir: string;
@@ -664,7 +664,7 @@ describe("the session records", () => {
     }
   }
 
-  /** The record the stand-in copied while it ran, in D3's shape. */
+  /** The session record the stand-in copied while it ran. */
   function seenRecord(): z.infer<typeof SeenRecord> {
     return SeenRecord.parse(JSON.parse(readFileSync(join(dir, "records"), "utf8")));
   }
@@ -691,7 +691,7 @@ describe("the session records", () => {
       pid: Number(readFileSync(join(dir, "pid"), "utf8").trim()),
       command: claudePath,
       kind: "planning",
-      // The server that spawned it is this test process (C6).
+      // The server that spawned it is this test process.
       serverPid: process.pid,
     });
     expect(Date.parse(startedAt)).toBeGreaterThanOrEqual(before - 1000);
@@ -745,7 +745,7 @@ describe("the session records", () => {
   });
 
   test(
-    "an abort of a CLI that ignores SIGTERM kills its grandchild in its own group before the record goes (CR-2)",
+    "an abort of a CLI that ignores SIGTERM kills its grandchild in its own group before the record goes",
     { timeout: 30_000 },
     async () => {
       // The ignored TERM is inherited, so only the SIGKILL after the 10 s grace stops anything.
@@ -799,7 +799,7 @@ describe("the session records", () => {
     expect(readdirSync(sessionsDir)).toEqual([]);
   });
 
-  test("a project folder gone before the spawn is agent_cli_missing, with nothing left (CR-4)", async () => {
+  test("a project folder gone before the spawn is agent_cli_missing, with nothing left", async () => {
     const claudePath = writeStandIn({
       auth: { stdout: LOGGED_IN },
       run: { stdout: successResult(PROPOSAL_OUTPUT), exitCode: 0 },

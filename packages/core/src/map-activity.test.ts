@@ -330,7 +330,7 @@ const cases: readonly Case[] = [
         {
           id: SPEC_ID,
           number: 1,
-          // A repair rewrites the draft in place (L241): one revision, a review per rewrite.
+          // A repair rewrites the draft in place: one revision, a review per rewrite.
           revisions: [
             revision("Export", at(2), {
               reviews: [
@@ -367,7 +367,7 @@ function delivered(runs: readonly Run[]): MapActivityInput {
 /** Idea, Wayfinding, then the spec written and approved and its set written and approved. */
 const BEFORE_DELIVERY = ["idea", "wayfinding", "spec", "spec", "tickets", "tickets"] as const;
 
-describe("mapActivity delivery lines (slice 8 D13)", () => {
+describe("mapActivity delivery lines", () => {
   const FAILURE = { code: "delivery_checks_failed", message: "Failed" } as const;
   test.each([
     { outcome: "passed", end: { verdict: PASSED }, link: 1 },
@@ -423,7 +423,7 @@ describe("mapActivity delivery lines (slice 8 D13)", () => {
     expect(delivery[2]?.text).toContain("Run 2");
   });
 
-  test("a map's first run of the spec starts delivery though an earlier map ran it before (F1)", () => {
+  test("a map's first run of the spec starts delivery though an earlier map ran it before", () => {
     const only = mapActivity(delivered([{ ...run(at(10), {}), number: 2 }]));
     const first = only.find((line) => line.stage === "delivery");
     const fromOne = mapActivity(delivered([run(at(10), {})])).find(
@@ -458,7 +458,7 @@ describe("mapActivity", () => {
     });
   });
 
-  test("findings sent to Wayfinding: one line per waypoint, each opening it (D13)", () => {
+  test("findings sent to Wayfinding: one line per waypoint, each opening it", () => {
     const lines = mapActivity(
       input({
         waypoints: [waypoint(1, null), waypoint(2, null)],
@@ -546,7 +546,7 @@ describe("mapActivity", () => {
   });
 });
 
-describe("mapActivity numbers every destination round (DR-20, D9)", () => {
+describe("mapActivity numbers every destination round", () => {
   test("three map-level rounds, two submitted: each asked and answered line by number, in time order", () => {
     const destinationRound = (number: number, asked: number, submitted: number | null) => ({
       waypointId: null,
@@ -576,7 +576,7 @@ describe("mapActivity numbers every destination round (DR-20, D9)", () => {
   });
 });
 
-describe("mapActivity Wayfinding lines (D11)", () => {
+describe("mapActivity Wayfinding lines", () => {
   /** Each line as `[stage, waypoint, at]`: tests assert the stage and what a line opens, not its words. */
   function shape(lines: readonly ActivityLine[]) {
     return lines.map((line) => [line.stage, line.waypoint, line.at]);
@@ -620,11 +620,11 @@ describe("mapActivity Wayfinding lines (D11)", () => {
       ["wayfinding", 1, at(5)], // questions written for waypoint 1
       ["wayfinding", null, at(6)], // answered on waypoint 1
       ["wayfinding", 1, at(7)], // waypoint 1 resolved
-      ["spec", null, at(7)], // map cleared, spec being written (on Spec, L160)
+      ["spec", null, at(7)], // map cleared, spec being written (on Spec)
     ]);
   });
 
-  test("one line per Research, Task, map-change and pass transition (6b D11)", () => {
+  test("one line per Research, Task, map-change and pass transition", () => {
     const id = (n: number) => `0199b8a0-5c6e-7d2a-9f3b-1a2b3c4d5f${String(n).padStart(2, "0")}`;
     const run = (n: number) => id(n);
     const wp = (n: number) => id(50 + n);
@@ -745,7 +745,7 @@ describe("mapActivity Wayfinding lines (D11)", () => {
       ["idea", null, at(1)],
       ["idea", null, at(2)],
     ]);
-    // The code stays off the line (UX audit P1-1); the stop and the retry read differently.
+    // The code stays off the line; the stop and the retry read differently.
     expect(activity.at(-1)?.text).not.toContain("agent_timed_out");
     expect(activity.at(-1)?.text).not.toBe(activity.at(-2)?.text);
   });
@@ -810,7 +810,7 @@ describe("mapActivity Wayfinding lines (D11)", () => {
     fields: Partial<MapActivityInput["planningRuns"][number]> = {},
   ) => planningRun(index, at(start), { purpose: "to_spec", endedAt: at(start + 1), ...fields });
 
-  test("L156 (3): every resolution a waypoint had keeps its line after a reopen, from its runs", () => {
+  test("every resolution a waypoint had keeps its line after a reopen, from its runs", () => {
     // Waypoint 1 resolved at 3, reopened (now open, no resolution), re-asked and resolved at 9
     // by a run whose result is current; a run that ruled waypoint 2 out of scope has no line.
     const activity = mapActivity(
@@ -844,7 +844,7 @@ describe("mapActivity Wayfinding lines (D11)", () => {
     expect(activity.filter((line) => line.waypoint === 1).map((line) => line.at)).toEqual([at(4)]);
   });
 
-  test("L156 (4): every clear and re-clear has a Map cleared line, a retry or Try again none", () => {
+  test("every clear and re-clear has a Map cleared line, a retry or Try again none", () => {
     const activity = mapActivity(
       input({
         map: { createdAt: at(0), destinationConfirmedAt: at(1) },
@@ -864,7 +864,7 @@ describe("mapActivity Wayfinding lines (D11)", () => {
         ],
       }),
     );
-    // On Spec, as the demo's clear line (L160).
+    // On Spec.
     const cleared = activity.filter((line) => line.text.startsWith("Map cleared"));
     expect(cleared.map((line) => line.stage)).toEqual(["spec", "spec"]);
     // The first clear and the re-clear; the retry and the Try again add none.
@@ -874,7 +874,7 @@ describe("mapActivity Wayfinding lines (D11)", () => {
   });
 });
 
-describe("Map cleared counts the decisions as of that clear (L162 (5))", () => {
+describe("Map cleared counts the decisions as of that clear", () => {
   const plain = (number: number, resolvedAt: string | null) => ({
     ...waypoint(number, resolvedAt),
     resolvedHow: resolvedAt === null ? null : ("plain_choice" as const),
@@ -925,7 +925,7 @@ describe("Map cleared counts the decisions as of that clear (L162 (5))", () => {
   });
 });
 
-describe("mapActivity hatch lines (D7, S7b-10)", () => {
+describe("mapActivity hatch lines", () => {
   const HATCH_RUN = "0199b8a0-5c6e-7d2a-9f3b-1a2b3c4d5e93";
   const NOTE_MESSAGE = "0199b8a0-5c6e-7d2a-9f3b-1a2b3c4d5e94";
   const hatchRun = { ...planningRun(0, at(9), { purpose: "hatch" }), id: HATCH_RUN };
@@ -937,7 +937,7 @@ describe("mapActivity hatch lines (D7, S7b-10)", () => {
     newFog: [],
   };
 
-  /** Each line after the map's first two as `[stage, waypoint, at]`: never its words (L100). */
+  /** Each line after the map's first two as `[stage, waypoint, at]`: never its words. */
   function shape(lines: readonly ActivityLine[]) {
     return lines.slice(2).map((line) => [line.stage, line.waypoint, line.at]);
   }
@@ -1085,7 +1085,7 @@ describe("mapActivity hatch lines (D7, S7b-10)", () => {
       ["spec", at(4)],
       ["tickets", at(8)],
     ]);
-    // Only the note's revision line opens the spec ("Open the revision", L159 (a)).
+    // Only the note's revision line opens the spec ("Open the revision").
     expect(byNote.slice(2).map((line) => line.spec)).toEqual([null, 1, null, null, null, null]);
     expect(plain.slice(2).map((line) => line.spec)).toEqual([null, null, null, null, null, null]);
   });
@@ -1128,7 +1128,7 @@ describe("mapActivity hatch lines (D7, S7b-10)", () => {
   });
 });
 
-describe("map.overview hatch lines from stored messages (D7, L147 Q1)", () => {
+describe("map.overview hatch lines from stored messages", () => {
   let context: TestContext;
 
   beforeEach(async () => {
@@ -1139,7 +1139,7 @@ describe("map.overview hatch lines from stored messages (D7, L147 Q1)", () => {
     await closeTestContext(context);
   });
 
-  /** Stores `change` on a replied message, as the hatch run's transaction does (L152). */
+  /** Stores `change` on a replied message, as the hatch run's transaction does. */
   function applied(messageId: string, change: HatchChange): void {
     writeTestData(context, (tx) =>
       tx.update(hatchMessages).set({ change }).where(eq(hatchMessages.id, messageId)).run(),
@@ -1171,7 +1171,7 @@ describe("map.overview hatch lines from stored messages (D7, L147 Q1)", () => {
   });
 });
 
-describe("mapActivity tickets review lines (slice 7c D10, L100)", () => {
+describe("mapActivity tickets review lines", () => {
   /** Spec 1's lines on Tickets that open its tickets: stage and spec number, by time. */
   function opening(activity: readonly ActivityLine[]) {
     return activity
@@ -1239,7 +1239,7 @@ describe("mapActivity tickets review lines (slice 7c D10, L100)", () => {
       { ...opens, at: at(9) },
       { ...opens, at: at(11) },
     ]);
-    // Every version keeps its written line, which opens nothing (D10).
+    // Every version keeps its written line, which opens nothing.
     for (const written of [at(6), at(8), at(10), at(12)]) {
       expect(
         activity.filter(
@@ -1254,7 +1254,7 @@ describe("mapActivity tickets review lines (slice 7c D10, L100)", () => {
   });
 });
 
-describe("map.overview tickets review lines from recorded reviews (slice 7c D10)", () => {
+describe("map.overview tickets review lines from recorded reviews", () => {
   let context: TestContext;
 
   beforeEach(async () => {
@@ -1353,7 +1353,7 @@ function setOf(
   };
 }
 
-describe("mapActivity lines for revisions and waits (slice 8b D14)", () => {
+describe("mapActivity lines for revisions and waits", () => {
   const confirmed = {
     map: { createdAt: at(0), destinationConfirmedAt: at(2) },
     rounds: [{ waypointId: null, number: 1, questions: [], askedAt: at(0), submittedAt: at(1) }],
@@ -1466,7 +1466,7 @@ describe("mapActivity lines for revisions and waits (slice 8b D14)", () => {
     ]);
   });
 
-  test("past r1, the tickets line compares the revision with what was delivered (F2)", () => {
+  test("past r1, the tickets line compares the revision with what was delivered", () => {
     const written = (
       follows: boolean,
       tickets: number,

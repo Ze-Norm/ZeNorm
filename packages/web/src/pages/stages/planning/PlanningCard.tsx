@@ -32,12 +32,12 @@ import {
   useInvalidatePlanning,
 } from "@/pages/stages/planning/planning";
 
-/** The button label of the action a decision carries out: the card's `NextAction.label` (S7b-16). */
+/** The button label of the action a decision carries out: the card's `NextAction.label`. */
 const DecisionLabel = createContext<NextActionLabel | null>(null);
 
 /**
- * Approve, named by the card's action as core labels it (S7b-16), and under it Reject with a
- * reason (L97); Reject waits for a reason.
+ * Approve, named by the card's action as core labels it, and under it Reject with a reason;
+ * Reject waits for a reason.
  */
 function DecisionControls({
   subject,
@@ -136,9 +136,9 @@ export function SpecDecision({ revision }: { revision: SpecRevisionView }) {
 }
 
 /**
- * Approve or reject the undecided ticket set whose review passed (S7c-6); approving also refreshes
- * the map's delivery. Its Approve carries only "Approve the tickets", or "Confirm" on a set with no
- * ticket (slice 8b S8b-15), never a held set's label (L174 (c)).
+ * Approve or reject the undecided ticket set whose review passed; approving also refreshes the
+ * map's delivery. Its Approve carries only "Approve the tickets", or "Confirm" on a set with no
+ * ticket, never a held set's label.
  */
 export function TicketSetDecision({ ticketSet }: { ticketSet: TicketSetView }) {
   const label = useContext(DecisionLabel);
@@ -185,9 +185,9 @@ export function TicketSetDecision({ ticketSet }: { ticketSet: TicketSetView }) {
 }
 
 /**
- * A held ticket set's card body (slice 7c D7, issue 21 item 4): each escalated finding's title and
- * question, and one button, named by the action's label, that opens and focuses the hatch's
- * composer and sends nothing (L159). There is no Approve or Reject on a held set (S7c-6, L125 (2)).
+ * A held ticket set's card body: each escalated finding's title and question, and one button,
+ * named by the action's label, that opens and focuses the hatch's composer and sends nothing.
+ * There is no Approve or Reject on a held set.
  */
 export function HeldTickets({ findings }: { findings: readonly TicketsReviewFindingRecord[] }) {
   const label = useContext(DecisionLabel);
@@ -226,11 +226,11 @@ export function HeldTickets({ findings }: { findings: readonly TicketsReviewFind
 }
 
 /**
- * The stage's next-action card (spec D8): the agent at work, a stopped run with **Try again** on
- * it and core's sentence for why it stopped (slice 6a D3, S6a-12; UX audit P1-1), or the undecided
- * draft's `decision` when the action is yours, its Approve named by the action's label (S7b-16).
- * The card's headline, its detail and its stopped run are the map's status (D4), so the stopped
- * card is the standard card. Drafts start by themselves, so there is no Start drafting.
+ * The stage's next-action card: the agent at work, a stopped run with **Try again** on it and
+ * core's sentence for why it stopped, or the undecided draft's `decision` when the action is yours,
+ * its Approve named by the action's label. The card's headline, its detail and its stopped run are
+ * the map's status, so the stopped card is the standard card. Drafts start by themselves, so there
+ * is no Start drafting.
  */
 export function PlanningCard({
   mapId,

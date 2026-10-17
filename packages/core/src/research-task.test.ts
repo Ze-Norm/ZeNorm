@@ -253,7 +253,7 @@ afterEach(async () => {
   await closeTestContext(context);
 });
 
-describe("the frontier over every kind (S6b-6)", () => {
+describe("the frontier over every kind", () => {
   test("each unblocked waypoint is claimed with a run of its kind; a blocked one waits", () => {
     expect(readWaypoints(context.db, mapId)).toMatchObject([
       { number: 1, kind: "research", status: "claimed" },
@@ -322,7 +322,7 @@ describe("the frontier over every kind (S6b-6)", () => {
   });
 });
 
-describe("Research runs (S6b-7)", () => {
+describe("Research runs", () => {
   test("an answered report resolves the waypoint with its summary; one report row and its sources", () => {
     const run = grillingRun(context, mapId, 1);
     researchOn(1, research(ANSWERED));
@@ -395,7 +395,7 @@ describe("Research runs (S6b-7)", () => {
     ]);
   });
 
-  test("a research run may rule its waypoint out of scope and return map changes (S6b-5, S6b-3)", () => {
+  test("a research run may rule its waypoint out of scope and return map changes", () => {
     const run = grillingRun(context, mapId, 1);
     researchOn(1, {
       report: null,
@@ -430,7 +430,7 @@ describe("Research runs (S6b-7)", () => {
     if (!work.ok || work.value.purpose !== "research") throw new Error("not a research run");
     expect(work.value.request).toMatchObject({
       destination: KINDS.destination,
-      // The destination's rounds, as stored (DR-14).
+      // The destination's rounds, as stored.
       mapRounds: [{ questions: ROUND.questions, answers: DESTINATION_ANSWERS, final: false }],
       waypoint: { number: 1, kind: "research", title: "Proxy support" },
       otherWaypoints: [
@@ -493,7 +493,7 @@ describe("a spec run reads a research waypoint's facts", () => {
   });
 });
 
-describe("the fog check with waiting waypoints (S6b-4)", () => {
+describe("the fog check with waiting waypoints", () => {
   beforeEach(async () => {
     mapId = await charted({
       ...KINDS,
@@ -525,7 +525,7 @@ describe("the fog check with waiting waypoints (S6b-4)", () => {
   });
 });
 
-describe("Task runs (S6b-8)", () => {
+describe("Task runs", () => {
   test("a round is saved with its options, the run ends asked; answering starts a fresh task run", async () => {
     const run = grillingRun(context, mapId, 2);
     taskOn(2, TASK_ROUND);
@@ -543,7 +543,7 @@ describe("Task runs (S6b-8)", () => {
       SubmitAnswersInput.parse({ roundId: round.id, answers: ANSWERS }),
     );
     expect(submitted.ok).toBe(true);
-    // A Task round never settles (S6b-9): the waypoint stays claimed with a fresh task run.
+    // A Task round never settles: the waypoint stays claimed with a fresh task run.
     expect(waypointOf(context, mapId, 2).status).toBe("claimed");
     expect(waypointRuns(2)).toMatchObject([
       { id: run.id, state: "asked" },
@@ -551,7 +551,7 @@ describe("Task runs (S6b-8)", () => {
     ]);
     const work = await prepareRun(context.db, latestOf(2).id);
     if (!work.ok || work.value.purpose !== "task") throw new Error("not a task run");
-    // The destination's rounds, as stored (DR-14), beside the task's own round.
+    // The destination's rounds, as stored, beside the task's own round.
     expect(work.value.request.mapRounds).toEqual([
       { questions: ROUND.questions, answers: DESTINATION_ANSWERS, final: false },
     ]);
@@ -602,7 +602,7 @@ describe("Task runs (S6b-8)", () => {
     });
   });
 
-  test("a task run may rule its waypoint out of scope and return map changes (S6b-5, S6b-3)", () => {
+  test("a task run may rule its waypoint out of scope and return map changes", () => {
     taskOn(2, {
       ...DONE,
       done: null,
@@ -629,7 +629,7 @@ describe("Task runs (S6b-8)", () => {
     expect(context.db.select().from(taskOutcomes).all()).toEqual([]);
   });
 
-  test("the request after a failure carries the earlier outcomes (L116 (2))", async () => {
+  test("the request after a failure carries the earlier outcomes", async () => {
     taskOn(2, FAILED);
     expect(tryAgain(context.user, context.db, latestOf(2).id).ok).toBe(true);
     const work = await prepareRun(context.db, latestOf(2).id);
@@ -680,7 +680,7 @@ describe("Task round submission", () => {
   });
 });
 
-describe("Try again on a waiting waypoint, retries and the sweep (S6b-12)", () => {
+describe("Try again on a waiting waypoint, retries and the sweep", () => {
   test("tryAgain on a waiting research run claims the waypoint with a fresh run, itself retried once", () => {
     researchOn(1, research(UNANSWERED));
     const waiting = latestOf(1);

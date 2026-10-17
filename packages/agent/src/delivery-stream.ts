@@ -24,7 +24,7 @@ export interface ImplementStreamParser {
   end(): void;
 }
 
-/** The CLI's subagent tool: both names occur (L91). */
+/** The CLI's subagent tool: both names occur. */
 const SUBAGENT_TOOLS: ReadonlySet<string> = new Set(["Agent", "Task"]);
 
 const TextBlock = z.looseObject({ type: z.literal("text"), text: z.string() });
@@ -50,7 +50,7 @@ type MessageLine = z.infer<typeof MessageLine>;
 /**
  * A foreground subagent's structured hand-back (CLI 2.1.296): its text blocks are the clean
  * report, while the model-facing `tool_result` wraps it in a hand-back frame and an
- * `agentId … <usage>` trailer (L197 item 1).
+ * `agentId … <usage>` trailer.
  */
 const CompletedHandBack = z.looseObject({
   status: z.literal("completed"),
@@ -68,7 +68,7 @@ const Command = z.looseObject({ command: z.string() });
 const FilePath = z.looseObject({ file_path: z.string().min(1) });
 const Pattern = z.looseObject({ pattern: z.string().min(1) });
 
-/** A line's text as the contract stores it (D4): the shared cut at 500 characters. */
+/** A line's text as the contract stores it: the shared cut at 500 characters. */
 export function cutLineText(text: string): string {
   return cutAgentText(text, RUN_EVENT_TEXT_MAX_LENGTH);
 }
@@ -86,9 +86,9 @@ function resultText(content: unknown): string {
 }
 
 /**
- * A tied subagent's report from its `tool_result` line (D4, L197 item 1): the text blocks of a
- * completed structured hand-back, else (no structured result, the stand-in's shape) the
- * `tool_result` text, else nothing; a background launch notice or any other shape is no report.
+ * A tied subagent's report from its `tool_result` line: the text blocks of a completed structured
+ * hand-back, else (no structured result, the stand-in's shape) the `tool_result` text, else
+ * nothing; a background launch notice or any other shape is no report.
  */
 function handBackReport(toolUseResult: unknown, content: unknown): string | null {
   const text =
@@ -117,9 +117,9 @@ function commandWords(command: string): string[] {
 }
 
 /**
- * The orchestrator's stream parser (spec D3, D4): it turns the stream-json lines into `line`,
- * `ticket_started` and `ticket_merged` events, in stream order. A line that is not JSON, or not a
- * shape it knows, is skipped: one bad line is never a run failure.
+ * The orchestrator's stream parser: it turns the stream-json lines into `line`, `ticket_started`
+ * and `ticket_merged` events, in stream order. A line that is not JSON, or not a shape it knows, is
+ * skipped: one bad line is never a run failure.
  */
 export function createImplementStreamParser(
   context: ImplementStreamContext,
@@ -175,8 +175,8 @@ export function createImplementStreamParser(
 
   /**
    * A report with every absolute path under the run folder made relative as `worktreeRelative`
-   * does (L197 item 7): the paths are gone once cleanup deletes the worktrees. A trailing slash
-   * or sentence punctuation stays outside the path.
+   * does: the paths are gone once cleanup deletes the worktrees. A trailing slash or sentence
+   * punctuation stays outside the path.
    */
   const relativeReport = (report: string, ticket: string): string =>
     report.replace(absolutePathsUnder(context.runDir), (token) => {

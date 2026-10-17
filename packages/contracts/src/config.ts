@@ -115,8 +115,8 @@ export type AgentConfig = z.infer<typeof AgentConfig>;
 
 /**
  * What one planning run needs: `AgentConfig` with the model its run type uses and its limits, and
- * the folder its session records go in (`<dataDir>/sessions`, spec D3; composed by the app, not a
- * config key).
+ * the folder its session records go in (`<dataDir>/sessions`; composed by the app, not a config
+ * key).
  */
 export type PlanningRunConfig = Omit<AgentConfig, "wayfindingModel" | "specModel" | "models"> & {
   readonly model: string;
@@ -146,9 +146,9 @@ export const DeliveryConfig = z
     /** Each check's bound. */
     checkTimeoutMinutes: z.int().min(1).max(DELIVERY_CHECK_TIMEOUT_MINUTES_LIMIT),
     /**
-     * The name of the delivery executor every run uses (S9-22, D18): `"local"` (the Claude Code pair
-     * the app registers) or one a plugin registers. Required, no default; a name nothing registers
-     * is `executor_unknown` at startup.
+     * The name of the delivery executor every run uses: `"local"` (the Claude Code pair the app
+     * registers) or one a plugin registers. Required, no default; a name nothing registers is
+     * `executor_unknown` at startup.
      */
     executor: z.string().min(1),
   })
@@ -159,8 +159,8 @@ export type DeliveryConfig = z.infer<typeof DeliveryConfig>;
 
 /**
  * What the delivery sessions need: `apps/zenorm` composes it from `agent.claudePath`, `delivery`
- * and the session records' folder (`<dataDir>/sessions`, spec D3).
- * The Claude Code pair never sees `delivery.executor`, which only selects it (D18).
+ * and the session records' folder (`<dataDir>/sessions`). The Claude Code pair never sees
+ * `delivery.executor`, which only selects it.
  */
 export type DeliveryAgentConfig = {
   readonly claudePath: z.infer<typeof AbsolutePath>;
@@ -178,8 +178,8 @@ export const InstanceConfig = z.strictObject({
   agent: AgentConfig,
   delivery: DeliveryConfig,
   /**
-   * One section per plugin, keyed by its id (slice 9 spec D16, S9-18); `{}` with no plugins.
-   * Each section is parsed by its plugin's own schema at startup, never here.
+   * One section per plugin, keyed by its id; `{}` with no plugins. Each section is parsed by its
+   * plugin's own schema at startup, never here.
    */
   plugins: z.record(z.string(), z.unknown()),
 });

@@ -44,7 +44,7 @@ function refusalMessage(error: CreateProjectError): string {
 }
 
 /**
- * Add project (spec D7): **Check** a folder with `project.inspect`, confirm the detected base
+ * Add project: **Check** a folder with `project.inspect`, confirm the detected base
  * branch, then **Add project** stores it with `project.create`. Controlled, so the switcher and
  * any page can open it from their own trigger. `onAdded` receives the new project in place of
  * opening its page (the map composer selects it, keeping the idea); null opens its page.

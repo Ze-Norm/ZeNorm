@@ -29,7 +29,7 @@ describe("lengthWords (agent.models)", () => {
   });
 });
 
-describe("renderCodeSurvey (harness change #1)", () => {
+describe("renderCodeSurvey", () => {
   test("renders the survey as a FACTS block under the nonce, followed by the FACTS rule", () => {
     const text = renderCodeSurvey(SURVEY, "n1").join("\n");
     expect(text).toContain(`<<<FACTS n1\n${SURVEY_FACTS}\nFACTS n1>>>`);
@@ -61,7 +61,7 @@ describe("renderCodeSurvey (harness change #1)", () => {
   });
 });
 
-describe("mapRoundLines (DR-16)", () => {
+describe("mapRoundLines", () => {
   const NONCE = "nonce";
 
   test("heads the rounds once with DESTINATION_ANSWERS_RULE, each question in its MAP-ROUND block", () => {

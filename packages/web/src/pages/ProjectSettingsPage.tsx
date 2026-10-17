@@ -26,7 +26,7 @@ import { shownQueryError } from "@/lib/query-errors";
 import { describeQueryRefusal } from "@/lib/route-error";
 import { orpc } from "@/orpc";
 
-/** The sentence shown for a `project.saveSettings` refusal, chosen by its code (S8-2). */
+/** The sentence shown for a `project.saveSettings` refusal, chosen by its code. */
 export function saveSettingsRefusalMessage(
   error: SaveProjectSettingsError | AccessDeniedError,
 ): string {
@@ -44,8 +44,8 @@ export function saveSettingsRefusalMessage(
 }
 
 /**
- * The refusal of a check that needs a shell (L197 item 9; a deviation from the demo, which has no
- * such refusal), shown by Save settings for Add check and for a refused save alike.
+ * The refusal of a check that needs a shell, shown by Save settings for Add check and for a
+ * refused save alike.
  */
 export function needsShellSentence(command: string): string {
   return `“${command}” needs a shell. Checks run without one, so quotes, &&, pipes and redirects don't work. Add each command as its own check.`;
@@ -66,14 +66,13 @@ const REPAIR_LIMIT_SENTENCE = `Set a repair limit: a whole number from 0 to ${St
 const REPAIR_LIMIT_DESCRIPTION = `How many times a run whose required checks fail goes back to fix them before it fails, from 0 (no repair) to ${String(REPAIR_LIMIT_MAX)}. Start delivery is unavailable until one is saved.`;
 
 /**
- * Project settings (slice 8 D12; demo `ProjectSettings`): the base branch, the required checks,
- * the repair limit and the fix commands every delivery run pins at its start, saved with
- * `project.saveSettings`.
+ * Project settings: the base branch, the required checks, the repair limit and the fix commands
+ * every delivery run pins at its start, saved with `project.saveSettings`.
  */
 export function ProjectSettingsPage({ projectId }: { projectId: string }) {
   const project = useQuery(orpc.project.get.queryOptions({ input: { projectId } }));
   const error = shownQueryError(project.error);
-  // A refusal (`project_not_found`, `access_denied`) is the error page, with its title (P2-19).
+  // A refusal (`project_not_found`, `access_denied`) is the error page, with its title.
   const refusal = error !== null && isDefinedError(error) ? error : null;
   useDocumentTitle(
     pageTitle(
@@ -102,7 +101,7 @@ export function ProjectSettingsPage({ projectId }: { projectId: string }) {
 }
 
 /**
- * Which field a settings issue belongs under (UX audit P2-16): the base branch, the checks, the
+ * Which field a settings issue belongs under: the base branch, the checks, the
  * repair limit or the fix commands.
  */
 type SettingsField = "baseBranch" | "requiredChecks" | "repairLimit" | "fixCommands";
@@ -224,7 +223,7 @@ function ProjectSettingsForm({ project }: { project: ProjectDetail }) {
   const [branch, setBranch] = useState(project.baseBranch);
   const [checks, setChecks] = useState<string[]>(project.requiredChecks);
   const [checkDraft, setCheckDraft] = useState("");
-  // The limit as typed: blank until a person saves one (no default, C1).
+  // The limit as typed: blank until a person saves one (no default).
   const [limit, setLimit] = useState(
     project.repairLimit === null ? "" : String(project.repairLimit),
   );
@@ -259,9 +258,8 @@ function ProjectSettingsForm({ project }: { project: ProjectDetail }) {
   }
 
   /**
-   * The list with the draft added: a blank or a duplicate is ignored (D12), and a command that
-   * needs a shell is refused under its field, as the save would refuse it (L197 item 9). Null when
-   * nothing is added.
+   * The list with the draft added: a blank or a duplicate is ignored, and a command that needs a
+   * shell is refused under its field, as the save would refuse it. Null when nothing is added.
    */
   function withDraft(
     field: CommandField,

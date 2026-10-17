@@ -38,14 +38,14 @@ import {
 } from "./prompt-parts.ts";
 import { projectSpecLines, touchLines } from "./revision-prompt-parts.ts";
 
-/** The plain line opening the person's note about a waypoint (S7b-10); the e2e stand-in keys on it. */
+/** The plain line opening the person's note about a waypoint; the e2e stand-in keys on it. */
 export function waypointNoteLine(sentAt: string): string {
   return `Note from the person: sent ${sentAt}`;
 }
 
 /**
- * The person's note about the waypoint a run works (S7b-10), rendered as an escalated finding is
- * (L136 (a)); nothing when there is none.
+ * The person's note about the waypoint a run works, rendered as an escalated finding is; nothing
+ * when there is none.
  */
 export function waypointNoteLines(note: GrillWaypointRequest["note"], nonce: string): string[] {
   return note === null
@@ -60,14 +60,14 @@ export function waypointNoteLines(note: GrillWaypointRequest["note"], nonce: str
       ];
 }
 
-/** The plain line saying whether the waypoint was resolved and then reopened (L156 (1)). */
+/** The plain line saying whether the waypoint was resolved and then reopened. */
 export function reopenedLine(reopened: boolean): string {
   return `Reopened after a resolution: ${reopened ? "yes" : "no"}`;
 }
 
 /**
- * The rule for a reopened waypoint with no round asked since the reopen (S7b-7, L156 (1)): its
- * earlier decision no longer stands, so the run asks a new round rather than re-settling it.
+ * The rule for a reopened waypoint with no round asked since the reopen: its earlier decision no
+ * longer stands, so the run asks a new round rather than re-settling it.
  */
 export const REOPENED_ASK_RULE = [
   "This waypoint was resolved, and the person reopened it: its earlier decision no longer stands, and",
@@ -209,7 +209,7 @@ export const RESEARCH_KIND_RULE = [
   "early spike ticket).",
 ];
 
-/** How a run that asks no round changes the map (spec D3). */
+/** How a run that asks no round changes the map. */
 export function mapChangesRules(limits: ModelLimits): string[] {
   return [
     "Map changes. Besides your outcome, set mapChanges; leave each list empty when nothing changes:",
@@ -320,7 +320,7 @@ export function proposalsRules(limits: ModelLimits): string[] {
   ];
 }
 
-/** The out-of-scope ruling's rule, shared by every waypoint run (S6b-5), with its proposal. */
+/** The out-of-scope ruling's rule, shared by every waypoint run, with its proposal. */
 export function outOfScopeRule(limits: ModelLimits): string[] {
   return [
     `If this waypoint's question falls outside the destination, set outOfScope with the reason (${lengthWords(limits.mapLine)})`,
@@ -475,16 +475,15 @@ export const FEASIBILITY_RULE = [
 ];
 
 /** The round-asking rules both prompts share: the shape of a question and its options. */
-/** The plain line opening the text of a revision a waypoint touches (L213 D-7). */
+/** The plain line opening the text of a revision a waypoint touches. */
 export function touchedTextLine(touch: RunTouch): string {
   return `Touched spec ${String(touch.specNumber)} revision ${String(touch.revision)}, its approved text:`;
 }
 
 /**
- * A waypoint's touches as its runs read them (slice 8b D6): the specs it changes, the touched
- * criteria and the delivered ticket and commit that built each, so the run reads the delivered code,
- * and each touched revision's approved text, since specs live in ZeNorm, not the repository (L213
- * D-7).
+ * A waypoint's touches as its runs read them: the specs it changes, the touched criteria and the
+ * delivered ticket and commit that built each, so the run reads the delivered code, and each
+ * touched revision's approved text, since specs live in ZeNorm, not the repository.
  */
 export function touchedSpecLines(touches: readonly RunTouch[], nonce: string): string[] {
   if (touches.length === 0) return [...touchLines(touches, "WAYPOINT", nonce), ""];
@@ -508,8 +507,7 @@ export function touchedSpecLines(touches: readonly RunTouch[], nonce: string): s
 }
 
 /**
- * The chart's touch rules (slice 8b S8b-2, L202 (1)): a waypoint names the project specs it changes,
- * only at charting.
+ * The chart's touch rules: a waypoint names the project specs it changes, only at charting.
  */
 export const TOUCHES_RULES = [
   "- touches: when a waypoint decides a change to a spec listed above, name it there: { specNumber,",
@@ -596,8 +594,8 @@ export function answeredDestinationRoundsLine(count: number): string {
 }
 
 /**
- * When a chart after an answered round that is not the last asks a follow-up instead of confirming
- * (DR-12, P1, P2, P4): only for what an answer moved, leaning hard towards confirming.
+ * When a chart after an answered round that is not the last asks a follow-up instead of confirming:
+ * only for what an answer moved, leaning hard towards confirming.
  */
 export const DESTINATION_FOLLOW_UP_RULE = [
   "Confirm when the person's words say to wrap up, and otherwise unless an answer changed or left open",
@@ -612,8 +610,8 @@ export const DESTINATION_FOLLOW_UP_RULE = [
 ];
 
 /**
- * What a confirming chart writes (D2): the destination as the answers fix it, the waypoints with
- * their kinds, blockers and touches, the fog, the Out of scope lines and the proposals.
+ * What a confirming chart writes: the destination as the answers fix it, the waypoints with their
+ * kinds, blockers and touches, the fog, the Out of scope lines and the proposals.
  */
 function confirmationRules(limits: ModelLimits): string[] {
   return [
@@ -684,9 +682,8 @@ function confirmationRules(limits: ModelLimits): string[] {
 }
 
 /**
- * The map's title and summary beside its destination at `choose` and `confirm` (DR-5, DR-13, L253):
- * always set, refined by a confirmation as it refines the destination; `followUp` names the
- * follow-up's revision too.
+ * The map's title and summary beside its destination at `choose` and `confirm`: always set, refined
+ * by a confirmation as it refines the destination; `followUp` names the follow-up's revision too.
  */
 function chartReadingRules(limits: ModelLimits, followUp: boolean): string[] {
   return [
@@ -700,12 +697,12 @@ function chartReadingRules(limits: ModelLimits, followUp: boolean): string[] {
 }
 
 /**
- * The planning agent's prompt for charting a map (spec D2), by the chart's step (`chartStep`): at
- * `propose` it proposes the reading and destination and asks the first map-level round; at `choose`
- * it confirms the destination and charts the waypoints, or revises the destination and asks a
- * follow-up round (DR-12); at `confirm` it can only confirm (DR-13). A refused previous attempt's
- * problem is rendered at every step (DR-8, L253). The idea and every earlier text sit in blocks under
- * one fresh nonce per call (L63); the rules are `skills/wayfinder`'s, written here.
+ * The planning agent's prompt for charting a map, by the chart's step (`chartStep`): at `propose`
+ * it proposes the reading and destination and asks the first map-level round; at `choose` it
+ * confirms the destination and charts the waypoints, or revises the destination and asks a
+ * follow-up round; at `confirm` it can only confirm. A refused previous attempt's problem is
+ * rendered at every step. The idea and every earlier text sit in blocks under one fresh nonce per
+ * call; the rules are `skills/wayfinder`'s, written here.
  */
 export function buildChartPrompt(request: ChartMapRequest, limits: ModelLimits): string {
   const step = chartStep(request.mapRounds);
@@ -824,10 +821,10 @@ export function buildChartPrompt(request: ChartMapRequest, limits: ModelLimits):
 }
 
 /**
- * The planning agent's prompt for grilling one waypoint (spec D2): ask its next round or resolve it,
- * or, after a `final` round (`afterFinal`), only resolve it. The idea and every earlier text sit in
- * blocks under one fresh nonce per call (L63); the rules are `skills/grilling`'s, written here. Two
- * plain lines carry the waypoint's number and its answered round count.
+ * The planning agent's prompt for grilling one waypoint: ask its next round or resolve it, or,
+ * after a `final` round (`afterFinal`), only resolve it. The idea and every earlier text sit in
+ * blocks under one fresh nonce per call; the rules are `skills/grilling`'s, written here. Two plain
+ * lines carry the waypoint's number and its answered round count.
  */
 export function buildGrillPrompt(request: GrillWaypointRequest, limits: ModelLimits): string {
   const nonce = randomUUID();

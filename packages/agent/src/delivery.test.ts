@@ -63,8 +63,8 @@ afterEach(() => {
 
 /**
  * SIGKILLs every process whose command line names `path`, the test's temp folder, and their
- * children (L180 (6)): a stand-in that ignores SIGTERM, or one a failed or timed-out test never
- * stopped, must not outlive the test. pgrep exits 1 when nothing matches.
+ * children: a stand-in that ignores SIGTERM, or one a failed or timed-out test never stopped, must
+ * not outlive the test. pgrep exits 1 when nothing matches.
  */
 function killLeftovers(path: string): void {
   const found = spawnSync("pgrep", ["-f", path], { encoding: "utf8" });
@@ -175,7 +175,7 @@ function implementRequest(): ImplementRequest {
   };
 }
 
-/** Fix commands with a comma and a space, as `CHECKS` (C4). */
+/** Fix commands with a comma and a space, as `CHECKS`. */
 const FIX_COMMANDS = ["pnpm format", "node -e console.log(3,4)"];
 
 function reviewRequest(): ReviewRequest {
@@ -258,7 +258,7 @@ function flagValues(argv: readonly string[], flag: string): string[] {
   });
 }
 
-/** The orchestrator's fixed `--allowedTools` value (spec D5), before the checks and fix commands. */
+/** The orchestrator's fixed `--allowedTools` value, before the checks and fix commands. */
 const ORCHESTRATOR_FIXED_ALLOWED_TOOLS =
   "Read,Edit,Write,Glob,Grep,Agent,Bash(cd:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git add:*),Bash(git commit:*),Bash(git worktree:*),Bash(git merge:*),Bash(git branch:*),Bash(git checkout:*),Bash(git switch:*),Bash(git rev-parse:*),Bash(git rm:*),Bash(git mv:*)";
 
@@ -337,7 +337,7 @@ function isAlive(pid: number): boolean {
   }
 }
 
-describe("gitConfigParameters (L42)", () => {
+describe("gitConfigParameters", () => {
   test("is gc.auto=0 alone when the process has none", () => {
     expect(gitConfigParameters(undefined)).toBe("'gc.auto=0'");
     expect(gitConfigParameters("")).toBe("'gc.auto=0'");
@@ -421,7 +421,7 @@ describe("claudeCodeImplementTicketSet", () => {
     expect(result.ok).toBe(true);
   });
 
-  test("spawns D5's orchestrator argv in the worktree with the run identity and writes its files", async () => {
+  test("spawns the orchestrator argv in the worktree with the run identity and writes its files", async () => {
     const claudePath = writeStandIn({
       auth: LOGGED_IN,
       run: { stdout: STREAM_SUCCESS, exitCode: 0 },
@@ -510,7 +510,7 @@ describe("claudeCodeImplementTicketSet", () => {
     expect(readFileSync(join(runDir, "orchestrator.jsonl"), "utf8")).toBe(STREAM_SUCCESS);
   });
 
-  test("allows the orchestrator exactly its fixed tools plus the run's check and fix commands (C4)", async () => {
+  test("allows the orchestrator exactly its fixed tools plus the run's check and fix commands", async () => {
     const claudePath = writeStandIn({
       auth: LOGGED_IN,
       run: { stdout: STREAM_SUCCESS, exitCode: 0 },
@@ -558,7 +558,7 @@ describe("claudeCodeImplementTicketSet", () => {
     ]);
   });
 
-  test("parses the stream as it arrives into D4's events, and the result line still decides", async () => {
+  test("parses the stream as it arrives into delivery events, and the result line still decides", async () => {
     const fixture = readFileSync(
       join(import.meta.dirname, "delivery-stream.fixture.jsonl"),
       "utf8",
@@ -822,7 +822,7 @@ describe("claudeCodeImplementTicketSet", () => {
     }
   });
 
-  test("an abort signals the session's process group: a TERM-ignoring child it started is SIGKILLed once the CLI exits (L197 item 12)", async () => {
+  test("an abort signals the session's process group: a TERM-ignoring child it started is SIGKILLed once the CLI exits", async () => {
     const body = [
       // A subprocess that ignores SIGTERM, as a hung tool call might; only its group's SIGKILL stops it.
       // Bounded (about 40 s) so an orphan left by a killed worker exits by itself.
@@ -873,7 +873,7 @@ describe("claudeCodeImplementTicketSet", () => {
 });
 
 describe("claudeCodeReviewDelivery", () => {
-  test("spawns D5's reviewer argv and returns the parsed verdict", async () => {
+  test("spawns the reviewer argv and returns the parsed verdict", async () => {
     const stdout = reviewerResult(VERDICT);
     const claudePath = writeStandIn({ auth: LOGGED_IN, run: { stdout, exitCode: 0 } });
     const request = reviewRequest();
@@ -960,7 +960,7 @@ describe("claudeCodeReviewDelivery", () => {
     expect(readFileSync(join(runDir, "reviewer.json"), "utf8")).toBe(stdout);
   });
 
-  test("a run with fix commands leaves the reviewer's allowed and disallowed tools unchanged (C4)", async () => {
+  test("a run with fix commands leaves the reviewer's allowed and disallowed tools unchanged", async () => {
     const orchestratorPath = writeStandIn({
       auth: LOGGED_IN,
       run: { stdout: STREAM_SUCCESS, exitCode: 0 },
@@ -1069,7 +1069,7 @@ describe.each([
   });
 });
 
-describe("claudeCodeWritePullRequest (C3)", () => {
+describe("claudeCodeWritePullRequest", () => {
   test("runs the read-only writer under the reviewer's settings and returns the body", async () => {
     const stdout = pullRequestResult(BODY);
     const claudePath = writeStandIn({ auth: LOGGED_IN, run: { stdout, exitCode: 0 } });
@@ -1146,7 +1146,7 @@ describe("claudeCodeWritePullRequest (C3)", () => {
     expect(readFileSync(join(runDir, "pr-writer.json"), "utf8")).toBe(stdout);
   });
 
-  test("refuses with agent_timed_out past delivery.reviewerTimeoutMinutes (3.3)", async () => {
+  test("refuses with agent_timed_out past delivery.reviewerTimeoutMinutes", async () => {
     const claudePath = writeStandIn({ auth: LOGGED_IN, run: { body: SLEEP_UNTIL_TERM } });
 
     // One second: the agent multiplies the configured minutes; the loader enforces whole minutes.
@@ -1262,7 +1262,7 @@ describe("delivery.fastMode", () => {
   });
 });
 
-describe("the verdict schema (S8-11)", () => {
+describe("the verdict schema", () => {
   test("every finding requires criterion, a criterion id or null", () => {
     const FindingSchema = z.looseObject({
       required: z.array(z.string()),
@@ -1305,7 +1305,7 @@ describe("skills", () => {
     expect(checkSkill(DELIVERY_SKILLS.pullRequest)).toEqual({ ok: true, value: null });
   });
 
-  test("the PR skill keeps its notice and asks for C3's headings, with no links, closing keywords or template", () => {
+  test("the PR skill keeps its notice and asks for its four headings, with no links, closing keywords or template", () => {
     const skill = readFileSync(DELIVERY_SKILLS.pullRequest, "utf8");
     expect(skill).toContain("MIT License");
     const headings = ["## Why", "## What", "## Tests", "## Risks"];
@@ -1331,7 +1331,7 @@ describe("skills", () => {
     return skills;
   }
 
-  test("the pull request writer refuses with agent_skill_missing naming the absent PR skill, and spawns nothing (3.1)", async () => {
+  test("the pull request writer refuses with agent_skill_missing naming the absent PR skill, and spawns nothing", async () => {
     const claudePath = writeStandIn({
       auth: LOGGED_IN,
       run: { stdout: pullRequestResult(BODY), exitCode: 0 },
@@ -1470,7 +1470,7 @@ describe("buildOrchestratorPrompt", () => {
     expect(buildOrchestratorPrompt(implementRequest())).not.toContain("Previous run:");
   });
 
-  test("a repair attempt's prompt carries the attempt, the limit, and each failing check's output and log path (C2)", () => {
+  test("a repair attempt's prompt carries the attempt, the limit, and each failing check's output and log path", () => {
     const prompt = buildOrchestratorPrompt({
       ...implementRequest(),
       merged: ["T1", "T2"],
@@ -1526,7 +1526,7 @@ describe("buildOrchestratorPrompt", () => {
     expect(buildOrchestratorPrompt(implementRequest())).not.toContain("Repair attempt:");
   });
 
-  test("carries one Fix line per fix command, after the Check lines (C4)", () => {
+  test("carries one Fix line per fix command, after the Check lines", () => {
     const lines = buildOrchestratorPrompt({
       ...implementRequest(),
       fixCommands: FIX_COMMANDS,
@@ -1578,7 +1578,7 @@ describe("buildOrchestratorPrompt", () => {
 });
 
 describe("buildOrchestratorSystemPrompt", () => {
-  test("with fix commands, states who may run them: the orchestrator and the run-worktree fixers, not single-ticket implementers (C4)", () => {
+  test("with fix commands, states who may run them: the orchestrator and the run-worktree fixers, not single-ticket implementers", () => {
     const systemPrompt = buildOrchestratorSystemPrompt(
       { ...implementRequest(), fixCommands: FIX_COMMANDS },
       DELIVERY_SKILLS,

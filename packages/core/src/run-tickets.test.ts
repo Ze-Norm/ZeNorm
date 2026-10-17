@@ -44,7 +44,7 @@ async function ticketsOf(runId: string): Promise<RunTicket[] | null> {
   return runTickets(context.db, await stored(runId));
 }
 
-describe("each pinned ticket's status (D6, S8-7)", () => {
+describe("each pinned ticket's status", () => {
   test("starting, then implementing with no line, with its latest line, then merged; T2 waits on T1", async () => {
     const set = await deliverableTicketSet(context, project);
     const run = await startedRun(context, set.ticketSetId);

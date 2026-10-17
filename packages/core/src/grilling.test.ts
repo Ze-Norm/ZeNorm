@@ -88,7 +88,7 @@ function waypointRuns(number: number): PlanningRun[] {
   return runsOf(context, mapId).filter((run) => run.waypointId === id);
 }
 
-/** Fails waypoint `number`'s running run and then its retry: the scope stops (S6a-12). */
+/** Fails waypoint `number`'s running run and then its retry: the scope stops. */
 function stopWaypoint(number: number): PlanningRun {
   failRun(context.user, context.db, grillingRun(context, mapId, number).id, FAILURE);
   const retry = grillingRun(context, mapId, number);
@@ -102,7 +102,7 @@ async function overview() {
   return result.value;
 }
 
-describe("the frontier and claims (S6a-7)", () => {
+describe("the frontier and claims", () => {
   test("confirming claims each unblocked waypoint with one grilling run; blocked ones wait", () => {
     expect(waypointOf(context, mapId, 1)).toMatchObject({ status: "claimed" });
     expect(waypointOf(context, mapId, 1).claimedAt).not.toBeNull();
@@ -208,7 +208,7 @@ describe("the frontier and claims (S6a-7)", () => {
       ).toEqual([]);
     });
 
-    // The confirmed chart's completed code survey (harness change #1).
+    // The confirmed chart's completed code survey.
     const surveyed = [
       run(RUN_C, {
         waypointId: null,
@@ -219,7 +219,7 @@ describe("the frontier and claims (S6a-7)", () => {
       }),
     ];
 
-    test("a map waiting on its code survey has no frontier (harness change #1)", () => {
+    test("a map waiting on its code survey has no frontier", () => {
       expect(numbers(frontierOf(confirmed, [stored(1, "open")], [], [], none))).toEqual([]);
       const surveying = [
         run(RUN_C, {
@@ -339,7 +339,7 @@ describe("the frontier and claims (S6a-7)", () => {
   });
 });
 
-describe("grilling runs and rounds (S6a-8)", () => {
+describe("grilling runs and rounds", () => {
   test("the request carries the waypoint, its answered rounds, the others and their pending rounds", async () => {
     ask(context, mapId, 1, false);
     answer(context, mapId, 1, PLAIN_ANSWERS);
@@ -437,7 +437,7 @@ describe("grilling runs and rounds (S6a-8)", () => {
   });
 });
 
-describe("the grilling request's slice 6b fields (spec D2)", () => {
+describe("the grilling request's kind, fog and scope fields", () => {
   test("carries the waypoint's kind, the others' numbers and kinds, the fog, the Out of scope lines and the finding", async () => {
     resolve(context, mapId, 1);
     const [one, two] = [1, 2].map((number) => waypointOf(context, mapId, number));
@@ -525,7 +525,7 @@ describe("the grilling request's slice 6b fields (spec D2)", () => {
   });
 });
 
-describe("map changes, out-of-scope rulings and the fog check (S6b-3, S6b-4, S6b-5)", () => {
+describe("map changes, out-of-scope rulings and the fog check", () => {
   const resolution = { resolution: "Decided.", gist: "Decided", agentDecided: [] };
 
   /** A new waypoint of the run's map changes. */
@@ -566,7 +566,7 @@ describe("map changes, out-of-scope rulings and the fog check (S6b-3, S6b-4, S6b
       state: "failed",
       errorCode: code,
     });
-    // The failure's transaction inserts its retry (S6a-12).
+    // The failure's transaction inserts its retry.
     expect(runs.at(-1)).toMatchObject({ state: "running", retryOfRunId: run.id });
   }
 
@@ -578,7 +578,7 @@ describe("map changes, out-of-scope rulings and the fog check (S6b-3, S6b-4, S6b
     confirm(context, mapId, { ...CONFIRMATION, fog: ["Fog 1.", "Fog 2."] });
   });
 
-  test("applies map changes in the outcome's transaction; new Grilling waypoints join the frontier (S6b-3)", () => {
+  test("applies map changes in the outcome's transaction; new Grilling waypoints join the frontier", () => {
     const run = grillingRun(context, mapId, 1);
     const recorded = recordGrill(
       context.user,
@@ -667,14 +667,11 @@ describe("map changes, out-of-scope rulings and the fog check (S6b-3, S6b-4, S6b
       }),
       "fog_item_unknown",
     ],
-  ])(
-    "refuses %s with its code, writes nothing and fails the run (S6b-3)",
-    (_case, outcome, code) => {
-      expectRefused(1, outcome, code);
-    },
-  );
+  ])("refuses %s with its code, writes nothing and fails the run", (_case, outcome, code) => {
+    expectRefused(1, outcome, code);
+  });
 
-  test("refuses a stale fog position: positions are never reused (S6b-3, D1)", () => {
+  test("refuses a stale fog position: positions are never reused", () => {
     resolve(context, mapId, 1);
     const graduated = recordGrill(
       context.user,
@@ -702,7 +699,7 @@ describe("map changes, out-of-scope rulings and the fog check (S6b-3, S6b-4, S6b
     );
   });
 
-  test("a ruling sets out_of_scope, saves the linked line, and the waypoint is not resolved (S6b-5)", async () => {
+  test("a ruling sets out_of_scope, saves the linked line, and the waypoint is not resolved", async () => {
     const run = grillingRun(context, mapId, 1);
     const recorded = recordGrill(context.user, context.db, run.id, {
       round: null,
@@ -735,7 +732,7 @@ describe("map changes, out-of-scope rulings and the fog check (S6b-3, S6b-4, S6b
     );
   });
 
-  describe("the last unsettled waypoint (S6b-4)", () => {
+  describe("the last unsettled waypoint", () => {
     beforeEach(() => {
       resolve(context, mapId, 1);
       // Not the last: waypoint 3 is still claimed, so leaving the fog is accepted.
@@ -958,7 +955,7 @@ describe("map changes, out-of-scope rulings and the fog check (S6b-3, S6b-4, S6b
   });
 });
 
-describe("waypoint round submission: every final round starts the grilling run (S7b-14)", () => {
+describe("waypoint round submission: every final round starts the grilling run", () => {
   test("an options-only final round leaves the waypoint claimed with a fresh grilling run after the final round", async () => {
     ask(context, mapId, 1, false);
     answer(context, mapId, 1, PLAIN_ANSWERS);
@@ -1010,7 +1007,7 @@ describe("waypoint round submission: every final round starts the grilling run (
     expect(waypointRuns(1).at(-1)).toMatchObject({ state: "running", retryOfRunId: null });
   });
 
-  test("a waypoint stored as resolved by plain choice still reads resolved with its gist (Existing Records)", async () => {
+  test("a waypoint stored as resolved by plain choice still reads resolved with its gist", async () => {
     ask(context, mapId, 1, true);
     answer(context, mapId, 1, PLAIN_ANSWERS);
     resolve(context, mapId, 1);
@@ -1067,7 +1064,7 @@ describe("waypoint round submission: every final round starts the grilling run (
   });
 });
 
-describe("grilling retries (S6a-12, S6a-13)", () => {
+describe("grilling retries", () => {
   test("a failed first run leaves the waypoint claimed while its retry runs", () => {
     const first = grillingRun(context, mapId, 1);
     failRun(context.user, context.db, first.id, FAILURE);
@@ -1097,7 +1094,7 @@ describe("grilling retries (S6a-12, S6a-13)", () => {
   });
 });
 
-describe("clearing (S6a-11)", () => {
+describe("clearing", () => {
   test("resolving the last waypoint clears the map and inserts to_spec with the resolved waypoints", async () => {
     resolve(context, mapId, 1);
     resolve(context, mapId, 2);
@@ -1165,7 +1162,7 @@ describe("clearing (S6a-11)", () => {
   });
 });
 
-describe("the waypoint's state in map.overview (D4)", () => {
+describe("the waypoint's state in map.overview", () => {
   async function stateOf(number: number) {
     return (await overview()).wayfinding.waypoints.find((w) => w.number === number)?.state;
   }
@@ -1221,7 +1218,7 @@ describe("the waypoint's state in map.overview (D4)", () => {
   });
 });
 
-test("a waypoint has at most one running run (S6a-13's index)", () => {
+test("a waypoint has at most one running run (its unique index)", () => {
   const run = grillingRun(context, mapId, 1);
   let caught: unknown;
   try {

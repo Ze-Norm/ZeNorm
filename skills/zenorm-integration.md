@@ -2,7 +2,7 @@
 
 ## Records and scope
 
-Use the supplied ZeNorm tools for records, claims, dependencies and validated mutations. Services own persistence, revisions, locks and scheduling. In a direct repository session, the repository's own planning records under `.scratch/` (decisions ledger, slice plan, scope trace, issues) are the tracker; never open the legacy checkout or follow `zenorm-legacy` references; product runs use their supplied records, not a parallel file tracker. A rejected operation remains a blocker with its proposed work retained.
+Use the supplied ZeNorm tools for records, claims, dependencies and validated mutations. Services own persistence, revisions, locks and scheduling. In a direct repository session, the local planning records the session names (decision records, plan, scope trace, issues) are the tracker; product runs use their supplied records, not a parallel file tracker. A rejected operation remains a blocker with its proposed work retained.
 
 Orient from the map index, then read the exact governing sources for the assigned question. Reuse full records already supplied. Retrieve omitted resolutions, relevant corrections, research and actual answers before relying on them. Older unrelated history stays retrievable. Keep each decision in its ticket, with a named link and one-line gist in the map. Keep vocabulary in the glossary.
 

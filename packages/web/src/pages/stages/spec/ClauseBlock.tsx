@@ -24,15 +24,14 @@ import { cn } from "@/lib/utils";
 import { ChangeBadge } from "@/pages/stages/spec/Changes";
 
 /**
- * One clause (D9; slice 8b D11, the demo's `ClauseBlock`): its id, title, text and criteria, each
- * criterion's change past r1 with its "Was" line, the criteria the revision drops, a folded
- * `ClauseDetails` (what it relies on and adds, and "From …": each waypoint on whichever map wrote
- * it, then the destination, then "your note"), and the footer: "Checked by …" once a ticket set
- * exists, and "Delivered under rN by …" for the criteria the set carries over, with a tick once
- * this map's latest run is merged; a criterion that run's blocking findings name reads failing,
- * with "fails review" (slice 8, the demo's `latestRunOn`). At the footer's right, **Ask** and
- * **Propose a change** open the hatch prefilled and send nothing (slice 7b D7, L145); after a send
- * from either, "Sent to the activity log →".
+ * One clause: its id, title, text and criteria, each criterion's change past r1 with its "Was"
+ * line, the criteria the revision drops, a folded `ClauseDetails` (what it relies on and adds, and
+ * "From …": each waypoint on whichever map wrote it, then the destination, then "your note"), and
+ * the footer: "Checked by …" once a ticket set exists, and "Delivered under rN by …" for the
+ * criteria the set carries over, with a tick once this map's latest run is merged; a criterion that
+ * run's blocking findings name reads failing, with "fails review". At the footer's right, **Ask**
+ * and **Propose a change** open the hatch prefilled and send nothing; after a send from either,
+ * "Sent to the activity log →".
  */
 export function ClauseBlock({
   mapId,
@@ -193,7 +192,7 @@ export function ClauseBlock({
           </span>
         ))}
         <span className="flex-1" />
-        {/* The clause's two ways into the hatch, as buttons that look like buttons (UX audit C3). */}
+        {/* The clause's two ways into the hatch, as buttons that look like buttons. */}
         <span className="flex shrink-0 flex-wrap items-center gap-2 whitespace-nowrap">
           {hatch.sent.has(origin) && <span>Sent to the activity log →</span>}
           <Button
@@ -242,7 +241,7 @@ function Identifier({ name, path }: { name: string; path: string | null }) {
 }
 
 /**
- * What a clause relies on, what it adds (RC1) and where it came from, folded behind one toggle that
+ * What a clause relies on, what it adds and where it came from, folded behind one toggle that
  * counts each so the card stays short: a clause can name a dozen identifiers and sources. Nothing
  * when the clause has none of the three.
  */
@@ -289,8 +288,8 @@ function ClauseDetails({
 }
 
 /**
- * Each source as a chip that opens it, the C5 pattern, so a clause drawn from several waypoints
- * reads as a list and not a run-on sentence (UX review P2-18).
+ * Each source as a chip that opens it, as the delta panel's kept clauses are, so a clause drawn
+ * from several waypoints reads as a list and not a run-on sentence.
  */
 function ClauseSources({ from, mapId }: { from: readonly FooterSource[]; mapId: string }) {
   return (
@@ -342,9 +341,9 @@ function ClauseSources({ from, mapId }: { from: readonly FooterSource[]; mapId: 
 }
 
 /**
- * What a clause relies on and what it adds (RC1): each identifier as a code chip in its own case,
+ * What a clause relies on and what it adds: each identifier as a code chip in its own case,
  * so `ChartConfirmation` reads as written and can be searched for, and each declaration that is a
- * sentence as plain text (UX audit C1).
+ * sentence as plain text.
  */
 function ClauseDeclarations({
   clause,

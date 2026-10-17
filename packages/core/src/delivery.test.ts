@@ -191,7 +191,7 @@ afterEach(async () => {
 
 /**
  * SIGKILLs every process whose command line names `path`, the test's temp folder, and their
- * children (L180 (6)): a stand-in that ignores SIGTERM, or one a failed or timed-out test never
+ * children: a stand-in that ignores SIGTERM, or one a failed or timed-out test never
  * stopped, must not outlive the test. pgrep exits 1 when nothing matches.
  */
 function killLeftovers(path: string): void {
@@ -262,7 +262,7 @@ describe("startDelivery", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     const { run, folder } = result.value;
-    // Core's checkout seam gives the stored folder (CR9b-3).
+    // Core's checkout seam gives the stored folder.
     expect(folder).toBe(seeded.repo);
     expect(validate(run.id) && version(run.id)).toBe(7);
     expect(run).toEqual({
@@ -286,7 +286,7 @@ describe("startDelivery", () => {
       verdict: null,
       failure: null,
       mergedAt: null,
-      // Started by a person, the run takes that User (S9-11).
+      // Started by a person, the run takes that User.
       userId: context.user.userId,
       executor: LOCAL_EXECUTOR,
       repairLimit: 0,
@@ -338,7 +338,7 @@ describe("startDelivery", () => {
     expect(runRows()).toEqual([]);
   });
 
-  test("delivery_in_progress while a run is active, naming it; the folder check comes first (S8-3)", async () => {
+  test("delivery_in_progress while a run is active, naming it; the folder check comes first", async () => {
     const seeded = await seed({ approve: true });
     const run = await started(seeded);
     expect(
@@ -447,7 +447,7 @@ describe("startDelivery", () => {
   });
 });
 
-describe("repair rules pinned on a run (C2)", () => {
+describe("repair rules pinned on a run", () => {
   async function savedRepairRules(
     seeded: Seeded,
     repairLimit: number,
@@ -1128,7 +1128,7 @@ describe("runChecks", () => {
         { timeout: 12_000, interval: 100 },
       );
     } finally {
-      // L200: whatever failed above, the grandchild that ignores SIGTERM and this test's folder go.
+      // Whatever failed above, the grandchild that ignores SIGTERM and this test's folder go.
       let leftover = grandchild;
       if (existsSync(pidFile)) {
         const recorded = (await readFile(pidFile, "utf8")).trim();
@@ -1290,7 +1290,7 @@ describe("prepareReview, acceptVerdict and endDelivery", () => {
     },
   );
 
-  test("a verdict end with a pull request records its number, url and state (C1)", async () => {
+  test("a verdict end with a pull request records its number, url and state", async () => {
     const { run, finalCommit } = await reviewed({ strayBeforeSnapshot: false });
     const pullRequest = {
       number: 7,
@@ -1366,7 +1366,7 @@ describe("prepareReview, acceptVerdict and endDelivery", () => {
   });
 });
 
-describe("checkVerdictCriteria (S8-11)", () => {
+describe("checkVerdictCriteria", () => {
   function naming(reviewedCommit: string, criteria: readonly (string | null)[]): Verdict {
     return {
       reviewedCommit,
@@ -1401,7 +1401,7 @@ describe("checkVerdictCriteria (S8-11)", () => {
   });
 });
 
-describe("check results stored as they finish (D5)", () => {
+describe("check results stored as they finish", () => {
   test("with three checks, the stored results grow one at a time while the run is active", async () => {
     const { run } = await delivered(await seed({ approve: true }));
     const storedCounts: number[] = [];

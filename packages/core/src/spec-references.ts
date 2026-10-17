@@ -20,7 +20,7 @@ interface FactsName {
 }
 
 /**
- * The names a map's survey defines, by exact name (RC1): its identifiers, then each lifecycle's
+ * The names a map's survey defines, by exact name: its identifiers, then each lifecycle's
  * record and states (a state at the line of its terminal entry, else of the first transition into
  * it). The first definition of a name wins.
  */
@@ -223,7 +223,7 @@ function resolve(
 }
 
 /**
- * Every problem of a written revision's clause declarations (RC1), joined into one message, or
+ * Every problem of a written revision's clause declarations, joined into one message, or
  * null. Each clause declares `reliesOn` and `adds`, at least one non-empty; each reliance resolves
  * (a FACTS name, the path of a tracked file of the project at `folder`, or a name its source
  * defines, in the named file when a path is given); and no
@@ -270,7 +270,7 @@ export function referencesProblem(
 }
 
 /**
- * Each clause's reliances with the code around them (RC1), as the repair and the review read
+ * Each clause's reliances with the code around them, as the repair and the review read
  * them: the file and line, the FACTS meaning when FACTS names it, and the lines either side. A
  * reliance that no longer resolves (the code moved since the revision was written) has no line
  * or excerpt. A clause written before clauses declared reliances has none.

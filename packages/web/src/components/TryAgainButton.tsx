@@ -19,9 +19,8 @@ function tryAgainRefusalMessage(error: TryAgainError | AccessDeniedError): strin
 }
 
 /**
- * **Try again** on a stopped scope (slice 6a S6a-12) or a waiting waypoint (slice 6b S6b-12,
- * L115): starts a fresh run in place of the failed retry or waiting run `runId`, then refetches
- * the map's reads.
+ * **Try again** on a stopped scope or a waiting waypoint: starts a fresh run in place of the
+ * failed retry or waiting run `runId`, then refetches the map's reads.
  */
 export function TryAgainButton({ runId }: { runId: string }) {
   const queryClient = useQueryClient();

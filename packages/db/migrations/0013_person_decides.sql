@@ -3,7 +3,7 @@
 -- can settle it and its grilling resolves only after a round is asked. Every row is copied; the
 -- backfill sets it from the stored findings (`spec_review_findings` escalated with route `decision`
 -- naming the waypoint), false for every other waypoint. The rebuild runs with foreign keys off
--- (`migrateDatabase`) and ends by refusing any foreign key violation (L163).
+-- (`migrateDatabase`) and ends by refusing any foreign key violation.
 CREATE TABLE `__new_waypoints` (
 	`id` text PRIMARY KEY NOT NULL,
 	`map_id` text NOT NULL,

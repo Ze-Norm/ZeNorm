@@ -50,7 +50,7 @@ export function readMapsOfProject(db: Reader, projectId: string): MapRecord[] {
 }
 
 /**
- * The project a new map is created in, refused as `map.create` refuses it (S6a-2):
+ * The project a new map is created in, refused as `map.create` refuses it:
  * `project_not_found`, or `project_folder_missing` when its folder is gone.
  */
 export async function projectForNewMap(
@@ -73,7 +73,7 @@ export async function projectForNewMap(
 }
 
 /**
- * Inserts a new map created by `actor`'s User (S9-11) and inserts what it makes due, its first
+ * Inserts a new map created by `actor`'s User and inserts what it makes due, its first
  * `chart` run, in the caller's transaction: `map.create`'s insert, and a confirmed proposal's, which
  * names the map and run it was split from (map proposals).
  */
@@ -107,9 +107,9 @@ export function insertMap(
 }
 
 /**
- * Starts a map (S6a-2) taking its creator's User (S9-11): stores it and its first `chart` run in one transaction and returns
- * without waiting on the agent. Refuses only `project_not_found` and `project_folder_missing`,
- * writing nothing.
+ * Starts a map taking its creator's User: stores it and its first `chart` run in one transaction
+ * and returns without waiting on the agent. Refuses only `project_not_found` and
+ * `project_folder_missing`, writing nothing.
  */
 export async function createMap(
   actor: UserActor,
@@ -150,7 +150,7 @@ export async function getMap(
 
 /**
  * The index of the first question whose answer is invalid, `null` when the answer count is
- * wrong, or `undefined` when every answer is valid (S6a-9): each answer names an option of its
+ * wrong, or `undefined` when every answer is valid: each answer names an option of its
  * question, has words, or both; an `accepted` answer is option 0 with no words.
  */
 function invalidAnswerIndex(
@@ -195,8 +195,8 @@ function undecidedSplit(tx: Tx, mapId: string): boolean {
 }
 
 /**
- * Stores a pending round's answers and inserts what they make due in the same transaction (S6a-9;
- * the chart after the map-level round, D3). Refuses an unknown round, an invalid submission, a
+ * Stores a pending round's answers and inserts what they make due in the same transaction (the
+ * chart after the map-level round). Refuses an unknown round, an invalid submission, a
  * round no longer pending, and a map-level round while a map the first chart offered to split off
  * is undecided (`round_split_undecided`, idea-phase split: the destination is confirmed knowing what
  * stays in this map), and writes nothing on any refusal.

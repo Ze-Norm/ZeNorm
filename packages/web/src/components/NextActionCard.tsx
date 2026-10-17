@@ -22,9 +22,8 @@ import { cn } from "@/lib/utils";
 import { blockerSentence } from "@/pages/stages/delivery/words";
 
 /**
- * The next-action card family (spec D4, S7b-16; UX audit A2, D1): one card for every entry of a
- * map's `status.next`, whatever its `who`. The card's **tone** says who the action waits on and
- * how it is marked:
+ * The next-action card family: one card for every entry of a map's `status.next`, whatever its
+ * `who`. The card's **tone** says who the action waits on and how it is marked:
  *
  * - `your-turn`: a `you` action, the primary band and the action's own button.
  * - `agent-working`: an `agent` action, the work band and a pulsing line.
@@ -35,7 +34,7 @@ import { blockerSentence } from "@/pages/stages/delivery/words";
  *   `li[data-code]` each) in place of core's one-blocker detail, and **Set required checks** to
  *   Project settings while `project_checks_missing` is among them (**Set a repair limit** while
  *   only `project_repair_limit_missing` is). The project page shows the same card for the same
- *   blockers (UX audit P2-5).
+ *   blockers.
  * - `done`: a `nobody` action on a done stage (Delivered and merged, Nothing to deliver): the check.
  * - `quiet`: any other `nobody` action (Nothing is in motion): the stage's number, as the rail.
  *
@@ -43,12 +42,11 @@ import { blockerSentence } from "@/pages/stages/delivery/words";
  * when the action names a spec, else the map's) and the project's start blockers, so no page
  * passes one. Every card ends in an actions row: `children` when the page carries the action out
  * in place (a form, Approve and Reject); otherwise the standard row: **Try again** on a stopped run
- * (S6a-12) or, with **Open the waypoint**, on a waiting one (slice 6b D7), **Open that map** on a
- * wait (S8b-16), the action's own label on a `you` card, and on a quiet card **Set required
- * checks** and **Open <stage>** (never the stage the card is already on). A stopped run's card
- * says why it stopped as core's one-sentence detail, marked `data-code` with the failure code,
- * never as a code or a box (UX audit P1-1). The region is `section[aria-label="Next"]` with
- * `data-who` and `data-tone`.
+ * or, with **Open the waypoint**, on a waiting one, **Open that map** on a wait, the action's own
+ * label on a `you` card, and on a quiet card **Set required checks** and **Open <stage>** (never
+ * the stage the card is already on). A stopped run's card says why it stopped as core's
+ * one-sentence detail, marked `data-code` with the failure code, never as a code or a box. The
+ * region is `section[aria-label="Next"]` with `data-who` and `data-tone`.
  */
 
 export type NextActionTone =
@@ -103,7 +101,7 @@ export function nextActionTone(next: NextAction, detail: MapOverviewDetail): Nex
 }
 
 /**
- * A waiting waypoint's actions (slice 6b D7, L115): **Try again** on its waiting run, as for a
+ * A waiting waypoint's actions: **Try again** on its waiting run, as for a
  * stopped run, and **Open the waypoint**.
  */
 function WaitingActions({
@@ -126,8 +124,8 @@ function WaitingActions({
 }
 
 /**
- * A wait's way out (S8b-16; the demo's `next-action-elsewhere`): no action of the person's, only a link
- * to the spec on the map the wait is carried out on (`onMap`, this map for its own delivery run).
+ * A wait's way out: no action of the person's, only a link to the spec on the map the wait is
+ * carried out on (`onMap`, this map for its own delivery run).
  */
 export function OpenThatMap({ next }: { next: NextAction }) {
   if (next.onMap === null || next.spec === null || !isSpecStage(next.stage)) {
@@ -145,7 +143,7 @@ export function OpenThatMap({ next }: { next: NextAction }) {
   );
 }
 
-/** The link that opens the action's stage: the spec's own stage page when it names a spec (D11). */
+/** The link that opens the action's stage: the spec's own stage page when it names a spec. */
 function OpenStage({
   mapId,
   next,
@@ -173,7 +171,7 @@ function OpenStage({
           {children}
         </SpecStageLink>
       ) : (
-        // A wait's spec opens this map's stage, where Waits shows it (B6).
+        // A wait's spec opens this map's stage, where Waits shows it.
         <Link to="/maps/$mapId/$stage" params={{ mapId, stage: next.stage }}>
           {children}
         </Link>
@@ -205,7 +203,7 @@ export function hasBlockerActions(project: Project): boolean {
 }
 
 /**
- * The way past a start blocker (UX audit A2, D1): **Set required checks** opens Project settings
+ * The way past a start blocker: **Set required checks** opens Project settings
  * while the project has none, **Set a repair limit** while it has checks but no repair limit; the
  * transient blocker links the run it waits on. Null when the blockers offer nothing to click (a
  * missing folder or branch is fixed outside ZeNorm).
@@ -308,7 +306,7 @@ function RestingCard({
 }
 
 /**
- * Why Start delivery is unavailable, as one card wherever it is said (UX audit A2, D1, P2-5): the
+ * Why Start delivery is unavailable, as one card wherever it is said: the
  * alert mark, the headline, every blocker's sentence, and the way past them. A map's quiet
  * Delivery action renders it through `NextActionCard`; the project page renders it directly with
  * the blockers it lists (never `delivery_in_progress` alone, which ends on its own).
@@ -450,7 +448,7 @@ function QuietCard({
 /**
  * One thing the map is waiting for. A stage page passes its own action as `children` to carry it
  * out in place; without one the card offers the standard actions its tone calls for (see the
- * module's comment). A card about one of several specs names it and opens that spec (D11).
+ * module's comment). A card about one of several specs names it and opens that spec.
  */
 export function NextActionCard({
   mapId,
@@ -477,13 +475,13 @@ export function NextActionCard({
     );
   }
   const you = next.who === "you";
-  // The button is the action's own, as core labels it (S7b-16); only the person's actions have one.
+  // The button is the action's own, as core labels it; only the person's actions have one.
   const label = next.label;
   if (you !== (label !== null)) {
     throw new Error(`A ${next.who} action of map ${mapId} has the button label ${String(label)}`);
   }
   const specs = detail.specs;
-  // A wait's spec (one the map has not written) is resolved against its waits (tickets review B6).
+  // A wait's spec (one the map has not written) is resolved against its waits.
   const about = actionSpec(next, specs, detail.waits);
   const elsewhere = next.who === "another-map";
   const named = about !== undefined && (about.kind === "wait" || specs.length > 1);

@@ -35,12 +35,12 @@ import {
 import { expect, test } from "./worker-server.ts";
 
 /**
- * Slice 8b's revision flows (ticket 10; spec Testing Decisions). Each flow adds its own project,
- * whose first map's spec r1 (`[fake:three-criteria]`: 1.1, 1.2, 2.1) is delivered through a real
- * `git merge` and Mark merged; later maps carry `[fake:revise:1]` (ledger L207), so their chart
- * touches spec 1 and To Spec writes its next revision: 1.1 kept, 1.2 changed, 2.1 removed, 2.2
- * added. States, tones and codes are read from the page's roles, labels and data attributes, and
- * from `map.overview` and `project.get`, the reads every page shares.
+ * The revision flows. Each flow adds its own project, whose first map's spec r1
+ * (`[fake:three-criteria]`: 1.1, 1.2, 2.1) is delivered through a real `git merge` and Mark merged;
+ * later maps carry `[fake:revise:1]`, so their chart touches spec 1 and To Spec writes its next
+ * revision: 1.1 kept, 1.2 changed, 2.1 removed, 2.2 added. States, tones and codes are read from
+ * the page's roles, labels and data attributes, and from `map.overview` and `project.get`, the
+ * reads every page shares.
  */
 const PASSING_CHECK = "git status --short";
 const FIRST_IDEA = "Export records [fake:three-criteria]";
@@ -208,7 +208,7 @@ test.describe("revise", () => {
     );
     revise.laterMapId = laterId;
 
-    // Wayfinding: waypoint 1 touches the delivered spec 1 on its changed criterion (S8b-2).
+    // Wayfinding: waypoint 1 touches the delivered spec 1 on its changed criterion.
     await openWaypoint(page, laterId, 1);
     const touch = page.getByRole("region", { name: "Changes a delivered spec" });
     await expect(touch).toHaveAttribute("data-spec", "1");
@@ -223,7 +223,7 @@ test.describe("revise", () => {
       [1, 1],
     ]);
 
-    // Spec: r2 of the same spec (S8b-3), its text delta, and r1 delivered from the first map.
+    // Spec: r2 of the same spec, its text delta, and r1 delivered from the first map.
     async function expectRevisionTwo(): Promise<void> {
       await expect(nextCard(page).getByRole("button", { name: APPROVE_SPEC })).toBeVisible();
       await expect(revisionLink(page, 2)).toBeVisible();
@@ -244,7 +244,7 @@ test.describe("revise", () => {
       removedCriteria: [{ criterion: expect.objectContaining({ id: "2.1" }) }],
     });
 
-    // The first map's Spec page: a later map revises this spec (the demo's RevisedLater).
+    // The first map's Spec page: a later map revises this spec.
     async function expectRevisedLater(): Promise<void> {
       const revisedLater = page.getByRole("region", { name: "A later map revises this spec" });
       await expect(revisedLater.getByRole("link", { name: "Open r2" })).toHaveAttribute(
@@ -328,7 +328,7 @@ test.describe("revise", () => {
     await expect(runTicketRow(page, "T1")).toHaveAttribute("data-state", "merged");
     await expect(runTicketRow(page, "T3")).toHaveCount(0);
 
-    // The project page: r1 from the first map and r2 from the later one, delivered by run 2 (S8b-18).
+    // The project page: r1 from the first map and r2 from the later one, delivered by run 2.
     async function expectChain(): Promise<void> {
       const row = page.getByRole("region", { name: "Specs" }).locator('[data-spec="1"]');
       await expect(badge(row, "delivered · run 2")).toHaveAttribute("data-variant", "ok");
@@ -354,7 +354,7 @@ test.describe("revise", () => {
   test("[fake:nothing-new]: a third revision changing only Out of scope is confirmed and reads Nothing to deliver", async ({
     page,
   }) => {
-    // The "revise" project's spec 1 is at r2, which took 2.1 out and was delivered (ledger L214).
+    // The "revise" project's spec 1 is at r2, which took 2.1 out and was delivered.
     const mapId = await laterMapRevision(
       page,
       "revise",
@@ -391,7 +391,7 @@ test.describe("revise", () => {
     expect(delivery.tone).toBe("done");
   });
 
-  test("[fake:hatch-revise]: a note on a delivered spec writes its next revision (S8b-7)", async ({
+  test("[fake:hatch-revise]: a note on a delivered spec writes its next revision", async ({
     page,
   }) => {
     // The "revise" project's first map: spec 1 is at r3 (approved), r2 delivered.
@@ -460,8 +460,8 @@ test.describe("departure-no-reason", () => {
     );
     await approveAndOpenTickets(page, mapId);
 
-    // Version 1 gave the departure no reason: its review failed with one finding, coded (S8b-13),
-    // shown on the Tickets review panel while the stand-in holds the repair (CR-4).
+    // Version 1 gave the departure no reason: its review failed with one finding, coded,
+    // shown on the Tickets review panel while the stand-in holds the repair.
     const findings = page.getByLabel("Tickets review", { exact: true }).locator("[data-kind]");
     await expect(findings).toHaveCount(1);
     await expect(findings).toHaveAttribute("data-kind", "disposition_without_reason");
@@ -492,7 +492,7 @@ test.describe("wait", () => {
     wait.laterMapId = mapA;
     await expect(revisionLink(page, 2)).toBeVisible();
 
-    // Map B records a wait (S8b-5) on A's hold.
+    // Map B records a wait on A's hold.
     const mapB = await answerMap(
       page,
       revisionRepo("wait"),
@@ -504,7 +504,7 @@ test.describe("wait", () => {
     async function expectWaiting(): Promise<void> {
       await expect(card).toHaveAttribute("data-wait", "revision");
       await expect(card.locator(`a[href="/maps/${mapA}/spec/1"]`)).toBeVisible();
-      // B's waypoint 1 touches the latest approved r1 (L213 D-5), so the wait names it.
+      // B's waypoint 1 touches the latest approved r1, so the wait names it.
       await expect(card.locator(`a[href="/maps/${mapB}/wayfinding/1"]`)).toBeVisible();
       await expect(nextCard(page)).toHaveAttribute("data-who", "another-map");
     }
@@ -515,7 +515,7 @@ test.describe("wait", () => {
     expect(waitView?.hold).toMatchObject({ kind: "revision", mapId: mapA, revision: 2 });
 
     // The wait line's "See what waits" opens B's page of spec 1, which B only waits on: the wait
-    // card over the waited spec's latest revision, A's r2, read only (E-1).
+    // card over the waited spec's latest revision, A's r2, read only.
     await page.getByRole("link", { name: "See what waits" }).click();
     await expect(page).toHaveURL(`/maps/${mapB}/spec/1`);
     async function expectWaitedSpec(): Promise<void> {
@@ -532,8 +532,8 @@ test.describe("wait", () => {
     await expectWaitedSpec();
 
     // Typed Tickets and Delivery routes of the waited spec render the stage B has not
-    // reached, with its wait's Next card, not a route error (S8b-16, N-4). With no spec of its own
-    // there, the head names the map (UX review P2-4).
+    // reached, with its wait's Next card, not a route error. With no spec of its own
+    // there, the head names the map.
     const mapBTitle = (await mapOverview(page, mapB)).map.title;
     if (mapBTitle === null) throw new Error("Map B has no title");
     await page.goto(`/maps/${mapB}/tickets/1`);
@@ -547,7 +547,7 @@ test.describe("wait", () => {
     ).toBeVisible();
     await expect(nextCard(page)).toHaveAttribute("data-who", "another-map");
 
-    // The Inbox: B is quiet; its row's action opens the holder's revision, on map A (D9).
+    // The Inbox: B is quiet; its row's action opens the holder's revision, on map A.
     const { status } = await mapOverview(page, mapB);
     expect(status.next.map((action) => [action.who, action.onMap])).toEqual([
       ["another-map", mapA],
@@ -578,9 +578,9 @@ test.describe("wait", () => {
     await page.goto(`/maps/${mapA}/tickets`);
     await expect(nextCard(page).getByRole("button", { name: "Approve the tickets" })).toBeVisible();
     await expect(waitCard(pageB)).toHaveAttribute("data-wait", "released");
-    // The release run gives B's Spec page a Next card: the agent's, naming the spec (D9).
+    // The release run gives B's Spec page a Next card: the agent's, naming the spec.
     await expect(nextCard(pageB)).toHaveAttribute("data-who", "agent");
-    // While the release run writes, B's Spec stage is the agent's, in the working tone (D9).
+    // While the release run writes, B's Spec stage is the agent's, in the working tone.
     const { status } = await mapOverview(page, mapB);
     expect(status.stages[2].tone).toBe("working");
     expect(status.next.map((action) => action.who)).toEqual(["agent"]);
@@ -593,7 +593,7 @@ test.describe("wait", () => {
       mapId: mapB,
     });
 
-    // A's set for r2 is replaced by B's r3 (S8b-9), with no action on it.
+    // A's set for r2 is replaced by B's r3, with no action on it.
     async function expectReplaced(): Promise<void> {
       await expect(page.getByText("Replaced by revision 3.", { exact: true })).toBeVisible();
       await expect(nextCard(page).getByRole("button", { name: "Approve the tickets" })).toHaveCount(
@@ -605,7 +605,7 @@ test.describe("wait", () => {
     expect((await latestSet(page, mapA, 2)).replaced).toBe(true);
   });
 
-  test("B's r3 tickets take out 2.1, which A's replaced r2 dropped and r3's delta does not name, and load on Tickets (CR-3)", async ({
+  test("B's r3 tickets take out 2.1, which A's replaced r2 dropped and r3's delta does not name, and load on Tickets", async ({
     page,
   }) => {
     const mapB = mapOf(madeFor("wait").waitingMapId, "the wait flow's map B");
@@ -660,7 +660,7 @@ test.describe("release-stopped", () => {
     await expect(waitCard(page).locator(`a[href="/maps/${mapA}/spec/1"]`)).toBeVisible();
   });
 
-  test("[fake:fail-twice:release]: a released wait whose run fails twice stops; Try again writes the revision (S9-8, L222)", async ({
+  test("[fake:fail-twice:release]: a released wait whose run fails twice stops; Try again writes the revision", async ({
     page,
     browser,
   }) => {
@@ -687,7 +687,7 @@ test.describe("release-stopped", () => {
     await expectStopped();
     const [waitView] = (await mapOverview(page, mapB)).waits;
     expect(waitView?.released).toBe(true);
-    // The stand-in's failed run is an `error_max_turns` result on exit 1 (CR-12).
+    // The stand-in's failed run is an `error_max_turns` result on exit 1.
     expect(waitView?.run).toMatchObject({ stopped: { code: "agent_run_failed" } });
 
     // Try again starts the release run afresh; it writes B's r3 and the wait is gone.

@@ -12,7 +12,7 @@ import {
 import type { ZeNormDatabase } from "@zenorm/db";
 import { eq } from "drizzle-orm";
 
-/** What a procedure's input names, from which its project is resolved (S9-17). */
+/** What a procedure's input names, from which its project is resolved. */
 export type ProjectRef =
   | { readonly projectId: string }
   | { readonly mapId: string }
@@ -38,10 +38,9 @@ function specRevisionMap(db: ZeNormDatabase, specRevisionId: string): string | n
 }
 
 /**
- * The one server-side resolver (S9-17): the project a procedure's input names, through its map,
- * round, map proposal, planning run, spec revision, ticket set or delivery run. `null` when the
- * named record does not exist: the procedure then answers its own not-found code, as before the
- * check.
+ * The one server-side resolver: the project a procedure's input names, through its map, round, map
+ * proposal, planning run, spec revision, ticket set or delivery run. `null` when the named record
+ * does not exist: the procedure then answers its own not-found code, as before the check.
  */
 export function projectOf(db: ZeNormDatabase, ref: ProjectRef): string | null {
   if ("projectId" in ref) {
@@ -99,9 +98,9 @@ export function projectOf(db: ZeNormDatabase, ref: ProjectRef): string | null {
 }
 
 /**
- * The access check at the RPC boundary (S9-17): resolves `ref` to its project and asks
- * `checkAccess`. Returns the refusal, or null when allowed (an unknown record is left to the
- * procedure's own not-found).
+ * The access check at the RPC boundary: resolves `ref` to its project and asks `checkAccess`.
+ * Returns the refusal, or null when allowed (an unknown record is left to the procedure's own
+ * not-found).
  */
 export function accessRefusal(
   db: ZeNormDatabase,

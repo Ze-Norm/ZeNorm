@@ -5,9 +5,9 @@ import type { AccessAction, CreateProjectError, StartDeliveryError } from "./cod
 import type { Result } from "./result.ts";
 
 /**
- * The seams (CONTEXT Seam; slice 9 spec S9-17, D15): the five named functions core calls and a
- * plugin may wrap. Core's implementations live in `packages/core/src/seams.ts`; the server composes
- * them with the plugins' wrappers (core innermost, then each plugin in order).
+ * The seams (CONTEXT Seam): the five named functions core calls and a plugin may wrap. Core's
+ * implementations live in `packages/core/src/seams.ts`; the server composes them with the plugins'
+ * wrappers (core innermost, then each plugin in order).
  */
 
 /** What identity reads of an incoming request; a fetch `Request` is one. */
@@ -34,7 +34,7 @@ export type CheckoutError = Extract<CreateProjectError, { code: "project_folder_
 
 /**
  * Project checkout: the folder to work in, present on disk. Core: the stored folder, or
- * `project_folder_missing` (detected, never repaired). Called where a run starts (D15).
+ * `project_folder_missing` (detected, never repaired). Called where a run starts.
  */
 export type Checkout = (project: CheckoutProject) => Promise<Result<string, CheckoutError>>;
 
@@ -45,12 +45,12 @@ export interface ExecutorEnvRun {
 }
 
 /**
- * Executor credentials: the environment a delivery run's executor starts with. Core: this
- * process's environment, as today. Its result reaches no port in this slice (D18).
+ * Executor credentials: the environment a delivery run's executor starts with. Core: this process's
+ * environment, as today. Its result reaches no port in this slice.
  */
 export type ExecutorEnv = (run: ExecutorEnvRun) => Readonly<Record<string, string | undefined>>;
 
-/** A run start asked of admission: only delivery starts are admitted through the seam (D15). */
+/** A run start asked of admission: only delivery starts are admitted through the seam. */
 export interface RunAdmissionRequest {
   readonly kind: "delivery";
   readonly projectId: string;
@@ -74,14 +74,14 @@ export interface Seams {
 }
 
 /**
- * A plugin's wrappers: each receives the seam before it as `next` (core's, or the previous
- * plugin's wrapper) and returns the seam to call instead (S9-18, D16; SDK §3.8).
+ * A plugin's wrappers: each receives the seam before it as `next` (core's, or the previous plugin's
+ * wrapper) and returns the seam to call instead.
  */
 export type SeamWrappers = {
   readonly [K in keyof Seams]?: (next: Seams[K]) => Seams[K];
 };
 
-/** One plugin as `GET /plugins` lists it, and as the web compares its own set (S9-18). */
+/** One plugin as `GET /plugins` lists it, and as the web compares its own set. */
 export const PluginSummary = z.strictObject({
   id: z.string().min(1),
   version: z.string().min(1),

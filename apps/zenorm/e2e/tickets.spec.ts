@@ -16,12 +16,12 @@ import {
 import { expect, test } from "./worker-server.ts";
 
 /**
- * Slice 7c's tickets review flows on the stand-in (spec Testing Decisions): a review that passes,
- * one that fails once and is repaired, three failing versions held and fixed through the hatch, a
- * decision finding held at once, a stopped review and Try again, and a set with a criterion
- * already done. Each scenario starts a new map in its own project (`ticketsRepo()`), clears it and
- * approves its spec; the stand-in's tickets markers ride in the idea. Tests assert status, tone and
- * presence (L100), with the demo's fixed labels and the stand-in's fixed titles.
+ * The tickets review flows on the stand-in: a review that passes, one that fails once and is
+ * repaired, three failing versions held and fixed through the hatch, a decision finding held at
+ * once, a stopped review and Try again, and a set with a criterion already done. Each scenario
+ * starts a new map in its own project (`ticketsRepo()`), clears it and approves its spec; the
+ * stand-in's tickets markers ride in the idea. Tests assert status, tone and presence, with fixed
+ * labels and the stand-in's fixed titles.
  */
 
 const FIRST_TICKET = "Write the CSV exporter";
@@ -52,7 +52,7 @@ function messages(page: Page): Locator {
   return activity(page).getByRole("listitem", { name: "Your message" });
 }
 
-/** The stream's "Open the tickets" links: one per recorded tickets review (slice 7c D10). */
+/** The stream's "Open the tickets" links: one per recorded tickets review. */
 function ticketsLinks(page: Page): Locator {
   return activity(page).getByRole("link", { name: OPEN_TICKETS, exact: true });
 }
@@ -61,7 +61,7 @@ function ticketsStageLink(page: Page, mapId: string): Locator {
   return rail(page).locator(`a[href="/maps/${mapId}/tickets"]`);
 }
 
-/** The Tickets review panel right of the page head (D7). */
+/** The Tickets review panel right of the page head. */
 function panel(page: Page): Locator {
   return page.getByLabel("Tickets review", { exact: true });
 }
@@ -140,7 +140,7 @@ test("a passing review: the panel, the card and Coverage; Open the tickets; appr
   await expect(ticketHeading(page, `T2 ${SECOND_TICKET}`)).toBeVisible();
   await expect(ticketsStageLink(page, mapId)).toContainText("2 tickets · awaiting approval");
 
-  // The review's activity line links the spec's tickets (D10).
+  // The review's activity line links the spec's tickets.
   await expect(ticketsLinks(page)).toHaveCount(1);
   await openTickets(page);
   await expectBadge(page, "review passed", "ok");
@@ -196,7 +196,7 @@ test("[fake:tickets-held]: three failing versions hold the set; the card opens t
   await expectBadge(page, "1 finding", "bad");
 
   // The card shows each escalated finding's title and question once (the detail line is
-  // omitted, L177 (a)), one hatch button, and no Approve or Reject (S7c-6).
+  // omitted), one hatch button, and no Approve or Reject.
   const findings = nextCard(page).getByRole("list", { name: "Escalated findings" });
   await expect(findings.getByRole("listitem")).toHaveCount(1);
   // Each finding shows its title and its question.
@@ -210,8 +210,8 @@ test("[fake:tickets-held]: three failing versions hold the set; the card opens t
   await page.reload();
   await expect(findings.getByRole("listitem")).toHaveCount(1);
 
-  // The button opens and focuses the composer and sends nothing (L159): no message, and no
-  // approve or reject request (D-2, N-Spec-3).
+  // The button opens and focuses the composer and sends nothing: no message, and no
+  // approve or reject request.
   const sent = await messages(page).count();
   const decisions: string[] = [];
   const recordDecision = (request: { url: () => string }) => {
@@ -230,7 +230,7 @@ test("[fake:tickets-held]: three failing versions hold the set; the card opens t
   page.off("request", recordDecision);
   expect(decisions).toEqual([]);
 
-  // The note is stored with the held spec's number (S7c-15) and rewrites the set as v4.
+  // The note is stored with the held spec's number and rewrites the set as v4.
   const note = "Split the exporter from the button. [fake:hatch-tickets]";
   await composerField(page).fill(note);
   const response = page.waitForResponse((r) => r.url().includes("/rpc/hatch/send"));
@@ -294,7 +294,7 @@ test("[fake:tickets-already-done]: Coverage shows the criterion already done wit
   );
 
   await expect(cardHeading(page, "Approve the tickets.")).toBeVisible();
-  // L180 (4), E-3: a real reviewer's long summary shows clamped, with Show more to expand it.
+  // A real reviewer's long summary shows clamped, with Show more to expand it.
   const summary = panel(page).getByTestId("tickets-review-summary");
   await expect(summary).toHaveCSS("-webkit-line-clamp", "4");
   await panel(page).getByRole("button", { name: "Show more" }).click();

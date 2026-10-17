@@ -1,11 +1,11 @@
--- Delivery ends by opening a GitHub pull request (C1, C5). Rebuilds `delivery_runs` so its phase
--- check admits `publishing`, the step a passing run on a GitHub project ends in, and adds the
--- nullable `pr_number`, `pr_url` and `pr_state` of the pull request a passed run opened: all set or
--- all null, the state one of `open`, `closed` and `merged`, and only on a run with a verdict. Every
--- run before this migration opened no pull request, so all three are null on it (1.3). `start_commit`,
--- `user_id` and `executor` stay nullable in SQL as their added columns were (spec D9). The rebuild
--- copies every other column unchanged and refuses to finish unless the new table has as many rows as
--- the old one. It runs with foreign keys off (`migrateDatabase`) and ends by refusing any foreign key
+-- Delivery ends by opening a GitHub pull request. Rebuilds `delivery_runs` so its phase check
+-- admits `publishing`, the step a passing run on a GitHub project ends in, and adds the nullable
+-- `pr_number`, `pr_url` and `pr_state` of the pull request a passed run opened: all set or all
+-- null, the state one of `open`, `closed` and `merged`, and only on a run with a verdict. Every run
+-- before this migration opened no pull request, so all three are null on it. `start_commit`,
+-- `user_id` and `executor` stay nullable in SQL as their added columns were. The rebuild copies
+-- every other column unchanged and refuses to finish unless the new table has as many rows as the
+-- old one. It runs with foreign keys off (`migrateDatabase`) and ends by refusing any foreign key
 -- violation.
 CREATE TABLE `__new_delivery_runs` (
 	`id` text PRIMARY KEY NOT NULL,

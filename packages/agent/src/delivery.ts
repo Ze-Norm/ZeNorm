@@ -55,8 +55,8 @@ const ORCHESTRATOR_TOOLS = ["Read", "Edit", "Write", "Glob", "Grep", "Bash", SUB
 );
 
 /**
- * The orchestrator's allowed tools before the checks and fix commands (spec D5): file tools and
- * git subcommands.
+ * The orchestrator's allowed tools before the checks and fix commands: file tools and git
+ * subcommands.
  */
 const ORCHESTRATOR_ALLOWED_TOOLS = [
   "Read",
@@ -131,8 +131,8 @@ function pullRequestSettings(fastMode: boolean | undefined): string {
 }
 
 /**
- * The pull request writer's structured output (C3): the body, whole. Its root key
- * `pullRequestBody` is how the e2e stand-in tells the writer from the other calls.
+ * The pull request writer's structured output: the body, whole. Its root key `pullRequestBody` is
+ * how the e2e stand-in tells the writer from the other calls.
  */
 const PULL_REQUEST_OUTPUT = structuredOutput(
   z.strictObject({ pullRequestBody: z.string().min(1).max(PULL_REQUEST_WRITTEN_BODY_MAX_LENGTH) }),
@@ -148,19 +148,19 @@ export const PULL_REQUEST_JSON_SCHEMA = PULL_REQUEST_OUTPUT.jsonSchema;
  */
 const NO_BACKGROUND_WAIT_CEILING = { CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS: "0" };
 
-/** The git config the orchestrator's git runs with: no automatic gc, which repacks refs (L42). */
+/** The git config the orchestrator's git runs with: no automatic gc, which repacks refs. */
 const NO_AUTO_GC = "'gc.auto=0'";
 
 /**
- * `GIT_CONFIG_PARAMETERS` with `gc.auto=0` added to the value this process has, if any (L42). Git
- * reads it as space-separated quoted `key=value` entries; a later entry wins.
+ * `GIT_CONFIG_PARAMETERS` with `gc.auto=0` added to the value this process has, if any. Git reads
+ * it as space-separated quoted `key=value` entries; a later entry wins.
  */
 export function gitConfigParameters(existing: string | undefined): string {
   if (existing === undefined || existing === "") return NO_AUTO_GC;
   return `${existing} ${NO_AUTO_GC}`;
 }
 
-/** The run folder's file names the sessions write (spec D3). */
+/** The run folder's file names the sessions write. */
 const ORCHESTRATOR_PROMPT_FILE = "orchestrator-prompt.md";
 const ORCHESTRATOR_STREAM_FILE = "orchestrator.jsonl";
 const REVIEWER_PROMPT_FILE = "reviewer-prompt.md";
@@ -171,17 +171,17 @@ const PULL_REQUEST_OUTPUT_FILE = "pr-writer.json";
 /**
  * One `--allowedTools` flag per command, built from the pinned text exactly: the command alone or
  * with extra arguments. A separate flag per command (repeats accumulate) keeps a comma in one
- * command from splitting the base list. The run's checks and its fix commands (C4) both go
- * through it, so the orchestrator may run exactly those beyond its fixed tools.
+ * command from splitting the base list. The run's checks and its fix commands both go through it,
+ * so the orchestrator may run exactly those beyond its fixed tools.
  */
 function commandAllowedTools(commands: readonly string[]): string[] {
   return commands.flatMap((command) => ["--allowedTools", `Bash(${command}),Bash(${command}:*)`]);
 }
 
 /**
- * The orchestrator's argv (spec D5). The prompt comes straight after `-p`: the tool flags are
- * variadic. Exported for the opt-in live test, which checks what a subagent of a session with
- * these permissions may run (C4).
+ * The orchestrator's argv. The prompt comes straight after `-p`: the tool flags are variadic.
+ * Exported for the opt-in live test, which checks what a subagent of a session with these
+ * permissions may run.
  */
 export function orchestratorArgs(
   config: DeliveryAgentConfig,
@@ -221,7 +221,7 @@ export function orchestratorArgs(
   ];
 }
 
-/** The reviewer's argv (spec D5). */
+/** The reviewer's argv. */
 function reviewerArgs(
   config: DeliveryAgentConfig,
   request: ReviewRequest,
@@ -260,8 +260,8 @@ function reviewerArgs(
 }
 
 /**
- * The pull request writer's argv (C3): the reviewer's model, effort and turns, read-only tools,
- * and the body's `--json-schema`.
+ * The pull request writer's argv: the reviewer's model, effort and turns, read-only tools, and the
+ * body's `--json-schema`.
  */
 function pullRequestArgs(
   config: DeliveryAgentConfig,
@@ -318,9 +318,9 @@ export function claudeCodeReviewDelivery(config: DeliverySessionConfig): ReviewD
 }
 
 /**
- * The pull request writer session through the Claude Code CLI at `config.claudePath` (C3), under
- * the reviewer's model, effort, turn and timeout settings: no config key of its own. It follows the
- * PR skill in `config.skillsDir`.
+ * The pull request writer session through the Claude Code CLI at `config.claudePath`, under the
+ * reviewer's model, effort, turn and timeout settings: no config key of its own. It follows the PR
+ * skill in `config.skillsDir`.
  */
 export function claudeCodeWritePullRequest(config: DeliverySessionConfig): WritePullRequest {
   return writePullRequestWith(config, deliverySkills(config.skillsDir));
@@ -328,7 +328,7 @@ export function claudeCodeWritePullRequest(config: DeliverySessionConfig): Write
 
 /**
  * `claudeCodeWritePullRequest` with the skill files named; tests point it at a temp folder. Refuses
- * with `agent_skill_missing`, spawning nothing, when the PR skill is absent (3.1).
+ * with `agent_skill_missing`, spawning nothing, when the PR skill is absent.
  */
 export function writePullRequestWith(
   config: DeliveryAgentConfig,
@@ -472,10 +472,9 @@ function lastResultLine(stdout: string): StreamResult | null {
 }
 
 /**
- * The orchestrator's outcome (spec D5): exit 0 and a last `result` line with subtype `success` and
- * `is_error` false, with no subagent the CLI itself killed (an implementer stopped mid-ticket at a
- * wait ceiling or for memory). Success only means the session ended normally; ZeNorm verifies from
- * git.
+ * The orchestrator's outcome: exit 0 and a last `result` line with subtype `success` and `is_error`
+ * false, with no subagent the CLI itself killed (an implementer stopped mid-ticket at a wait
+ * ceiling or for memory). Success only means the session ended normally; ZeNorm verifies from git.
  */
 function interpretStream(run: ExitedRun): Result<null, DeliveryAgentError> {
   const result = lastResultLine(run.stdout);

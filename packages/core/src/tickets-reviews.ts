@@ -21,9 +21,9 @@ function reviewEnd(db: Reader, runId: string): string {
 
 /**
  * Whether the spec's latest run is a rejection or note rewrite of the set's current version that
- * works or stopped (L180 (3)): the version it replaces keeps its review record, but the review it
- * reads is of the version to come, so it reads `pending` ("review running", L167 B2) instead of
- * the replaced version's verdict. A review repair is no such rewrite: its findings stay shown (D6).
+ * works or stopped: the version it replaces keeps its review record, but the review it
+ * reads is of the version to come, so it reads `pending` ("review running") instead of
+ * the replaced version's verdict. A review repair is no such rewrite: its findings stay shown.
  */
 function isRewriting(db: Reader, scope: readonly PlanningRun[], set: StoredTicketSet): boolean {
   const latest = scope.at(-1);
@@ -37,14 +37,14 @@ function isRewriting(db: Reader, scope: readonly PlanningRun[], set: StoredTicke
 }
 
 /**
- * The one read of a ticket set's review state (slice 7c D11, D8, L103): the tickets review of the
- * set's current version. A recorded review gives `passed`, or `findings` with the stored findings,
- * `held` exactly when one escalated (S7c-5: derived, no column). Without one, an approved set
- * reads null (slice 7's plain approval, Existing Records). An unapproved set being rewritten from a
- * rejection or a note reads `pending` (`isRewriting`); otherwise one reads `running` while
- * the spec's latest run is a `tickets_review` running or awaiting its retry, `stopped` when it
- * stopped after a failed retry, else `pending`. `scope` is the spec's runs (`specRuns`); `current`
- * is whether the set is the spec's latest approved revision's, the one its spec runs act on.
+ * The one read of a ticket set's review state: the tickets review of the set's current version. A
+ * recorded review gives `passed`, or `findings` with the stored findings, `held` exactly when one
+ * escalated (derived, no column). Without one, an approved set reads null (a record from before
+ * tickets reviews). An unapproved set being rewritten from a rejection or a note reads `pending`
+ * (`isRewriting`); otherwise one reads `running` while the spec's latest run is a `tickets_review`
+ * running or awaiting its retry, `stopped` when it stopped after a failed retry, else `pending`.
+ * `scope` is the spec's runs (`specRuns`); `current` is whether the set is the spec's latest
+ * approved revision's, the one its spec runs act on.
  */
 export function ticketSetReview(
   db: Reader,
@@ -88,7 +88,7 @@ export function ticketSetReview(
   return { state: "pending" };
 }
 
-/** The review state the hatch request carries (slice 7c D8), from `ticketSetReview`. */
+/** The review state the hatch request carries, from `ticketSetReview`. */
 export function hatchTicketsReview(review: TicketSetReview | null): {
   review: HatchTicketsReview;
   heldFindings: { title: string; question: string }[] | null;

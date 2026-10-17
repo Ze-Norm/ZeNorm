@@ -24,7 +24,7 @@ const stageRouteApi = getRouteApi("/maps/$mapId/$stage");
 const specStageRouteApi = getRouteApi("/maps/$mapId/$stage/$specNumber");
 
 /**
- * The workspace's shape while the overview loads (UX review P2-20): the rail's five cells, then a
+ * The workspace's shape while the overview loads: the rail's five cells, then a
  * head and a card where the stage page's will be, in the page's own `WorkspacePage` so the loaded
  * page lands in the same container; the column's frame from the columns breakpoint. One status line
  * for assistive technology; the shapes are decoration.
@@ -84,9 +84,9 @@ function MapShellSkeleton() {
 }
 
 /**
- * The map workspace layout route (spec D1, D5): the stage rail renders once, above whichever
+ * The map workspace layout route: the stage rail renders once, above whichever
  * stage page is open. The top bar above it is the breadcrumb (project, then the map's name). The
- * escape hatch's composer state spans the map's pages (slice 7b D7), keyed by the map.
+ * escape hatch's composer state spans the map's pages, keyed by the map.
  */
 export function MapLayout() {
   const { mapId } = mapRouteApi.useParams();
@@ -96,13 +96,13 @@ export function MapLayout() {
     from: "/maps/$mapId/$stage/$specNumber",
     shouldThrow: false,
   });
-  // The destination round and a waypoint are Wayfinding's own pages (L112).
+  // The destination round and a waypoint are Wayfinding's own pages.
   const destinationMatch = useMatch({
     from: "/maps/$mapId/wayfinding/destination",
     shouldThrow: false,
   });
   const waypointMatch = useMatch({ from: "/maps/$mapId/wayfinding/$number", shouldThrow: false });
-  // A ticket's execution page is Delivery's own page (slice 8 D10).
+  // A ticket's execution page is Delivery's own page.
   const ticketMatch = useMatch({
     from: "/maps/$mapId/delivery/$specNumber/$ticketId",
     shouldThrow: false,
@@ -120,8 +120,8 @@ export function MapLayout() {
 
   const overviewError = shownQueryError(overview.error);
   if (overviewError !== null) {
-    // A refusal (`map_not_found`, `access_denied`) is the error page, as the route errors are
-    // (review P2-19); any other failure shows as it is.
+    // A refusal (`map_not_found`, `access_denied`) is the error page, as the route errors are;
+    // any other failure shows as it is.
     if (isDefinedError(overviewError)) {
       return (
         <RouteError
@@ -152,14 +152,14 @@ export function MapLayout() {
   );
 }
 
-/** A stage of the map; a spec stage opens D11's default spec. */
+/** A stage of the map; a spec stage opens the default spec `map.overview` decides. */
 export function MapStageView() {
   const { mapId, stage } = stageRouteApi.useParams();
   const search = stageRouteApi.useSearch();
   return <StageView mapId={mapId} stage={stage} specNumber={undefined} search={search} />;
 }
 
-/** Spec, Tickets or Delivery of the spec the route numbers (slice 7 D11). */
+/** Spec, Tickets or Delivery of the spec the route numbers. */
 export function MapSpecStageView() {
   const { mapId, stage, specNumber } = specStageRouteApi.useParams();
   const search = specStageRouteApi.useSearch();
@@ -167,10 +167,10 @@ export function MapSpecStageView() {
 }
 
 /**
- * One stage of the map (spec D8): Idea, Wayfinding, Spec and Tickets sit in the workspace
- * shell (`WorkspaceColumns`), the page then the 22rem Activity column with the escape hatch, a sheet
+ * One stage of the map: Idea, Wayfinding, Spec and Tickets sit in the workspace shell
+ * (`WorkspaceColumns`), the page then the 22rem Activity column with the escape hatch, a sheet
  * below the columns breakpoint that a page's Ask opens too; Delivery lays out its own page, with
- * Run activity in the column's place and no hatch (slice 7b S7b-17, slice 8 D11).
+ * Run activity in the column's place and no hatch.
  */
 function StageView({
   mapId,

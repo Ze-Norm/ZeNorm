@@ -26,10 +26,10 @@ const CLAUDE_COMMAND = "claude";
 /** How long one `claude auth status` read may take. */
 const AUTH_STATUS_TIMEOUT_MS = 30_000;
 
-/** `dataDir` is this folder beside the config file (3.6). */
+/** `dataDir` is this folder beside the config file. */
 export const DATA_DIR_NAME = "data";
 
-/** A replaced config file is kept as `<config>.backup-<timestamp>` beside it (3.5). */
+/** A replaced config file is kept as `<config>.backup-<timestamp>` beside it. */
 export const BACKUP_INFIX = ".backup-";
 
 /** One entry of a menu question: the value it answers and the label the person sees. */
@@ -191,7 +191,7 @@ const LOGIN_CHOICES: readonly Choice<LoginMethod>[] = [
 ];
 
 /**
- * C4: asks Claude Code whether the person is signed in. Signed in by any method, it shows the
+ * Asks Claude Code whether the person is signed in. Signed in by any method, it shows the
  * method; otherwise it asks subscription or Console, runs Claude Code's own login on the person's
  * terminal and asks again, refusing `agent_not_logged_in` if still signed out.
  */
@@ -230,7 +230,7 @@ async function signIn(
   return ok(null);
 }
 
-/** Whether to replace the config file already at `configFile` (3.5). */
+/** Whether to replace the config file already at `configFile`. */
 function replaceQuestion(configFile: string): string {
   return `${configFile} already exists. Replace it (the old file is kept as a backup)?`;
 }
@@ -254,7 +254,7 @@ type ModelMenuEntry = Choice<string> & ModelChoice;
 export const OPUS_FAST = "claude-opus-5-5 fast";
 
 /**
- * The model menu (3.1): the current Claude models, Sonnet first (the suggested answer), then by
+ * The model menu: the current Claude models, Sonnet first (the suggested answer), then by
  * size, with Opus also in fast mode. Each value is its model id but
  * Opus fast's, which like `OTHER_MODEL` holds a space, so no typed id is ever it.
  */
@@ -284,7 +284,7 @@ export function testedLimits(model: string): ModelLimits | null {
   return entry === undefined ? null : entry[1];
 }
 
-/** Asks for the one model (3.1): the menu's, or any other id, which never runs in fast mode. */
+/** Asks for the one model: the menu's, or any other id, which never runs in fast mode. */
 async function askModel(
   terminal: InitTerminal,
   configFile: string,
@@ -305,7 +305,7 @@ async function askModel(
 }
 
 /**
- * The config init writes (3.4): the one model in all three model keys with one `agent.models`
+ * The config init writes: the one model in all three model keys with one `agent.models`
  * entry, fast mode on or off for planning and delivery alike, the claude on `PATH`, `dataDir`
  * beside the config file, and every other key as `config.example.json` has it.
  */
@@ -364,7 +364,7 @@ async function backUp(path: string): Promise<string> {
 }
 
 /**
- * Writes the config for `choice` at `configFile` (3.4 to 3.6): validated first, then the data folder
+ * Writes the config for `choice` at `configFile`: validated first, then the data folder
  * (created, or an existing one used as it is), the old file moved to its backup when `replacing`,
  * and the new file.
  */
@@ -405,7 +405,7 @@ async function writeConfig(
 }
 
 /**
- * `zenorm init` (C3, C4): the config path as `run` reads it, a terminal to ask on
+ * `zenorm init`: the config path as `run` reads it, a terminal to ask on
  * (`init_not_interactive`), the claude on `PATH` (`agent_cli_missing`), whether to replace an
  * existing file, Claude Code's sign-in (`agent_not_logged_in`), then the model and the config.
  * Nothing is written before the sign-in holds.
@@ -433,12 +433,12 @@ export function initCommand(terminal: InitTerminal): Command {
     }
     terminal.say(`Using Claude Code at ${claudePath}.`);
     const existing = await exists(configFile);
-    // No, the suggested answer, keeps the file (3.5).
+    // No, the suggested answer, keeps the file.
     const replace = existing
       ? await askOnce(configFile, () => terminal.confirm(replaceQuestion(configFile), false))
       : ok(false);
     if (!replace.ok) return replace;
-    // Keeping the file still runs the sign-in (3.5).
+    // Keeping the file still runs the sign-in.
     const signedIn = await signIn(claudePath, context.env, terminal, configFile);
     if (!signedIn.ok) return signedIn;
     if (existing && !replace.value) {

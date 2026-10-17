@@ -94,7 +94,7 @@ function feedCount(): unknown {
   return context.db.$client.prepare("select count(*) from change_feed").pluck().get();
 }
 
-describe("localUser (S9-10)", () => {
+describe("localUser", () => {
   test("returns the migration's one User", () => {
     const user = localUser(context.db);
     expect(user.id).toMatch(/^[0-9a-f]{32}$/);
@@ -112,7 +112,7 @@ describe("localUser (S9-10)", () => {
   });
 });
 
-describe("write and the change bus (S9-14, spec D11)", () => {
+describe("write and the change bus", () => {
   test("an unset bus is a programmer error: write throws and writes nothing", () => {
     // The test context sets a bus, so this database is opened without one.
     const opened = openDatabase(join(context.root, "no-bus.sqlite"));
@@ -222,7 +222,7 @@ describe("write and the change bus (S9-14, spec D11)", () => {
     expect(received).toEqual([1]);
   });
 
-  test("a write outside write() aborts with actor_missing once the feed is installed", () => {
+  test("a write outside write aborts with actor_missing once the feed is installed", () => {
     installChangeFeed(context.db);
     expect(() => context.db.insert(projects).values(newProjectRow(uuidv7())).run()).toThrow(
       "actor_missing",
@@ -232,9 +232,10 @@ describe("write and the change bus (S9-14, spec D11)", () => {
 });
 
 /**
- * Fills every core table from the test-support fixtures, plus the slice 6b records and a rejection
- * the fixtures do not write. Everything is in `project`; `other` is added first and stays empty, so
- * a project expression that picks the first project names the wrong one.
+ * Fills every core table from the test-support fixtures, plus the research, task, fog and
+ * consistency records and a rejection the fixtures do not write. Everything is in `project`;
+ * `other` is added first and stays empty, so a project expression that picks the first project
+ * names the wrong one.
  */
 async function fillEveryTable(): Promise<{ project: Project; mapIds: Set<string> }> {
   await addProject(context, "other");
@@ -452,7 +453,7 @@ function coreTables(): string[] {
     .filter((name) => !name.startsWith("sqlite_") && !FEED_EXCLUDED_TABLES.includes(name));
 }
 
-describe("the change feed covers every core table (S9-12)", () => {
+describe("the change feed covers every core table", () => {
   test("an insert, an update and a delete on each table in sqlite_master append a row naming its project", async () => {
     const { project, mapIds } = await fillEveryTable();
     const client = context.db.$client;

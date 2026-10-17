@@ -133,10 +133,10 @@ export const RESEARCH_ANSWER_RULE = [
 ];
 
 /**
- * The planning agent's prompt for researching one waypoint (spec D2): the rules are
- * `skills/research`'s, written here. The idea and every earlier text sit in blocks under one fresh
- * nonce per call (L63). Plain lines carry the waypoint's number and its earlier report count; one
- * line states the run's turn budget, `maxTurns`; the report's lengths are the run's model's (`limits`).
+ * The planning agent's prompt for researching one waypoint: the rules are `skills/research`'s,
+ * written here. The idea and every earlier text sit in blocks under one fresh nonce per call. Plain
+ * lines carry the waypoint's number and its earlier report count; one line states the run's turn
+ * budget, `maxTurns`; the report's lengths are the run's model's (`limits`).
  */
 export function buildResearchPrompt(
   request: ResearchWaypointRequest,
@@ -214,8 +214,8 @@ export function buildResearchPrompt(
 }
 
 /**
- * What a Task run may ask the person (L115): only what only they have, never engineering work. A
- * fact delivery will verify is recorded as an assumption, not asked.
+ * What a Task run may ask the person: only what only they have, never engineering work. A fact
+ * delivery will verify is recorded as an assumption, not asked.
  */
 export const TASK_ASK_RULE = [
   "- You can only read the repository. Ask the person only for what only they have: access, credentials,",
@@ -230,11 +230,11 @@ export const TASK_ASK_RULE = [
 ];
 
 /**
- * The planning agent's prompt for working one Task waypoint (spec D2). Task runs are read-only
- * (L115): anything else is asked of the person in a round with options, the recommendation first.
- * The idea and every earlier text sit in blocks under one fresh nonce per call (L63). Plain lines
- * carry the waypoint's number, its answered round count and its earlier outcome count; one line
- * states the run's turn budget, `maxTurns`; the question lengths are the run's model's (`limits`).
+ * The planning agent's prompt for working one Task waypoint. Task runs are read-only: anything else
+ * is asked of the person in a round with options, the recommendation first. The idea and every
+ * earlier text sit in blocks under one fresh nonce per call. Plain lines carry the waypoint's
+ * number, its answered round count and its earlier outcome count; one line states the run's turn
+ * budget, `maxTurns`; the question lengths are the run's model's (`limits`).
  */
 export function buildTaskPrompt(
   request: WorkTaskRequest,
@@ -311,10 +311,10 @@ export function buildTaskPrompt(
 }
 
 /**
- * The planning agent's prompt for a consistency pass (spec D2): the rules are `skills/wayfinder`'s
- * pass rules, written here. The idea and every earlier text sit in blocks under one fresh nonce per
- * call (L63). Plain lines carry the compared count and how many compared waypoints a pass opened;
- * the findings' lengths are the run's model's (`limits`).
+ * The planning agent's prompt for a consistency pass: the rules are `skills/wayfinder`'s pass
+ * rules, written here. The idea and every earlier text sit in blocks under one fresh nonce per
+ * call. Plain lines carry the compared count and how many compared waypoints a pass opened; the
+ * findings' lengths are the run's model's (`limits`).
  */
 export function buildConsistencyPrompt(
   request: CheckConsistencyRequest,

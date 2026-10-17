@@ -47,45 +47,44 @@ import type { Log } from "./app.ts";
 export interface PlanningRunnerOptions {
   readonly db: ZeNormDatabase;
   readonly chartMap: ChartMap;
-  /** The map's code survey, once its destination is confirmed (harness change #1). */
+  /** The map's code survey, once its destination is confirmed. */
   readonly surveyCode: SurveyCode;
-  /** The map's fog run, once every waypoint is settled and fog remains (harness change #4). */
+  /** The map's fog run, once every waypoint is settled and fog remains. */
   readonly settleFog: SettleFog;
   readonly grillWaypoint: GrillWaypoint;
   readonly researchWaypoint: ResearchWaypoint;
   readonly workTask: WorkTask;
-  /** The consistency pass (S6b-10). */
+  /** The consistency pass. */
   readonly checkConsistency: CheckConsistency;
-  /** A map-scope To Spec run (slice 7 D3). */
+  /** A map-scope To Spec run. */
   readonly draftSpecs: DraftSpecs;
-  /** A spec-scoped To Spec run: a repair after a failed review or a rejection (S7-7, S7-12). */
+  /** A spec-scoped To Spec run: a repair after a failed review or a rejection. */
   readonly reviseSpec: ReviseSpec;
-  /** A spec review (S7-6). */
+  /** A spec review. */
   readonly reviewSpec: ReviewSpec;
   /** A To Tickets run. */
   readonly draftTicketSet: DraftTicketSet;
-  /** A tickets review (slice 7c D2). */
+  /** A tickets review. */
   readonly reviewTicketSet: ReviewTicketSet;
-  /** A hatch run's reply to one message (S7b-3, S7b-4). */
+  /** A hatch run's reply to one message. */
   readonly replyThroughHatch: ReplyThroughHatch;
   readonly log: Log;
 }
 
 /**
  * Calls the planning agent for every stored `running` planning run, in the background and never
- * inside a request (slice 6a spec D3). Core's writes insert the runs (`planNext`); after each
- * write the server asks the runner to `launch` what is running. The runner holds, in memory only,
- * which runs it is calling, so a run is called once; a core writer saves each outcome and inserts
- * what it makes due, which the runner then launches in turn.
+ * inside a request. Core's writes insert the runs (`planNext`); after each write the server asks
+ * the runner to `launch` what is running. The runner holds, in memory only, which runs it is
+ * calling, so a run is called once; a core writer saves each outcome and inserts what it makes due,
+ * which the runner then launches in turn.
  */
 export interface PlanningRunner {
   /** Launches every running run of the map, or of every map when `mapId` is null, not yet held. */
   launch(mapId: string | null): void;
   /**
-   * Stops the runner (spec D2, S9-2): `launch` starts nothing from now on, every held run's call is
-   * aborted, and the promise resolves once every run's driver has settled. A run the stop aborts
-   * writes nothing and stays `running`; the startup sweep ends it `planning_run_interrupted` and
-   * retries it (S6a-13).
+   * Stops the runner: `launch` starts nothing from now on, every held run's call is aborted, and
+   * the promise resolves once every run's driver has settled. A run the stop aborts writes nothing
+   * and stays `running`; the startup sweep ends it `planning_run_interrupted` and retries it.
    */
   stop(): Promise<void>;
 }
@@ -107,11 +106,11 @@ export function createPlanningRunner({
   replyThroughHatch,
   log,
 }: PlanningRunnerOptions): PlanningRunner {
-  /** Each held run's abort, which only a stop fires (spec D2). */
+  /** Each held run's abort, which only a stop fires. */
   const held = new Map<string, AbortController>();
   /** Every run's driver until it settles, which `stop` awaits. */
   const driving = new Set<Promise<void>>();
-  /** Set by `stop`; from then on the runner launches nothing and writes nothing (spec D2). */
+  /** Set by `stop`; from then on the runner launches nothing and writes nothing. */
   let stopped = false;
 
   /** Ends the run `failed` with the port's code; core inserts its retry or stops the scope. */
@@ -122,8 +121,8 @@ export function createPlanningRunner({
   ): void {
     if (error.code === "agent_cancelled") {
       // Only a stop aborts a planning call, and `settle` writes nothing once the stop has begun, so
-      // a cancel seen here had no stop: a programmer error (spec D2). `drive` logs it and ends the
-      // run `planning_run_internal_error`.
+      // a cancel seen here had no stop: a programmer error. `drive` logs it and ends the run
+      // `planning_run_internal_error`.
       throw new Error(`Planning run ${runId} was cancelled, but the runner was not stopped`);
     }
     failRun(actor, db, runId, { code: error.code, message: error.message });
@@ -137,7 +136,7 @@ export function createPlanningRunner({
     record: (value: TValue) => void,
   ): void {
     // Once the stop has begun, an outcome is not saved, even a success that resolved after it: the
-    // stop happened first, so the run stays `running` and the startup sweep retries it (S9-2).
+    // stop happened first, so the run stays `running` and the startup sweep retries it.
     if (stopped) return;
     if (outcome.ok) {
       record(outcome.value);
@@ -153,7 +152,7 @@ export function createPlanningRunner({
     const session: PlanningCallSession = {
       resumeSessionId: work.resumeSessionId,
       onUsage: (usage) => {
-        // A CLI that prints its usage while being stopped writes nothing (S9-2).
+        // A CLI that prints its usage while being stopped writes nothing.
         if (stopped) return;
         recordRunUsage(actor, db, runId, usage);
       },
@@ -163,7 +162,7 @@ export function createPlanningRunner({
       case "chart": {
         const outcome = await chartMap(work.request, session);
         settle(actor, runId, outcome, (value) => {
-          // A refused output (S6a-6) fails the run inside core, with its code.
+          // A refused output fails the run inside core, with its code.
           recordChart(actor, db, runId, value);
         });
         return;
@@ -228,7 +227,8 @@ export function createPlanningRunner({
         }
         const outcome = await draftSpecs(work.request, session);
         settle(actor, runId, outcome, (value) => {
-          // Output breaking D2 or the id rules fails the run inside core, with its code.
+          // Output breaking the content schema or the id rules fails the run inside core, with its
+          // code.
           recordSpecs(actor, db, runId, value);
         });
         return;
@@ -251,7 +251,7 @@ export function createPlanningRunner({
       case "tickets_review": {
         const outcome = await reviewTicketSet(work.request, session);
         settle(actor, runId, outcome, (value) => {
-          // An unknown ticket or criterion fails the run inside core, with its code (S7c-3).
+          // An unknown ticket or criterion fails the run inside core, with its code.
           recordTicketsReview(actor, db, runId, value);
         });
         return;
@@ -259,8 +259,8 @@ export function createPlanningRunner({
       case "hatch": {
         const outcome = await replyThroughHatch(work.request, session);
         settle(actor, runId, outcome, (value) => {
-          // A reply out of bounds or an invalid change fails the run inside core, with its code;
-          // a refused change is stored as core's sentence (S7b-5).
+          // A reply out of bounds or an invalid change fails the run inside core, with its code; a
+          // refused change is stored as core's sentence.
           recordHatchReply(actor, db, runId, value);
         });
         return;
@@ -271,7 +271,7 @@ export function createPlanningRunner({
   async function drive(runId: string, actor: Actor, signal: AbortSignal): Promise<void> {
     try {
       const work = await prepareRun(db, runId);
-      // A run the stop reaches while it is prepared writes nothing and calls no port (S9-2).
+      // A run the stop reaches while it is prepared writes nothing and calls no port.
       if (stopped) return;
       if (!work.ok) {
         failRun(actor, db, runId, work.error);
@@ -289,8 +289,8 @@ export function createPlanningRunner({
     } finally {
       held.delete(runId);
     }
-    // A run's end may start work on another map (slice 8b D3): a release run, or a run the spec's
-    // cross-map idle gate held back. After a stop, `launch` starts nothing.
+    // A run's end may start work on another map: a release run, or a run the spec's cross-map idle
+    // gate held back. After a stop, `launch` starts nothing.
     launch(null);
   }
 
@@ -298,7 +298,7 @@ export function createPlanningRunner({
     if (stopped) return;
     for (const run of runningRuns(db, mapId)) {
       if (held.has(run.id)) continue;
-      // The run's writes are made as the run, with its User (S9-13).
+      // The run's writes are made as the run, with its User.
       const actor = planningRunActor(db, run.id);
       const controller = new AbortController();
       held.set(run.id, controller);

@@ -1,7 +1,7 @@
 /**
- * A run's per-ticket progress while it is active (slice 8 S8-7, S8-8, D4): the started and merged
- * records the runner writes from the orchestrator's events, and the merges verifying recovers
- * from git. Every write is guarded on the run being active, so a late event writes nothing.
+ * A run's per-ticket progress while it is active: the started and merged records the runner writes
+ * from the orchestrator's events, and the merges verifying recovers from git. Every write is
+ * guarded on the run being active, so a late event writes nothing.
  */
 import { err, ok, RUN_TICKET_SUMMARY_MAX_LENGTH, ticketBranchName } from "@zenorm/contracts";
 import type { Actor, CodedError, Result } from "@zenorm/contracts";
@@ -13,7 +13,7 @@ import { branchCommit, runGit } from "./git.ts";
 import type { Reader } from "./planning-runs.ts";
 import { write } from "./writes.ts";
 
-/** The ticket-branch rule lives in contracts (the executor contract, D18); core re-exports it. */
+/** The ticket-branch rule lives in contracts (the executor contract); core re-exports it. */
 export { ticketBranchName };
 
 /** The ids of the runs that have not ended, for a guard on a ticket row's run. */
@@ -45,7 +45,7 @@ function readRunBranch(db: ZeNormDatabase, runId: string) {
 }
 
 /**
- * Records a run's ticket as started now (D4 Started), once: a repeat, or a run that has ended,
+ * Records a run's ticket as started now, once: a repeat, or a run that has ended,
  * writes nothing. True when it was written. A ticket the run did not pin is a programmer error.
  */
 export function recordTicketStarted(
@@ -107,12 +107,12 @@ export type TicketMergedRecord =
   | { readonly recorded: false; readonly reason: "run_ended" | "branch_missing" };
 
 /**
- * Records a run's ticket as merged (D4 Merged): the commit is `git rev-parse <run branch>-t<n>`
- * in `folder` (the one the run's start resolved, CR9b-3), the summary the runner's (at most 1000 characters; it cuts it), or null.
- * A run that has ended writes nothing, even when cleanup has already deleted the branch (a late
- * event after a cancel). A repeat records the branch's head again. A branch that is missing while
- * the run is active (the orchestrator deleted it after merging) writes nothing either: verifying
- * then fails the run `delivery_ticket_unmerged` naming the ticket (L197 item 10). An unpinned
+ * Records a run's ticket as merged: the commit is `git rev-parse <run branch>-t<n>` in `folder`
+ * (the one the run's start resolved), the summary the runner's (at most 1000 characters; it cuts
+ * it), or null. A run that has ended writes nothing, even when cleanup has already deleted the
+ * branch (a late event after a cancel). A repeat records the branch's head again. A branch that is
+ * missing while the run is active (the orchestrator deleted it after merging) writes nothing
+ * either: verifying then fails the run `delivery_ticket_unmerged` naming the ticket. An unpinned
  * ticket, or an over-long or empty summary, is a programmer error.
  */
 export async function recordTicketMerged(
@@ -155,12 +155,12 @@ export interface RecoveredTicket {
 }
 
 /**
- * Verifies every pinned ticket was merged (S8-8), after the commit checks: each ticket row with
+ * Verifies every pinned ticket was merged, after the commit checks: each ticket row with
  * no merged record whose branch `<run branch>-t<n>` exists and whose head is an ancestor of
  * `finalCommit` is recorded as merged at that head (summary null). Any other is
  * `delivery_ticket_unmerged`, naming the tickets in pinned order; the tickets recovered before
- * are kept. Returns the recovered tickets. git in `folder` (the one the run's start resolved,
- * CR9b-3) failing otherwise throws.
+ * are kept. Returns the recovered tickets. git in `folder` (the one the run's start resolved)
+ * failing otherwise throws.
  */
 export async function verifyTicketMerges(
   actor: Actor,

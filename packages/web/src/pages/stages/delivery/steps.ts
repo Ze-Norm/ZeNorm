@@ -7,18 +7,18 @@ import { checkOutcome, plural } from "@/pages/stages/delivery/words";
 export const RUN_STEPS = ["prepare", "implement", "verify", "review"] as const;
 export type RunStep = (typeof RUN_STEPS)[number];
 
-/** How a step stands in a run (slice 8 D9). */
+/** How a step stands in a run. */
 export type StepMark = "done" | "working" | "stopped" | "not-reached";
 
 /**
  * How the Merge step stands: done once merged, the person's once the run passes, working while
- * ZeNorm opens the pull request and stopped when the run ended or was interrupted there (5.4).
+ * ZeNorm opens the pull request and stopped when the run ended or was interrupted there.
  */
 export type MergeMark = "done" | "yours" | "working" | "stopped" | "not-reached";
 
 /**
  * The step each stored phase is in: `publishing`, ZeNorm opening the pull request, is the Merge
- * step's, so no step is added beside the four ZeNorm runs and Merge (5.4).
+ * step's, so no step is added beside the four ZeNorm runs and Merge.
  */
 const PHASE_STEP: Record<DeliveryPhase, RunStep | "merge"> = {
   preparing: "prepare",
@@ -35,7 +35,7 @@ function phaseIndex(phase: DeliveryPhase): number {
 }
 
 /**
- * Each of ZeNorm's steps marked from the run's stored phase (slice 8 D9): a passed run (merged or
+ * Each of ZeNorm's steps marked from the run's stored phase: a passed run (merged or
  * not) has every step done; otherwise the phase's step is working while the run runs and stopped
  * once it ended or was interrupted, earlier steps are done and later ones not reached. A run in
  * `publishing` has passed every one of the four.
@@ -55,7 +55,7 @@ export function stepMark(run: DeliveryRun, step: RunStep): StepMark {
   return run.state === "running" ? "working" : "stopped";
 }
 
-/** A repair attempt a run is making (C3): its number, the run's pinned limit and the failing checks. */
+/** A repair attempt a run is making: its number, the run's pinned limit and the failing checks. */
 export interface RepairAttempt {
   readonly attempt: number;
   readonly limit: number;
@@ -91,7 +91,7 @@ export function repairLine({ attempt, limit, failing }: RepairAttempt): string {
 }
 
 /**
- * The Verify line of a run that made repair attempts (C3): "All checks passed after 2 repair
+ * The Verify line of a run that made repair attempts: "All checks passed after 2 repair
  * attempts" once its checks passed, "Still failing after 3 of 3 repair attempts" once it failed
  * on its checks with its limit spent; null for a run that made none, which keeps today's line.
  */

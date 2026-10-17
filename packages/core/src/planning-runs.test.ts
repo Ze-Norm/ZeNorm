@@ -115,7 +115,7 @@ function rowCounts() {
 
 const FAILURE = { code: "agent_run_failed", message: "The run failed." } as const;
 
-describe("map.create (S6a-2)", () => {
+describe("map.create", () => {
   test("stores the map and its first chart run, running, and returns at once", async () => {
     const created = await createMap(
       context.user,
@@ -156,7 +156,7 @@ describe("map.create (S6a-2)", () => {
   });
 });
 
-describe("the first chart (S6a-3)", () => {
+describe("the first chart", () => {
   test("saves title, summary and proposed destination and asks map-level round 1; the run ends asked", async () => {
     const mapId = await newMap(context, project, "Export data");
     const chart = runningMapRun(context, mapId);
@@ -215,7 +215,7 @@ describe("the first chart (S6a-3)", () => {
   });
 });
 
-describe("submitting the map-level round (S6a-9, S6a-4)", () => {
+describe("submitting the map-level round", () => {
   let mapId: string;
   let roundId: string;
 
@@ -240,7 +240,7 @@ describe("submitting the map-level round (S6a-9, S6a-4)", () => {
     expect(request.value.request.mapRounds).toEqual([
       { questions: ROUND.questions, answers: ANSWERS, final: false },
     ]);
-    // What round 1 was asked about (DR-3).
+    // What round 1 was asked about.
     expect(request.value.request.proposed).toEqual({
       title: PROPOSAL.title,
       summary: PROPOSAL.summary,
@@ -304,7 +304,7 @@ describe("submitting the map-level round (S6a-9, S6a-4)", () => {
   });
 });
 
-describe("the confirming chart (S6a-4, S6a-5, S6a-6)", () => {
+describe("the confirming chart", () => {
   let mapId: string;
 
   beforeEach(async () => {
@@ -324,7 +324,7 @@ describe("the confirming chart (S6a-4, S6a-5, S6a-6)", () => {
       CONFIRMATION.waypoints.map((waypoint, index) => ({
         number: index + 1,
         kind: "grilling",
-        // Waypoint 1 is on the frontier and claimed at once (S6a-7); 2 and 3 wait on it.
+        // Waypoint 1 is on the frontier and claimed at once; 2 and 3 wait on it.
         status: index === 0 ? "claimed" : "open",
         title: waypoint.title,
         question: waypoint.question,
@@ -383,7 +383,7 @@ describe("the confirming chart (S6a-4, S6a-5, S6a-6)", () => {
     ).toEqual([5, 5]);
   });
 
-  test("with zero waypoints the map clears and the same write inserts to_spec (S6a-11)", () => {
+  test("with zero waypoints the map clears and the same write inserts to_spec", () => {
     confirm(context, mapId, NO_WAYPOINTS);
     expect(readWaypoints(context.db, mapId)).toEqual([]);
     expect(latestRun(context, mapId)).toMatchObject({ purpose: "to_spec", state: "running" });
@@ -421,7 +421,7 @@ describe("the confirming chart (S6a-4, S6a-5, S6a-6)", () => {
   const lines = (prefix: string, count: number) =>
     Array.from({ length: count }, (_, index) => `${prefix} ${String(index + 1)}.`);
 
-  test("saves each waypoint's kind, 8 fog items and 8 Out of scope lines in its transaction (S6b-2)", async () => {
+  test("saves each waypoint's kind, 8 fog items and 8 Out of scope lines in its transaction", async () => {
     const chart = runningMapRun(context, mapId);
     confirm(context, mapId, {
       title: PROPOSAL.title,
@@ -437,7 +437,7 @@ describe("the confirming chart (S6a-4, S6a-5, S6a-6)", () => {
       outOfScope: lines("Not this", 8),
       proposals: [],
     });
-    // Every kind is on the frontier (S6b-6): each unblocked waypoint is claimed with a run of its kind.
+    // Every kind is on the frontier: each unblocked waypoint is claimed with a run of its kind.
     expect(readWaypoints(context.db, mapId)).toMatchObject([
       { number: 1, kind: "research", status: "claimed" },
       { number: 2, kind: "task", status: "claimed" },
@@ -478,7 +478,7 @@ describe("the confirming chart (S6a-4, S6a-5, S6a-6)", () => {
     );
   });
 
-  test("saves no fog and no Out of scope line when the chart has none (S6b-2)", () => {
+  test("saves no fog and no Out of scope line when the chart has none", () => {
     confirm(context, mapId, CONFIRMATION);
     expect(context.db.select().from(mapFog).all()).toEqual([]);
     expect(context.db.select().from(mapExclusions).all()).toEqual([]);
@@ -494,11 +494,7 @@ describe("the confirming chart (S6a-4, S6a-5, S6a-6)", () => {
       withBlockers([2], [1], [9]),
       "waypoint_blocker_unknown",
     ],
-    [
-      "fog with no waypoint (S6b-4)",
-      { ...NO_WAYPOINTS, fog: ["Who may export."] },
-      "fog_left_unsettled",
-    ],
+    ["fog with no waypoint", { ...NO_WAYPOINTS, fog: ["Who may export."] }, "fog_left_unsettled"],
   ])("refuses %s with its code, writes nothing and fails the run", (_case, confirmation, code) => {
     const chart = runningMapRun(context, mapId);
     const before = mapRow(mapId);
@@ -517,7 +513,7 @@ describe("the confirming chart (S6a-4, S6a-5, S6a-6)", () => {
       state: "failed",
       errorCode: code,
     });
-    // The failure's transaction inserts its retry (S6a-12).
+    // The failure's transaction inserts its retry.
     expect(runs.at(-1)).toMatchObject({
       purpose: "chart",
       state: "running",
@@ -530,7 +526,7 @@ describe("the confirming chart (S6a-4, S6a-5, S6a-6)", () => {
   });
 });
 
-describe("retry and Try again (S6a-12)", () => {
+describe("retry and Try again", () => {
   /** The one running run not on a waypoint: the map's own, or its one spec's. */
   function runningOf(mapId: string): PlanningRun {
     const running = runsOf(context, mapId).filter(
@@ -700,7 +696,7 @@ describe("resuming a run that ran out of turns", () => {
   });
 });
 
-describe("startup (S6a-13)", () => {
+describe("startup", () => {
   test("each run left running ends failed with planning_run_interrupted and is retried", async () => {
     const first = await newMap(context, project, "One");
     const second = await newMap(context, project, "Two");
@@ -724,7 +720,7 @@ describe("startup (S6a-13)", () => {
     expect(runsOf(context, second).filter((run) => run.state === "running")).toEqual([]);
   });
 
-  test("an interrupted tickets_review is retried (S7c-10)", async () => {
+  test("an interrupted tickets_review is retried", async () => {
     const { mapId, specificationId } = await draftedTicketSet(context, project);
     const review = runningSpecRun(context, mapId, "tickets_review");
     sweepInterruptedRuns(context.db);
@@ -738,7 +734,7 @@ describe("startup (S6a-13)", () => {
     });
   });
 
-  test("Existing Records: an unapproved set with no review gets one at startup", async () => {
+  test("an unapproved set stored before tickets reviews, with no review, gets one at startup", async () => {
     const { mapId } = await unreviewedTicketSet(context, project);
     expect(runsOf(context, mapId).some((run) => run.state === "running")).toBe(false);
     sweepInterruptedRuns(context.db);
@@ -763,7 +759,7 @@ describe("startup (S6a-13)", () => {
   });
 });
 
-describe("drafting from runs (D3, S6a-11)", () => {
+describe("drafting from runs", () => {
   test("the spec draft request carries the reading, destination and map-level rounds, and no round", async () => {
     const mapId = await clearedMap(context, project);
     const work = await prepareRun(context.db, runningMapRun(context, mapId).id);
@@ -786,7 +782,7 @@ describe("drafting from runs (D3, S6a-11)", () => {
     });
   });
 
-  test("the spec draft request carries each resolved waypoint's number, kind, title, question, resolution and gist, and the Out of scope lines (S6b-11)", async () => {
+  test("the spec draft request carries each resolved waypoint's number, kind, title, question, resolution and gist, and the Out of scope lines", async () => {
     const mapId = await newMap(context, project, "Export data");
     propose(context, mapId);
     answerDestination(context, mapId);
@@ -827,7 +823,7 @@ describe("drafting from runs (D3, S6a-11)", () => {
     );
   });
 
-  test("the map's to_spec retries, stops and is tried again like any run (S6a-12)", async () => {
+  test("the map's to_spec retries, stops and is tried again like any run", async () => {
     const mapId = await clearedMap(context, project);
     failRun(context.user, context.db, runningMapRun(context, mapId).id, FAILURE);
     const retry = runningMapRun(context, mapId);
@@ -842,7 +838,7 @@ describe("drafting from runs (D3, S6a-11)", () => {
     expect(recorded.ok).toBe(true);
   });
 
-  test("a spec-scoped run retries, stops and is tried again in its own scope (S7-19)", async () => {
+  test("a spec-scoped run retries, stops and is tried again in its own scope", async () => {
     const { mapId, specificationId } = await draftedSpec(context, project);
     const review = runningSpecRun(context, mapId, "spec_review");
     failRun(context.user, context.db, review.id, FAILURE);
@@ -854,7 +850,7 @@ describe("drafting from runs (D3, S6a-11)", () => {
     expect(runningSpecRun(context, mapId, "spec_review").specificationId).toBe(specificationId);
   });
 
-  test("a tickets_review failing twice stops, and Try again restarts it (S7c-10)", async () => {
+  test("a tickets_review failing twice stops, and Try again restarts it", async () => {
     const { mapId, specificationId } = await draftedTicketSet(context, project);
     const review = runningSpecRun(context, mapId, "tickets_review");
     failRun(context.user, context.db, review.id, FAILURE);
@@ -866,7 +862,7 @@ describe("drafting from runs (D3, S6a-11)", () => {
     expect(runningSpecRun(context, mapId, "tickets_review").retryOfRunId).toBeNull();
   });
 
-  test("the review and To Tickets requests carry the revision (D3)", async () => {
+  test("the review and To Tickets requests carry the revision", async () => {
     const { mapId, specRevisionId } = await draftedSpec(context, project);
     const review = await prepareRun(context.db, runningSpecRun(context, mapId, "spec_review").id);
     if (!review.ok || review.value.purpose !== "spec_review") throw new Error("not a review");
@@ -898,7 +894,7 @@ describe("drafting from runs (D3, S6a-11)", () => {
   });
 });
 
-describe("touches on charting (slice 8b S8b-2)", () => {
+describe("touches on charting", () => {
   /** Spec 1 r1 approved on a first map; a second map whose confirming chart is running. */
   async function chartingOnApprovedSpec(): Promise<{ mapId: string; specificationId: string }> {
     const { specificationId } = await draftedTicketSet(context, project);
@@ -942,7 +938,7 @@ describe("touches on charting (slice 8b S8b-2)", () => {
     expectRefused(mapId, touching(touch, { ...touch, criteria: ["1.2"] }));
   });
 
-  test("touches the latest approved revision while another map's draft is latest (L213 D-5)", async () => {
+  test("touches the latest approved revision while another map's draft is latest", async () => {
     const { mapId, specificationId } = await chartingOnApprovedSpec();
     const holder = await clearedMap(context, project);
     const writer = insertRun(context, {
@@ -1058,7 +1054,7 @@ describe("touches on charting (slice 8b S8b-2)", () => {
   }
 });
 
-describe("the destination's rounds reach every run that decides or checks scope (DR-14)", () => {
+describe("the destination's rounds reach every run that decides or checks scope", () => {
   /** Round 1 as `propose` and `answerDestination` store it. */
   const SUBMITTED = [{ questions: ROUND.questions, answers: ANSWERS, final: false }];
 
@@ -1107,7 +1103,7 @@ describe("the destination's rounds reach every run that decides or checks scope 
   });
 });
 
-describe("destination rounds: the chart's follow-up (DR-7 to DR-10)", () => {
+describe("destination rounds: the chart's follow-up", () => {
   let mapId: string;
 
   beforeEach(async () => {
@@ -1131,12 +1127,12 @@ describe("destination rounds: the chart's follow-up (DR-7 to DR-10)", () => {
     return readRounds(context.db, mapId).filter((round) => round.waypointId === null);
   }
 
-  test("the first chart's round is stored not final (DR-9)", () => {
+  test("the first chart's round is stored not final", () => {
     propose(context, mapId);
     expect(mapLevelRounds()).toMatchObject([{ number: 1, final: false }]);
   });
 
-  test("a follow-up replaces the map's reading and asks round 2, pending; the run ends asked (DR-7)", () => {
+  test("a follow-up replaces the map's reading and asks round 2, pending; the run ends asked", () => {
     answeredThrough(1, null);
     const chart = runningMapRun(context, mapId);
     const content = { ...FOLLOW_UP, round: { ...FOLLOW_UP.round, final: true } };
@@ -1169,7 +1165,7 @@ describe("destination rounds: the chart's follow-up (DR-7 to DR-10)", () => {
     expect(runsOf(context, mapId).filter((run) => run.state === "running")).toEqual([]);
   });
 
-  test("after round 2 is submitted a chart is due and starts, seeing the follow-up's reading (DR-10, DR-3)", async () => {
+  test("after round 2 is submitted a chart is due and starts, seeing the follow-up's reading", async () => {
     answeredThrough(2, null);
     const chart = runningMapRun(context, mapId);
     expect(chart.purpose).toBe("chart");
@@ -1194,7 +1190,7 @@ describe("destination rounds: the chart's follow-up (DR-7 to DR-10)", () => {
     ["a follow-up after a final round 3", 3, 3, "followUp"],
     ["a confirmation with no round yet", 0, null, "confirmation"],
   ] as const)(
-    "refuses %s with agent_output_invalid, writing nothing but the failed run; the retry carries the problem (DR-8)",
+    "refuses %s with agent_output_invalid, writing nothing but the failed run; the retry carries the problem",
     async (_case, last, finalAt, kind) => {
       if (last > 0) answeredThrough(last, finalAt);
       const chart = runningMapRun(context, mapId);
@@ -1212,7 +1208,7 @@ describe("destination rounds: the chart's follow-up (DR-7 to DR-10)", () => {
       expect(!recorded.ok && recorded.error.code).toBe("agent_output_invalid");
       expect(mapRow(mapId)).toEqual(before);
       expect(mapLevelRounds()).toEqual(roundsBefore);
-      // The failed run's retry is the only other row (S6a-12).
+      // The failed run's retry is the only other row.
       expect(rowCounts()).toEqual({ ...counts, runs: counts.runs + 1 });
       const runs = runsOf(context, mapId);
       expect(runs.find((run) => run.id === chart.id)).toMatchObject({
@@ -1228,7 +1224,7 @@ describe("destination rounds: the chart's follow-up (DR-7 to DR-10)", () => {
     },
   );
 
-  test("a chart run started by Try again after an agent_output_invalid retry carries its problem (DR-8)", async () => {
+  test("a chart run started by Try again after an agent_output_invalid retry carries its problem", async () => {
     answeredThrough(1, null);
     const chart = runningMapRun(context, mapId);
     const proposal = { kind: "proposal", proposal: PROPOSAL } as const;
@@ -1254,7 +1250,7 @@ describe("destination rounds: the chart's follow-up (DR-7 to DR-10)", () => {
     expect(work.value.request.refusedAttempt?.problem).toBe(failedRetry?.errorMessage);
   });
 
-  test("a chart after a run that core did not refuse carries no refused attempt (DR-8)", async () => {
+  test("a chart after a run that core did not refuse carries no refused attempt", async () => {
     const first = await prepareRun(context.db, runningMapRun(context, mapId).id);
     if (!first.ok || first.value.purpose !== "chart") throw new Error("not a chart");
     expect(first.value.request.refusedAttempt).toBeNull();
@@ -1267,28 +1263,25 @@ describe("destination rounds: the chart's follow-up (DR-7 to DR-10)", () => {
   test.each([
     ["at choose", 1, null],
     ["at confirm", 2, 2],
-  ])(
-    "a confirmation %s stores its title, summary and destination (DR-8, L253)",
-    (_case, last, finalAt) => {
-      answeredThrough(last, finalAt);
-      const stored = mapRow(mapId);
-      const confirmation = {
-        ...NO_WAYPOINTS,
-        title: "Record export",
-        summary: "People take every record elsewhere as CSV.",
-        destination: "A CSV export of every record, from the project page.",
-      };
-      expect([stored.title, stored.summary, stored.destination]).not.toContain(confirmation.title);
-      expect(stored.summary).not.toBe(confirmation.summary);
-      expect(stored.destination).not.toBe(confirmation.destination);
-      confirmChart(context, mapId, confirmation);
-      expect(mapRow(mapId)).toMatchObject({
-        title: confirmation.title,
-        summary: confirmation.summary,
-        destination: confirmation.destination,
-      });
-    },
-  );
+  ])("a confirmation %s stores its title, summary and destination", (_case, last, finalAt) => {
+    answeredThrough(last, finalAt);
+    const stored = mapRow(mapId);
+    const confirmation = {
+      ...NO_WAYPOINTS,
+      title: "Record export",
+      summary: "People take every record elsewhere as CSV.",
+      destination: "A CSV export of every record, from the project page.",
+    };
+    expect([stored.title, stored.summary, stored.destination]).not.toContain(confirmation.title);
+    expect(stored.summary).not.toBe(confirmation.summary);
+    expect(stored.destination).not.toBe(confirmation.destination);
+    confirmChart(context, mapId, confirmation);
+    expect(mapRow(mapId)).toMatchObject({
+      title: confirmation.title,
+      summary: confirmation.summary,
+      destination: confirmation.destination,
+    });
+  });
 
   test.each([
     ["after a final round 2", 2, 2],

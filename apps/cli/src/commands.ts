@@ -3,14 +3,14 @@ import type { Command, CommandOption, CommandTable } from "./cli.ts";
 import { doctorCommand, printDoctorCheck } from "./doctor.ts";
 import { initCommand, processTerminal } from "./init.ts";
 
-/** `--config`, the one option every command takes (C2). */
+/** `--config`, the one option every command takes. */
 const CONFIG_OPTION: CommandOption = {
   flags: "--config <path>",
   description: "the config file (else ZENORM_CONFIG, else ~/.config/zenorm/config.json)",
 };
 
 /**
- * The one command table (C8): every command `zenorm` takes, with its description, its options and
+ * The one command table: every command `zenorm` takes, with its description, its options and
  * what it runs, in the order its help lists them. Adding a command is adding one entry here; no
  * other list of command names exists. `init` asks on the process's terminal, `doctor` prints to it.
  */

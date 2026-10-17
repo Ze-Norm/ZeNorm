@@ -3,7 +3,7 @@ import { MIGRATIONS_FOLDER } from "@zenorm/db";
 
 /**
  * The repository's skills and migrations folders, which the entries that run from source
- * (`main.ts`, `apps/zenorm-example`) pass in beside their web build (1.3). The built `zenorm`
+ * (`main.ts`, `apps/zenorm-example`) pass in beside their web build. The built `zenorm`
  * command never imports this module: it passes the copies inside its package.
  */
 export const SOURCE_ASSETS = {

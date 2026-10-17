@@ -15,9 +15,9 @@ import { setTicketDelivery } from "@/lib/tickets";
 import { plural } from "@/pages/stages/delivery/words";
 
 /**
- * The tickets of the spec's earlier revisions, folded (slice 8b D12, the demo's `EarlierTickets`),
- * newest first: each set with its revision, its tickets, the map that wrote it and its delivery;
- * opened, each ticket with the criteria it carried and the run and commit that delivered it.
+ * The tickets of the spec's earlier revisions, folded, newest first: each set with its revision,
+ * its tickets, the map that wrote it and its delivery; opened, each ticket with the criteria it
+ * carried and the run and commit that delivered it.
  */
 export function EarlierTickets({
   spec,

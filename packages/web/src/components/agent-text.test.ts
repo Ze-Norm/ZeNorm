@@ -10,7 +10,7 @@ function html(text: string): string {
   return renderToStaticMarkup(createElement(AgentText, { text }));
 }
 
-describe("AgentText (L126 (a))", () => {
+describe("AgentText", () => {
   it("renders a code span without its backticks", () => {
     const out = html("Run `pnpm check` before merging.");
     expect(out).toContain("<code");

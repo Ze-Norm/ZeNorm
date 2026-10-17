@@ -20,15 +20,15 @@ import { write } from "./writes.ts";
 const SHORT_COMMIT_LENGTH = 7;
 
 /**
- * Mark merged (S8-5, B28): records a passed run as merged once git shows its final commit in the
+ * Mark merged: records a passed run as merged once git shows its final commit in the
  * pinned base branch. Refuses, writing nothing, in order: `delivery_run_not_found`,
  * `delivery_not_passed`, `delivery_already_merged`, `project_folder_missing` (from the checkout
- * seam, which gives the folder: the run has ended, so it is resolved again, CR9b-3), then by
+ * seam, which gives the folder: the run has ended, so it is resolved again), then by
  * `git merge-base --is-ancestor <final> refs/heads/<pinned base>` in that folder: exit 1 is
  * `delivery_not_merged` (a squash or rebase merge too: ancestry is the only test), any other
  * failure (the branch or the commit is gone) `delivery_branch_missing`. On exit 0 it sets
- * `merged_at` and writes ZeNorm's line (D5), except on a run with no ticket rows (from before
- * `0010`), which gets no line (S8-12).
+ * `merged_at` and writes ZeNorm's line, except on a run with no ticket rows (from before
+ * `0010`), which gets no line.
  */
 export async function markMerged(
   actor: Actor,
@@ -83,7 +83,7 @@ export async function markMerged(
       data,
     });
   }
-  // The update and its line are one write: one transaction, one publish (CR9b-14).
+  // The update and its line are one write: one transaction, one publish.
   const updated = write(db, actor, (tx) => {
     const result = tx
       .update(deliveryRuns)
@@ -111,13 +111,13 @@ export async function markMerged(
 }
 
 /**
- * How often the server checks every open pull request (C4). A fixed constant: no config key names
+ * How often the server checks every open pull request. A fixed constant: no config key names
  * it.
  */
 export const PULL_REQUEST_CHECK_INTERVAL_MS = 5 * 60 * 1000;
 
 /**
- * The runs whose pull request the timer checks (C4, 4.3): every passed run whose recorded pull
+ * The runs whose pull request the timer checks: every passed run whose recorded pull
  * request is open, whichever run of its spec is the latest. A closed or merged one is no longer
  * checked; Check now still reads it.
  */
@@ -132,7 +132,7 @@ export function openPullRequestRuns(db: ZeNormDatabase): string[] {
 }
 
 /**
- * Check now, and each of the timer's checks (C4): reads the state GitHub reports for the run's
+ * Check now, and each of the timer's checks: reads the state GitHub reports for the run's
  * recorded pull request and records it. Refuses, writing nothing, in order:
  * `delivery_run_not_found`, `delivery_no_pull_request` (the run opened none), then gh's sign-in
  * check (`delivery_gh_missing`, `delivery_github_not_signed_in`, `delivery_github_unreachable`), then
@@ -178,7 +178,7 @@ export async function checkPullRequest(
     return ok(run);
   }
   const label = `Pull request #${String(pullRequest.number)}`;
-  // The update and its line are one write: one transaction, one publish (CR9b-14).
+  // The update and its line are one write: one transaction, one publish.
   write(db, actor, (tx) => {
     const lined = readRunTicketRows(tx, runId).length > 0;
     const line = (text: string): void => {

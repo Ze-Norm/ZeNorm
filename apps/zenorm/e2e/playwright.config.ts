@@ -14,18 +14,18 @@ const HOST = "127.0.0.1";
 /**
  * The run's lock: the `webServer` below listens here for the whole run. Pages use each worker's
  * own server (`worker-server.ts`), on a free port; this one only holds the port, so another run's
- * stale-server guard (S9-8, S9-13) waits for this run to end, as it waited on the one shared server.
+ * stale-server guard waits for this run to end, as it waited on the one shared server.
  */
 const LOCK_PORT = 4600;
 const LOCK_URL = `http://${HOST}:${String(LOCK_PORT)}`;
 const SHUTDOWN_TIMEOUT_MS = 5000;
 /**
  * How long an assertion waits for a state. Most states the flows wait on are the agent's: the page
- * sees one when its change arrives on `/events` and the live layer refetches (S9-16, 300 ms
+ * sees one when its change arrives on `/events` and the live layer refetches (300 ms
  * coalescing), after a chain of up to three stand-in runs (a waypoint's last run, the consistency
  * pass, the spec draft), each a `node` process, and every refetch runs git once for each
- * project. Idle, a run takes about 0.1 s; under machine load the processes slow several-fold
- * (L114), so 10 s leaves the slower runs room (L123). It hides no lost update: a state that never
+ * project. Idle, a run takes about 0.1 s; under machine load the processes slow several-fold,
+ * so 10 s leaves the slower runs room. It hides no lost update: a state that never
  * arrives as a change still fails.
  */
 const EXPECT_TIMEOUT_MS = 10_000;
@@ -61,7 +61,7 @@ function createRunRoot(): string {
   process.env[E2E_RUN_ROOT_ENV_VAR] = root;
   const dataDir = join(root, "data");
   mkdirSync(dataDir);
-  // The scripted stand-in (ticket 05); `pnpm check` never runs the real `claude`.
+  // The scripted stand-in; `pnpm check` never runs the real `claude`.
   const agent = {
     claudePath: join(appDir, "e2e", "fake-claude.ts"),
     wayfindingModel: "claude-sonnet-5-5",
@@ -93,9 +93,9 @@ function createRunRoot(): string {
 }
 
 /**
- * The runner's root: first the stale-server guard (S9-8, D7), which must run here, synchronously,
+ * The runner's root: first the stale-server guard, which must run here, synchronously,
  * because the runner starts the web server before any global setup; then the fresh run root, and
- * in it this runner's record (S9-13), so another run's guard leaves this run's server alone.
+ * in it this runner's record, so another run's guard leaves this run's server alone.
  */
 function runnerRoot(): string {
   stopStaleE2eServer(LOCK_PORT, LIVE_RUN_WAIT_MS);
@@ -134,10 +134,10 @@ export default defineConfig({
   projects: [
     specFile("revisions"),
     specFile("maps"),
-    // S9-16's live flows: two pages on the worker's server, then a stop and restart of a server of
+    // The live flows: two pages on the worker's server, then a stop and restart of a server of
     // the flow's own on port 4690.
     specFile("live"),
-    // S9-2's shutdown timing: each case spawns its own server on a free port, and the file uses
+    // The shutdown timing: each case spawns its own server on a free port, and the file uses
     // Playwright's own `test`, with no worker server.
     { name: "shutdown", testMatch: "shutdown.spec.ts" },
     specFile("projects"),

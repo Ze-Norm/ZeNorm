@@ -1,9 +1,9 @@
 import type { Answer, Answers, Question } from "@zenorm/contracts";
 
 /**
- * The open question round's answer state (slice 6a D10, D5), pure so it is tested without a DOM:
+ * The open question round's answer state, pure so it is tested without a DOM:
  * one answer per question, positional. An answer counts once it has an option, words, or both;
- * `accepted` marks option 0 taken through Accept the rest, with no words (S6a-9), so any edit to
+ * `accepted` marks option 0 taken through Accept the rest, with no words, so any edit to
  * an accepted answer makes it the person's own.
  */
 
@@ -42,7 +42,7 @@ export function choose(
 /** Set the words on question `questionIndex`, keeping its option. */
 export function setNote(answers: Answers, questionIndex: number, note: string): Answers {
   const answer = at(answers, questionIndex, "answer");
-  // Words on an accepted answer make it the person's own (an accepted answer has none, S6a-9).
+  // Words on an accepted answer make it the person's own (an accepted answer has none).
   const accepted = answer.accepted && note.trim() === "";
   return replace(answers, questionIndex, { optionIndex: answer.optionIndex, note, accepted });
 }
@@ -52,7 +52,7 @@ export function isAnswered(answer: Answer): boolean {
   return answer.optionIndex !== null || answer.note.trim() !== "";
 }
 
-/** Accept the rest (D5): every unanswered question takes option 0, its recommendation, marked accepted. */
+/** Accept the rest: every unanswered question takes option 0, its recommendation, marked accepted. */
 export function acceptRest(answers: Answers): Answers {
   return answers.map((answer) =>
     isAnswered(answer) ? answer : { optionIndex: 0, note: "", accepted: true },
@@ -68,7 +68,7 @@ export function isComplete(answers: Answers): boolean {
   return answers.length > 0 && answeredCount(answers) === answers.length;
 }
 
-/** The `questionRound.submit` answers (S6a-9): words trimmed; refuses an incomplete round. */
+/** The `questionRound.submit` answers: words trimmed; refuses an incomplete round. */
 export function submission(answers: Answers): Answers {
   if (!isComplete(answers)) {
     throw new Error("A round is sent only once every question is answered");
@@ -98,7 +98,7 @@ export interface KeyPress {
   target: KeyTarget;
 }
 
-/** What a key does (D10); null leaves it to the browser. */
+/** What a key does; null leaves it to the browser. */
 export type KeyAction =
   | { kind: "move"; to: number }
   | { kind: "choose"; questionIndex: number; optionIndex: number; then: number }
@@ -106,7 +106,7 @@ export type KeyAction =
   | { kind: "leave-notes" };
 
 /**
- * The round's keys (D10): ↑/↓ move the active question; 1–N choose on it and advance; Escape
+ * The round's keys: ↑/↓ move the active question; 1–N choose on it and advance; Escape
  * leaves the words; ⌘↵ or Ctrl↵ sends once complete. Inside the words only Escape and send act,
  * and arrows inside a radio group keep their default. Tab is the browser's own.
  */

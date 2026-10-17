@@ -24,10 +24,10 @@ import { useMapOverview, useMapOverviews } from "@/lib/queries";
 import { orpc } from "@/orpc";
 
 /**
- * The top bar (spec D5): the wordmark, the project switcher, the open map's name and the
+ * The top bar: the wordmark, the project switcher, the open map's name and the
  * need-you badge. With the switcher it is the breadcrumb: project, then map. No person's name
- * or initials (L97). It sticks to the top (`--top-bar` high), the stage rail under it on a map.
- * The badge counts the inbox, not the open map (UX audit A8): it names the inbox, and it is
+ * or initials. It sticks to the top (`--top-bar` high), the stage rail under it on a map.
+ * The badge counts the inbox, not the open map: it names the inbox, and it is
  * quiet while the open map is not among the maps that need you. The colour scheme menu comes
  * next; below the columns breakpoint the bar ends with the button that opens the page's column
  * as a sheet. Below `sm` (a phone) the bar keeps to one line: the mark without its word, the
@@ -179,7 +179,7 @@ function MapProjectLabel({ mapId }: { mapId: string }) {
   return overview.data === undefined ? null : <>{overview.data.project.name}</>;
 }
 
-/** The project a page off a map shows, for `header.end`: none on the Inbox (S9-18). */
+/** The project a page off a map shows, for `header.end`: none on the Inbox. */
 function projectOnScreen(projectId: string | undefined): string | null {
   if (projectId === undefined) {
     return null;
@@ -189,7 +189,7 @@ function projectOnScreen(projectId: string | undefined): string | null {
 
 /**
  * The `header.end` slot on a map: the map's project once the map has loaded, no project until
- * then (S9-18).
+ * then.
  */
 function MapHeaderEnd({ mapId }: { mapId: string }) {
   const overview = useMapOverview(mapId);

@@ -15,7 +15,7 @@ import { PACK_DIR, PACKAGE_DIR, packedTarball } from "./packed.ts";
 
 /**
  * Packs the built `@ze-norm/cli` into `pack/` (the `pack` turbo task, after `build`), the tarball
- * the install smoke test installs and the publish workflow publishes (C1, C6).
+ * the install smoke test installs and the publish workflow publishes.
  *
  * The published manifest is written here rather than by `pnpm pack`: pnpm refuses to rewrite the
  * `workspace:*` development dependencies, whose private packages have no version, and they are

@@ -58,7 +58,7 @@ import { readExclusions, readReports } from "./wayfinding-records.ts";
 import { present } from "./present.ts";
 import { approvedRevision, firstAttempt, reviewedVersion, runNote } from "./ticket-set-runs.ts";
 
-/** The project and map fields every spec run's request carries (spec D3). */
+/** The project and map fields every spec run's request carries. */
 export interface SpecRunBase {
   readonly projectName: string;
   readonly projectFolder: string;
@@ -66,7 +66,7 @@ export interface SpecRunBase {
   readonly idea: string;
 }
 
-/** The map a spec run reads (D3): its title, destination, resolved waypoints and Out of scope. */
+/** The map a spec run reads: its title, destination, resolved waypoints and Out of scope. */
 function specMapContext(db: Reader, map: MapRecord, base: SpecRunBase) {
   const reports = readReports(db, map.id);
   return {
@@ -109,13 +109,13 @@ function specMapContext(db: Reader, map: MapRecord, base: SpecRunBase) {
   };
 }
 
-/** Each spec of the project the map has not written a revision of, with its hold (D6). */
+/** Each spec of the project the map has not written a revision of, with its hold. */
 export function otherProjectSpecs(db: Reader, map: MapRecord) {
   const own = new Set(readMapSpecs(db, map.id).map((spec) => spec.id));
   return projectSpecContexts(db, map.projectId, map.id, own);
 }
 
-/** The map's resolved waypoints touching the spec, with their resolutions (D6). */
+/** The map's resolved waypoints touching the spec, with their resolutions. */
 function touchingWaypoints(db: Reader, mapId: string, specificationId: string): TouchingWaypoint[] {
   return readWaypoints(db, mapId)
     .filter(
@@ -129,7 +129,7 @@ function touchingWaypoints(db: Reader, mapId: string, specificationId: string): 
     }));
 }
 
-/** Revision `n`'s text delta and criterion readings, against `dispositions` when given (D6). */
+/** Revision `n`'s text delta and criterion readings, against `dispositions` when given. */
 function reconciliationOf(
   record: SpecRecord,
   n: number,
@@ -139,15 +139,15 @@ function reconciliationOf(
   return {
     delta,
     readings: readingsOf(record, n, delta, dispositions),
-    // Every criterion the set must take out, not only the delta's (L213 D-1).
+    // Every criterion the set must take out, not only the delta's.
     takenOut: removedCriteria(record, n),
   };
 }
 
 /**
- * What revision `n` changes since the spec's latest approved revision before it (S8b-17, L213
- * D-6): that revision, who wrote it, and the clauses of `n` that a text delta from it through `n`
- * marks new or changed, the rest unchanged; null when no revision before `n` is approved.
+ * What revision `n` changes since the spec's latest approved revision before it: that
+ * revision, who wrote it, and the clauses of `n` that a text delta from it through `n` marks new
+ * or changed, the rest unchanged; null when no revision before `n` is approved.
  */
 function changesOf(db: Reader, mapId: string, record: SpecRecord, n: number) {
   const since = record.revisions.filter((r) => r.revision < n && r.approved).at(-1);
@@ -188,9 +188,9 @@ function revisionRef(specNumber: number, revision: StoredRevision): SpecRevision
 }
 
 /**
- * Why a spec's latest revision gets a next one (D3): the person's rejection reason; for a draft a note
- * superseded (S7b-11), the note; else its failed review's summary and every finding (escalated
- * ones included, so a `decision` review's `revise` findings reach the re-clear, S7-9); null when it
+ * Why a spec's latest revision gets a next one: the person's rejection reason; for a draft a note
+ * superseded, the note; else its failed review's summary and every finding (escalated
+ * ones included, so a `decision` review's `revise` findings reach the re-clear); null when it
  * has none of these.
  */
 function feedbackOf(db: Reader, revision: StoredRevision): SpecFeedback | null {
@@ -198,7 +198,7 @@ function feedbackOf(db: Reader, revision: StoredRevision): SpecFeedback | null {
     return { kind: "rejection", reason: revision.rejectionReason };
   }
   if (revision.supersededAt !== null) {
-    // Only a note supersedes a latest revision without writing its next (S7b-11).
+    // Only a note supersedes a latest revision without writing its next.
     const note = noteAfter(db, revision, null);
     if (note === null) {
       throw new Error(`Latest revision ${revision.id} is superseded with no rejection or note`);
@@ -226,9 +226,9 @@ function feedbackOf(db: Reader, revision: StoredRevision): SpecFeedback | null {
 
 /**
  * The failed reviews of a spec's revisions before `latest`, and `latest`'s own reviews of content a
- * rewrite in place replaced (L241), oldest first, on whichever map (the repair loop's memory); one
+ * rewrite in place replaced, oldest first, on whichever map (the repair loop's memory); one
  * entry per review. Only revisions after the latest approved one (on any map) below `latest` count:
- * an approval closes the findings before it (slice 8b). A passed review adds nothing; `latest`'s
+ * an approval closes the findings before it. A passed review adds nothing; `latest`'s
  * current review is its feedback, not an earlier finding.
  */
 function earlierFindings(
@@ -257,7 +257,7 @@ function earlierFindings(
 }
 
 /**
- * A map-scope `to_spec` run's request (D3): on the map's first clear no spec; on a re-clear (D6)
+ * A map-scope `to_spec` run's request: on the map's first clear no spec; on a re-clear
  * each spec the map wrote, with its latest revision, whether that is approved, and its last
  * findings or rejection reason.
  */
@@ -287,7 +287,7 @@ export function draftSpecsRequest(
 }
 
 /**
- * The problem core refused a map-scope `to_spec`'s previous attempt with (S7b-15, L142): the map
+ * The problem core refused a map-scope `to_spec`'s previous attempt with: the map
  * scope's run just before `run` (a retry, or a fresh run after Try again) when it is a `to_spec`
  * that failed `spec_content_invalid`; null otherwise.
  */
@@ -307,9 +307,9 @@ export function runSpec(db: Reader, run: PlanningRun) {
 }
 
 /**
- * A repair's request (spec-scoped `to_spec`, D3): the spec's latest revision, a draft whose review
+ * A repair's request (spec-scoped `to_spec`): the spec's latest revision, a draft whose review
  * failed, a rejected one or one a note superseded, with that review's findings, the reason or the
- * note (S7-7, S7-12, S7b-11).
+ * note.
  */
 export function reviseSpecRequest(
   db: Reader,
@@ -335,7 +335,7 @@ export function reviseSpecRequest(
 }
 
 /**
- * Why a spec-scoped `to_spec` writes the next revision after `latest` (D3; slice 8b S8b-6, S8b-7):
+ * Why a spec-scoped `to_spec` writes the next revision after `latest`:
  * a release run's wait's note (`wait`); a note run's message on an approved latest (`note`); else a
  * repair's feedback on its map's own unapproved latest (`feedbackOf`). Anything else is a
  * programmer error.
@@ -356,7 +356,7 @@ function revisionFeedback(db: Reader, run: PlanningRun, latest: StoredRevision):
 }
 
 /**
- * The problem core refused a repair's previous attempt with (L141): the spec's run just before
+ * The problem core refused a repair's previous attempt with: the spec's run just before
  * `run` (a retry, or a fresh run after Try again) when it is a `to_spec` that failed
  * `spec_content_invalid` after `latest` was written; null otherwise.
  */
@@ -380,7 +380,7 @@ function refusedAttempt(
 
 /**
  * Whether `run` started before `latest` was written: by the map's run order when this map wrote
- * it, else by time (another map's revision, slice 8b S8b-6, S8b-7).
+ * it, else by time (another map's revision).
  */
 function startedBefore(
   runs: readonly PlanningRun[],
@@ -395,7 +395,7 @@ function startedBefore(
 }
 
 /**
- * The revision a `spec_review` run reviews, pinned at its start (S7-6, S7-10): its spec's latest
+ * The revision a `spec_review` run reviews, pinned at its start: its spec's latest
  * revision of the run's map written by a run started before the review's first attempt. A
  * re-clear while the review runs supersedes it; the review is still saved against it.
  */
@@ -416,7 +416,7 @@ export function reviewedRevision(db: Reader, run: PlanningRun): StoredRevision {
   return reviewed;
 }
 
-/** A `spec_review` run's request (D3, D5). */
+/** A `spec_review` run's request. */
 export function reviewSpecRequest(
   db: Reader,
   map: MapRecord,
@@ -457,7 +457,7 @@ export function reviewSpecRequest(
             revision: rejected.revision,
             reason: present(rejected.rejectionReason, `Revision ${rejected.id}'s reason`),
           },
-    // The note-directed revisions up to the reviewed one outrank earlier resolutions (S7b-11).
+    // The note-directed revisions up to the reviewed one outrank earlier resolutions.
     noteDirectedRevisions: readNoteDirectedRevisions(db, spec.id).filter(
       (directed) => directed.revision <= revision.revision,
     ),
@@ -465,10 +465,10 @@ export function reviewSpecRequest(
 }
 
 /**
- * A `to_tickets` run's request (D3): the spec's latest approved revision of the run's map and, on
- * a rewrite after a rejection (S7-18), a note (S7b-12) or a failed review (the review repair,
- * slice 7c D4), the set's current version, its failed review's findings and the reason, the note
- * or null (`pendingRewrite`).
+ * A `to_tickets` run's request: the spec's latest approved revision of the run's map and, on
+ * a rewrite after a rejection, a note or a failed review (the review repair),
+ * the set's current version, its failed review's findings and the reason, the note or null
+ * (`pendingRewrite`).
  */
 export function draftTicketSetRequest(
   db: Reader,
@@ -490,7 +490,7 @@ export function draftTicketSetRequest(
     firstTicketNumber: firstTicketNumber(db, specificationId),
     ...reconciliationOf(record, approved.revision, null),
     touchingWaypoints: touchingWaypoints(db, run.mapId, specificationId),
-    // Only approved sets' tickets: a replaced or never-approved set's are not earlier tickets (L213 D-2).
+    // Only approved sets' tickets: a replaced or never-approved set's are not earlier tickets.
     earlierTickets: record.sets
       .filter((set) => set.revision < approved.revision && set.approved)
       .flatMap((set) =>
@@ -569,8 +569,8 @@ function ticketsRefusedAttempt(
 }
 
 /**
- * A `tickets_review` run's request (slice 7c D2): the approved revision, the version under review
- * and the set's directed versions up to it, whose asks the reviewer treats as traced (L180 (2)).
+ * A `tickets_review` run's request: the approved revision, the version under review
+ * and the set's directed versions up to it, whose asks the reviewer treats as traced.
  */
 export function reviewTicketSetRequest(
   db: Reader,

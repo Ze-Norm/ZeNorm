@@ -6,7 +6,7 @@ import type { SpecStage } from "@/lib/specs";
 
 /**
  * A link to one spec stage of a map: with the spec's number when the map wrote several, so the
- * switcher keeps it; the bare stage when it wrote one (D11).
+ * switcher keeps it; the bare stage when it wrote one.
  */
 export function SpecStageLink({
   mapId,

@@ -61,7 +61,7 @@ function rowCounts() {
   };
 }
 
-describe("map-scope to_spec (S7-4, S7-5)", () => {
+describe("map-scope to_spec", () => {
   test("a cleared map's to_spec writes each spec at revision 1, numbered per project, in one go", async () => {
     const first = await draftedSpec(context, project);
     const mapId = await clearedMap(context, project);
@@ -85,7 +85,7 @@ describe("map-scope to_spec (S7-4, S7-5)", () => {
     ]);
     expect(revisions.every((revision) => revision.mapId === mapId)).toBe(true);
     expect(readMapRevisions(context.db, first.mapId)).toHaveLength(1);
-    // Each draft gets its own spec-scoped review (S7-6).
+    // Each draft gets its own spec-scoped review.
     const reviews = runsOf(context, mapId).filter((run) => run.purpose === "spec_review");
     expect(reviews.map((run) => run.state)).toEqual(["running", "running"]);
     expect(new Set(reviews.map((run) => run.specificationId)).size).toBe(2);
@@ -108,7 +108,7 @@ describe("map-scope to_spec (S7-4, S7-5)", () => {
     ],
     ["a clause with no source", { ...SPEC, clauses: [{ ...clause, sources: [] }] }],
     [
-      "a source naming a note while no revision is note-directed (S7b-11)",
+      "a source naming a note while no revision is note-directed",
       { ...SPEC, clauses: [{ ...clause, sources: [{ kind: "note" }] }] },
     ],
     [
@@ -116,21 +116,18 @@ describe("map-scope to_spec (S7-4, S7-5)", () => {
       { ...SPEC, clauses: [{ ...clause, criteria: [{ id: "1.1", text: "x", was: "1.2" }] }] },
     ],
     [
-      "a clause relying on nothing and adding nothing (RC1)",
+      "a clause relying on nothing and adding nothing",
       { ...SPEC, clauses: [{ ...clause, reliesOn: [], adds: [] }] },
     ],
     [
-      "a reliance neither FACTS nor the source has (RC1)",
+      "a reliance neither FACTS nor the source has",
       { ...SPEC, clauses: [{ ...clause, reliesOn: [{ name: "export_failed", path: null }] }] },
     ],
     [
-      "a reliance in a file that is not the project's (RC1)",
+      "a reliance in a file that is not the project's",
       { ...SPEC, clauses: [{ ...clause, reliesOn: [{ name: "Repo", path: "src/missing.ts" }] }] },
     ],
-    [
-      "an addition FACTS already defines (RC1)",
-      { ...SPEC, clauses: [{ ...clause, adds: ["Repo"] }] },
-    ],
+    ["an addition FACTS already defines", { ...SPEC, clauses: [{ ...clause, adds: ["Repo"] }] }],
   ])("%s fails the run spec_content_invalid and writes nothing", async (_name, content) => {
     const mapId = await clearedMap(context, project);
     const run = runningMapRun(context, mapId);
@@ -150,7 +147,7 @@ describe("map-scope to_spec (S7-4, S7-5)", () => {
   });
 });
 
-test("zero specs on a first clear fail the run spec_content_invalid and write nothing (S7b-8)", async () => {
+test("zero specs on a first clear fail the run spec_content_invalid and write nothing", async () => {
   const mapId = await clearedMap(context, project);
   const run = runningMapRun(context, mapId);
   expect(recordSpecs(context.user, context.db, run.id, { specs: [], waits: [] })).toMatchObject({
@@ -164,7 +161,7 @@ test("zero specs on a first clear fail the run spec_content_invalid and write no
   });
 });
 
-test("a wait fails the run spec_content_invalid and writes nothing until waits are recorded (S8b-5)", async () => {
+test("a wait fails the run spec_content_invalid and writes nothing until waits are recorded", async () => {
   const mapId = await clearedMap(context, project);
   const run = runningMapRun(context, mapId);
   const outcome = {
@@ -182,7 +179,7 @@ test("a wait fails the run spec_content_invalid and writes nothing until waits a
   });
 });
 
-describe("spec_review (S7-6)", () => {
+describe("spec_review", () => {
   test("a review with no finding passes, pinned to the revision", async () => {
     const { mapId, specRevisionId } = await reviewedSpec(context, project);
     const stored = reviewOf(context, specRevisionId);
@@ -191,7 +188,7 @@ describe("spec_review (S7-6)", () => {
     expect(runsOf(context, mapId).filter((run) => run.state === "running")).toEqual([]);
   });
 
-  test("a review with a revise finding fails and starts the spec's repair (S7-7)", async () => {
+  test("a review with a revise finding fails and starts the spec's repair", async () => {
     const { mapId, specificationId, specRevisionId } = await reviewedSpec(context, project, [
       REVISE_FINDING,
     ]);
@@ -216,12 +213,12 @@ describe("spec_review (S7-6)", () => {
     });
     expect(recorded).toMatchObject({ ok: false, error: { code: "review_reference_unknown" } });
     expect(context.db.select().from(specReviews).all()).toEqual([]);
-    // The failed first attempt gets its retry (S6a-12 for spec-scoped runs, S7-19).
+    // The failed first attempt gets its retry, for spec-scoped runs too.
     expect(runningSpecRun(context, mapId, "spec_review").retryOfRunId).toBe(run.id);
   });
 });
 
-describe("spec.approve (S7-11)", () => {
+describe("spec.approve", () => {
   test("spec_revision_not_found for an unknown revision", () => {
     expect(
       approveSpecRevision(context.user, context.db, { specRevisionId: UNKNOWN_ID }),
@@ -262,7 +259,7 @@ describe("spec.approve (S7-11)", () => {
 
   test("map_uncleared while the map's to_spec runs", async () => {
     const { mapId, specRevisionId } = await reviewedSpec(context, project);
-    // A map-scope to_spec running on the map (03's re-clear) refuses the decision.
+    // A map-scope to_spec running on the map (the re-clear) refuses the decision.
     const second = await clearedMap(context, project);
     writeTestData(context, (tx) =>
       tx
@@ -278,7 +275,7 @@ describe("spec.approve (S7-11)", () => {
   });
 });
 
-describe("spec.reject (S7-12)", () => {
+describe("spec.reject", () => {
   test("supersedes the draft with the reason and starts the spec's repair", async () => {
     const { mapId, specificationId, specRevisionId } = await reviewedSpec(context, project);
     const reason = RejectSpecInput.shape.reason.parse("  Split it.  ");
@@ -306,7 +303,7 @@ describe("spec.reject (S7-12)", () => {
   });
 });
 
-describe("to_tickets and ticketSet decisions (S7-13 shape, S7-17, S7-18)", () => {
+describe("to_tickets and ticketSet decisions", () => {
   test("to_tickets writes version 1 awaiting review", async () => {
     const { ticketSetId } = await draftedTicketSet(context, project);
     const [set] = context.db.select().from(ticketSets).all();
@@ -314,7 +311,7 @@ describe("to_tickets and ticketSet decisions (S7-13 shape, S7-17, S7-18)", () =>
     expect(readSetVersion(context.db, ticketSetId, 1).content).toEqual(TICKETS);
   });
 
-  test("tickets not numbered from T1 are refused, writing nothing (S8b-12, replacing L137)", async () => {
+  test("tickets not numbered from T1 are refused, writing nothing", async () => {
     const { mapId, specRevisionId } = await reviewedSpec(context, project);
     expect(approveSpecRevision(context.user, context.db, { specRevisionId }).ok).toBe(true);
     const run = runningSpecRun(context, mapId, "to_tickets");
@@ -352,7 +349,7 @@ describe("to_tickets and ticketSet decisions (S7-13 shape, S7-17, S7-18)", () =>
     const { mapId, specRevisionId } = await reviewedSpec(context, project);
     expect(approveSpecRevision(context.user, context.db, { specRevisionId }).ok).toBe(true);
     const run = runningSpecRun(context, mapId, "to_tickets");
-    // A set whose spec's to_tickets still runs (04's rewrite) refuses both decisions.
+    // A set whose spec's to_tickets still runs (the rewrite) refuses both decisions.
     const ticketSetId = insertTicketSet(context, {
       specRevisionId,
       runId: run.id,
@@ -405,7 +402,7 @@ describe("to_tickets and ticketSet decisions (S7-13 shape, S7-17, S7-18)", () =>
       value: mapId,
     });
     expect(runningSpecRun(context, mapId, "to_tickets").specificationId).toBe(specificationId);
-    // The rejected version stays review_passed until its rewrite writes version 2 (L32).
+    // The rejected version stays review_passed until its rewrite writes version 2.
     const [set] = context.db.select().from(ticketSets).all();
     expect(set).toMatchObject({ state: "review_passed", version: 1 });
   });

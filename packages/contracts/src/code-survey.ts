@@ -3,10 +3,10 @@ import { z } from "zod";
 import type { ModelLimits } from "./model-limits.ts";
 
 /**
- * The code survey (harness change #1): what a map's `survey` run read of the project's code once
- * its destination was confirmed, stored on the map so every later planning run reads the same code
- * facts instead of rediscovering them. Every fact and identifier carries the file and line it was
- * read from; core refuses a survey naming a path or line the project does not have.
+ * The code survey: what a map's `survey` run read of the project's code once its destination was
+ * confirmed, stored on the map so every later planning run reads the same code facts instead of
+ * rediscovering them. Every fact and identifier carries the file and line it was read from; core
+ * refuses a survey naming a path or line the project does not have.
  */
 
 /** The most areas one survey names. */

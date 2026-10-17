@@ -71,9 +71,9 @@ import { write } from "./writes.ts";
 export type StoredHatchMessage = typeof hatchMessages.$inferSelect;
 
 /**
- * Core's fixed reply for each D4 refusal (S7b-5): stored as the message's reply, with the code as
- * its `refusal`, in place of the agent's reply; each applier chooses only the code. A
- * `spec_in_flight` refusal's reply is chosen from `SPEC_IN_FLIGHT_SENTENCES` instead.
+ * Core's fixed reply for each refusal: stored as the message's reply, with the code as its
+ * `refusal`, in place of the agent's reply; each applier chooses only the code. A `spec_in_flight`
+ * refusal's reply is chosen from `SPEC_IN_FLIGHT_SENTENCES` instead.
  */
 export const REFUSAL_SENTENCES: Readonly<Record<Exclude<HatchRefusal, "spec_in_flight">, string>> =
   {
@@ -97,8 +97,8 @@ export const REFUSAL_SENTENCES: Readonly<Record<Exclude<HatchRefusal, "spec_in_f
   };
 
 /**
- * The `spec_in_flight` reply by the change refused and the work in flight on its spec (L180 (1),
- * `specWork`): a ticket note speaks of the tickets, and only a stop mentions Try again (L163).
+ * The `spec_in_flight` reply by the change refused and the work in flight on its spec (as
+ * `specWork` reads it): a ticket note speaks of the tickets, and only a stop mentions Try again.
  */
 export const SPEC_IN_FLIGHT_SENTENCES: Readonly<
   Record<"revise_spec" | "rewrite_tickets", Record<"working" | "stopped" | "delivering", string>>
@@ -121,13 +121,13 @@ export const SPEC_IN_FLIGHT_SENTENCES: Readonly<
   },
 };
 
-/** The holds a note waits on (S8b-7); a `delivering` hold refuses it `spec_in_flight`. */
+/** The holds a note waits on; a `delivering` hold refuses it `spec_in_flight`. */
 export type WaitHoldKind = Exclude<SpecHoldKind, "delivering">;
 
 /**
- * Core's reply when a `revise_spec` note waits (S8b-7; spec D16, tickets review Q3), by the hold it
- * waits on: stored as the message's reply with `refusal` and `change` null. “X” is the spec, “H”
- * the holder and rN the hold's revision.
+ * Core's reply when a `revise_spec` note waits, by the hold it waits on: stored as the message's
+ * reply with `refusal` and `change` null. “X” is the spec, “H” the holder and rN the hold's
+ * revision.
  */
 export const SPEC_WAIT_SENTENCES: Readonly<
   Record<WaitHoldKind, (wait: { spec: string; holder: string; revision: number }) => string>
@@ -142,8 +142,8 @@ export const SPEC_WAIT_SENTENCES: Readonly<
 
 /**
  * The reply stored for a refused change: `SPEC_IN_FLIGHT_SENTENCES` for `spec_in_flight`, by
- * `noteWork` read in the refusing transaction, else `REFUSAL_SENTENCES`. Only the two note changes are refused
- * `spec_in_flight`, on the message's spec; anything else is a programmer error.
+ * `noteWork` read in the refusing transaction, else `REFUSAL_SENTENCES`. Only the two note changes
+ * are refused `spec_in_flight`, on the message's spec; anything else is a programmer error.
  */
 function refusalSentence(
   tx: Tx,
@@ -171,13 +171,13 @@ function refusalSentence(
 }
 
 /**
- * What an applier did with its change (S7b-4): applied it (its writes are in the transaction),
- * refused it with a D4 code, or found it invalid with the problem the run fails with (07's blocker
- * cycle and fog settlement). An applier writes nothing unless it returns `applied`.
+ * What an applier did with its change: applied it (its writes are in the transaction), refused it
+ * with a refusal code, or found it invalid with the problem the run fails with (a blocker cycle, a
+ * bad fog settlement). An applier writes nothing unless it returns `applied`.
  */
 export type HatchApplied =
   | { readonly result: "applied" }
-  /** A `revise_spec` note recorded as the map's wait on a held spec (S8b-7), with the hold. */
+  /** A `revise_spec` note recorded as the map's wait on a held spec, with the hold. */
   | { readonly result: "waited"; readonly hold: SpecHold & { readonly kind: WaitHoldKind } }
   | { readonly result: "refused"; readonly refusal: HatchRefusal }
   | {
@@ -189,7 +189,7 @@ export type HatchApplied =
 
 /**
  * What an applier reads besides its change: the hatch run, the message it answers, and the actor
- * the outcome is written as (a run it inserts is attributed by it, S9-11).
+ * the outcome is written as (a run it inserts is attributed by it).
  */
 export interface HatchApplyContext {
   readonly actor: Actor;
@@ -197,19 +197,19 @@ export interface HatchApplyContext {
   readonly message: StoredHatchMessage;
 }
 
-/** Applies one D3 change kind in the outcome's transaction. */
+/** Applies one change kind in the outcome's transaction. */
 export type HatchApplier<K extends HatchChange["kind"]> = (
   tx: Tx,
   context: HatchApplyContext,
   change: Extract<HatchChange, { kind: K }>,
 ) => HatchApplied;
 
-/** One applier per D3 change kind. */
+/** One applier per change kind. */
 export type HatchAppliers = { readonly [K in HatchChange["kind"]]: HatchApplier<K> };
 
 /**
- * The appliers: reopen (06), the waypoint directions (07), the spec and ticket notes (08), and a
- * proposal of a new map (map proposals).
+ * The appliers: reopen, the waypoint directions, the spec and ticket notes, and a proposal of a new
+ * map.
  */
 export const HATCH_APPLIERS: HatchAppliers = {
   reopen: applyReopen,
@@ -233,7 +233,10 @@ function runMessage(db: Reader, run: PlanningRun): StoredHatchMessage {
   return message;
 }
 
-/** What runs on a spec (D2, D4's `spec_in_flight`): its running planning runs and an active delivery. */
+/**
+ * What runs on a spec (for the `spec_in_flight` refusal): its running planning runs and an active
+ * delivery.
+ */
 function inFlight(
   db: Reader,
   runs: readonly PlanningRun[],
@@ -243,8 +246,8 @@ function inFlight(
   const work = new Set<HatchSpecWork>();
   const scope = specRuns(runs, specificationId);
   const latest = scope.at(-1);
-  // A stopped spec scope is in flight, as D4's `spec_in_flight` reads it, until Try again or a
-  // supersession ends the stop (L158, L162 (7)).
+  // A stopped spec scope is in flight, as the `spec_in_flight` refusal reads it, until Try again or
+  // a supersession ends the stop.
   const shown = scopeRun(scope);
   const stopped =
     shown !== null && shown !== "working" && latest !== undefined
@@ -271,9 +274,9 @@ function inFlight(
 }
 
 /**
- * The problem core failed the previous attempt at this message with (L142): the message's run
- * just before `run` (a retry, or a fresh run after Try again) when it failed `hatch_change_invalid`;
- * null otherwise.
+ * The problem core failed the previous attempt at this message with: the message's run just before
+ * `run` (a retry, or a fresh run after Try again) when it failed `hatch_change_invalid`; null
+ * otherwise.
  */
 function refusedAttempt(
   runs: readonly PlanningRun[],
@@ -287,7 +290,7 @@ function refusedAttempt(
   return { problem: present(previous.errorMessage, `Failed run ${previous.id}'s message`) };
 }
 
-/** A `hatch` run's request (spec D2), built from the stored records. */
+/** A `hatch` run's request, built from the stored records. */
 export function hatchRequest(
   db: Reader,
   run: PlanningRun,
@@ -329,7 +332,7 @@ export function hatchRequest(
     destination: map.destination,
     mapRounds,
     waypoints: readWaypoints(db, map.id).map((waypoint) => {
-      // The report an unanswered research waypoint waits on (L162 (4)).
+      // The report an unanswered research waypoint waits on.
       const unansweredReport = (runId: string) => {
         const report = reports.find((candidate) => candidate.runId === runId);
         if (report === undefined) {
@@ -352,7 +355,7 @@ export function hatchRequest(
         agentDecided: waypoint.agentDecided,
         waiting: waiting === null ? null : waiting.reason,
         report: waiting?.reason === "research_unanswered" ? unansweredReport(waiting.runId) : null,
-        // As `run_waypoint`'s applier reads a stopped waypoint (L157, L164).
+        // As `run_waypoint`'s applier reads a stopped waypoint.
         stopped: waypoint.status === "open" && stoppedRun(scopeRuns(runs, waypoint.id)) !== null,
       };
     }),
@@ -362,7 +365,7 @@ export function hatchRequest(
     specs: readMapSpecs(db, map.id).map((spec) => {
       const revisions = readSpecRevisions(db, spec.id);
       const latest = latestOf(revisions);
-      // The set is written for the spec's approved revision on this map (S7-14).
+      // The set is written for the spec's approved revision on this map.
       const approved = revisions
         .filter((revision) => revision.mapId === map.id && revision.approvedAt !== null)
         .at(-1);
@@ -376,7 +379,7 @@ export function hatchRequest(
             : {
                 version: set.version,
                 state: set.state,
-                // The one read of the set's review (slice 7c D8, D11).
+                // The one read of the set's review.
                 ...hatchTicketsReview(ticketSetReview(db, specRuns(runs, spec.id), set, true)),
               },
         inFlight: inFlight(db, runs, clearing, spec.id),
@@ -430,11 +433,11 @@ function namedWaypoints(change: HatchChange): number[] {
 }
 
 /**
- * The dispatcher's check before any applier (S7b-4): every waypoint number the change names is on
- * the map, and every fog position its settlement names is a fog item, each used once; the first
- * such problem fails the run `hatch_change_invalid`. A `propose_map` whose draft idea or line is
- * outside its stored bounds fails it `agent_output_invalid`, as a Wayfinding run's proposal does
- * (map proposals). Null when there is none.
+ * The dispatcher's check before any applier: every waypoint number the change names is on the map,
+ * and every fog position its settlement names is a fog item, each used once; the first such problem
+ * fails the run `hatch_change_invalid`. A `propose_map` whose draft idea or line is outside its
+ * stored bounds fails it `agent_output_invalid`, as a Wayfinding run's proposal does. Null when
+ * there is none.
  */
 function changeProblem(db: Reader, mapId: string, change: HatchChange): RunFailure | null {
   const numbers = new Set(readWaypoints(db, mapId).map((waypoint) => waypoint.number));
@@ -523,10 +526,10 @@ function storeReply(
 }
 
 /**
- * Saves a `hatch` run's outcome (S7b-4, S7b-5) with the given appliers, in one transaction: a run
- * cancelled while its call was out saves nothing; a reply outside 1–2000 characters fails the run
+ * Saves a `hatch` run's outcome with the given appliers, in one transaction: a run cancelled while
+ * its call was out saves nothing; a reply outside 1–2000 characters fails the run
  * `agent_output_invalid`; a change naming an unknown waypoint or fog position, or one its applier
- * finds invalid, fails it with the problem (retried, L142); otherwise the reply is stored with the
+ * finds invalid, fails it with the problem (retried); otherwise the reply is stored with the
  * applied change, or core's sentence and the code when the applier refuses (not retried), and the
  * run completes. Nothing is written before a failure.
  */
@@ -541,7 +544,7 @@ export function recordHatchReplyWith(
   return (actor, db, runId, outcome) =>
     write(db, actor, (tx): Result<null, RunFailure> => {
       if (isReplaced(tx, runId)) {
-        // A run cancelled while its call was out saves nothing and is not retried (S7b-6).
+        // A run cancelled while its call was out saves nothing and is not retried.
         return ok(null);
       }
       const run = runningRun(tx, runId);
@@ -581,7 +584,7 @@ export function recordHatchReplyWith(
             storeReply(tx, run, message, { text: outcome.reply, refusal: null, change });
             break;
           case "waited":
-            // A wait is not refused, and nothing is applied until its release run (Q3).
+            // A wait is not refused, and nothing is applied until its release run.
             storeReply(tx, run, message, {
               text: SPEC_WAIT_SENTENCES[applied.hold.kind]({
                 spec: latestOf(
@@ -605,5 +608,5 @@ export function recordHatchReplyWith(
     });
 }
 
-/** Saves a `hatch` run's outcome with the D3 appliers (S7b-4). */
+/** Saves a `hatch` run's outcome with the change appliers. */
 export const recordHatchReply = recordHatchReplyWith(HATCH_APPLIERS);

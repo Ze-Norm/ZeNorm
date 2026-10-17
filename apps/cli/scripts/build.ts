@@ -11,7 +11,7 @@ import { MINIMUM_NODE_VERSION, PACKAGED_ASSET_DIRS } from "../src/packaged.ts";
 
 /**
  * Builds `@ze-norm/cli` into `dist/`: the `zenorm` bin bundled to one JavaScript file, with the
- * repository's skills, migrations and web build copied beside it (C1). better-sqlite3 stays a
+ * repository's skills, migrations and web build copied beside it. better-sqlite3 stays a
  * real dependency, loaded from the installed package's `node_modules`.
  */
 

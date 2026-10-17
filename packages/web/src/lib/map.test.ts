@@ -18,7 +18,7 @@ function you(spec: number): NextAction {
   };
 }
 
-describe("overviewActions (S7b-16, L143)", () => {
+describe("overviewActions", () => {
   it("shows up to two actions as cards and lists the rest under Also in motion", () => {
     const three = [you(1), you(2), you(3)];
     expect(overviewActions(three)).toEqual({ cards: [you(1), you(2)], rest: [you(3)] });

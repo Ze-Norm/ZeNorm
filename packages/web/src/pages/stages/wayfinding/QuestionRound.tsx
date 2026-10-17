@@ -48,7 +48,7 @@ function keyTarget(element: EventTarget): KeyTarget {
 }
 
 /**
- * The open question round (spec D10), for the map round and every waypoint round: earlier rounds
+ * The open question round, for the map round and every waypoint round: earlier rounds
  * in the record form, the agent's intro, one card per question and the sticky footer. The page
  * renders the head (eyebrow, title, question) above Wayfinding's index, as every stage's head.
  * Keys follow `keyAction`. The submit is this round's own, so a later round (a new key) is never
@@ -175,8 +175,7 @@ export function QuestionRound({
         </ol>
         {refusal}
         {/* The footer floats over the cards while they scroll; the shadow reads as that layer, and
-            its top margin keeps the last card clear of it once the page is scrolled to the end
-            (UX audit E4). */}
+            its top margin keeps the last card clear of it once the page is scrolled to the end. */}
         <div className="sticky bottom-0 z-20 mt-3 grid gap-1.5 border-t border-hair-strong bg-background py-3 shadow-[0_-12px_16px_-12px_rgba(26,26,26,0.18)]">
           <div className="flex flex-wrap items-center gap-4">
             <span className="text-[13px] text-muted-foreground">

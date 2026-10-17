@@ -25,10 +25,10 @@ import {
 import { e2eRoot, repo, SEEDED_FILE } from "./fixture.ts";
 
 /**
- * The example composition's flows (S9-20), on one server and one database, in order: the access
- * denial, first thing after the server starts (CR9b-1); the slots, the raw route and the
- * subscriber's count; the admission refusal; a delivery run through the `example` executor; and
- * the set-mismatch page of a web build composed without the plugin.
+ * The example composition's flows, on one server and one database, in order: the access denial,
+ * first thing after the server starts; the slots, the raw route and the subscriber's count; the
+ * admission refusal; a delivery run through the `example` executor; and the set-mismatch page of a
+ * web build composed without the plugin.
  */
 test.describe.configure({ mode: "serial" });
 
@@ -71,7 +71,7 @@ test("first thing after start, a project deniedProjectNames names, and its map, 
   await expect(page.getByRole("region", { name: "No projects" })).toBeVisible();
   await expect(page.getByText("denied-repo")).toHaveCount(0);
 
-  // The refusal is the error page (UX review P2-19): its heading, then the access sentence.
+  // The refusal is the error page: its heading, then the access sentence.
   await page.goto(`/projects/${String(projectId)}`);
   await expect(page.getByRole("heading", { level: 1, name: "Access denied" })).toBeVisible();
   await expect(
@@ -84,7 +84,7 @@ test("first thing after start, a project deniedProjectNames names, and its map, 
     page.getByText(`You do not have access to project ${String(projectId)}.`),
   ).toBeVisible();
 
-  // The plugin's own counts route leaves the denied project out too (CR9b-13).
+  // The plugin's own counts route leaves the denied project out too.
   expect(Object.keys((await counts(page)).projects)).not.toContain(String(projectId));
 });
 

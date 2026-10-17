@@ -74,15 +74,15 @@ function contentInvalid(message: string): RunFailure {
 }
 
 /**
- * The first problem of a revision's content (D2, S7-5), or null; `earlier` holds the spec's
- * revisions before it, oldest first (none for revision 1). Clause ids `C<n>` and criterion ids
- * `<n>.<k>` under their clause, unique; no id that an earlier revision used but the revision
- * before dropped (a retired id); `was` names an id of the revision before that this revision
- * drops; a clause new in the revision has a source (a kept clause may list none); every waypoint
- * source is resolved on the map; a note source only when `noted`: the revision or an earlier one
- * of the spec is note-directed (S7b-11). A kept id with new wording passes: the review judges it
- * (D5). Then the lint (`specLintProblem`): criterion order, conditional and silent-default
- * phrasing, nested backticks, every problem in one message.
+ * The first problem of a revision's content, or null; `earlier` holds the spec's revisions before
+ * it, oldest first (none for revision 1). Clause ids `C<n>` and criterion ids `<n>.<k>` under their
+ * clause, unique; no id that an earlier revision used but the revision before dropped (a retired
+ * id); `was` names an id of the revision before that this revision drops; a clause new in the
+ * revision has a source (a kept clause may list none); every waypoint source is resolved on the
+ * map; a note source only when `noted`: the revision or an earlier one of the spec is
+ * note-directed. A kept id with new wording passes: the review judges it. Then the lint
+ * (`specLintProblem`): criterion order, conditional and silent-default phrasing, nested backticks,
+ * every problem in one message.
  */
 export function revisionProblem(
   content: SpecRevisionContent,
@@ -92,7 +92,9 @@ export function revisionProblem(
 ): RunFailure | null {
   const parsed = SpecRevisionContent.safeParse(content);
   if (!parsed.success) {
-    return contentInvalid(`The revision breaks D2: ${parsed.error.message}`);
+    return contentInvalid(
+      `The revision breaks the skill's "The document" rules: ${parsed.error.message}`,
+    );
   }
   const before = earlier.at(-1);
   const kept = before === undefined ? new Set<string>() : elementIds(before);
@@ -155,7 +157,7 @@ export function revisionProblem(
 }
 
 /**
- * The problem of a repair's declared removals (RC4), or null: the ids it actually drops (every id
+ * The problem of a repair's declared removals, or null: the ids it actually drops (every id
  * of `before`, the spec's latest revision, that `content` lacks, a dropped clause's criteria and a
  * moved criterion's old id included) must be exactly the declared ids, each declared once. Every
  * mismatch, either way, is named in one message.
@@ -192,7 +194,7 @@ export function removalsProblem(
 }
 
 /**
- * The next id unused by every revision of the spec, in place of a retired `id` (E-3): the next
+ * The next id unused by every revision of the spec, in place of a retired `id`: the next
  * clause number, or the next criterion number under the criterion's clause.
  */
 function nextFree(id: string, earlier: readonly SpecRevisionContent[]): string {
@@ -219,7 +221,7 @@ function resolvedNumbers(mapWaypoints: readonly Waypoint[]): Set<number> {
 }
 
 /**
- * Whether the next revision after the spec's latest may cite a note (S7b-11, L151): a revision of
+ * Whether the next revision after the spec's latest may cite a note: a revision of
  * the spec is note-directed, or a note superseded the latest, so the next is.
  */
 function isNoted(db: Reader, latest: StoredRevision): boolean {
@@ -230,14 +232,14 @@ function isNoted(db: Reader, latest: StoredRevision): boolean {
 }
 
 /**
- * Writes the run's revision of the spec whose latest revision is `latest` (S7-7, D6; slice 8b D4).
+ * Writes the run's revision of the spec whose latest revision is `latest`.
  * A draft of the run's map no one has acted on (neither approved nor superseded: no rejection, no
- * note) is rewritten in place (`rewriteDraft`, L241): an agent's repair or re-clear of it is no new
- * revision. Else the spec's next revision is inserted; an approved revision stays approved (S8b-3,
- * L125 (3)). In the same transaction every running `to_tickets` and `tickets_review` on the spec
- * ends `cancelled`, `replaced`: its set is replaced by the newer revision and its late result saves
- * nothing (S8b-9, issue 24 item 1; another map's such run is a `tickets` hold, so it is this
- * map's). The map's open wait on the spec closes, released by the run (S8b-5).
+ * note) is rewritten in place (`rewriteDraft`): an agent's repair or re-clear of it is no new
+ * revision. Else the spec's next revision is inserted; an approved revision stays approved. In the
+ * same transaction every running `to_tickets` and `tickets_review` on the spec ends `cancelled`,
+ * `replaced`: its set is replaced by the newer revision and its late result saves nothing (another
+ * map's such run is a `tickets` hold, so it is this map's). The map's open wait on the spec closes,
+ * released by the run.
  */
 function writeNextRevision(
   tx: Tx,
@@ -285,7 +287,7 @@ function writeNextRevision(
 }
 
 /**
- * Rewrites the map's draft in place with the run's content (L241): a new revision needs the person
+ * Rewrites the map's draft in place with the run's content: a new revision needs the person
  * to have acted on the one before (approved, rejected or noted it), so an agent's rewrite of a draft
  * no one has acted on keeps its number and its `created_at`. The run checked `content` against the
  * draft as the revision before; it is stored against the revision before the draft (`asOfBaseline`),
@@ -383,7 +385,7 @@ function asOfBaseline(
 
 /**
  * The ids `baseline` has that `content` drops, each with the reason a run declared for it, in id
- * order (RC4): a rewrite's own removals and the draft's, both checked when written.
+ * order: a rewrite's own removals and the draft's, both checked when written.
  */
 function removedSince(
   baseline: SpecRevisionContent,
@@ -405,9 +407,9 @@ function removedSince(
 
 /**
  * Ends each map's stopped run of one of `purposes` on the spec (its spec scope's latest run, a
- * failed retry) `cancelled`, `replaced`, as a running one is (L206 (3), per L121: a stale run never
- * blocks the newer state): it no longer holds the spec, blocks the newer content's `spec_review` or
- * offers Try again. Its error columns are cleared (a cancelled run has none).
+ * failed retry) `cancelled`, `replaced`, as a running one is (a stale run never blocks the newer
+ * state): it no longer holds the spec, blocks the newer content's `spec_review` or offers Try
+ * again. Its error columns are cleared (a cancelled run has none).
  */
 function cancelStoppedRuns(
   tx: Tx,
@@ -451,11 +453,11 @@ function cancelStoppedRuns(
   }
 }
 
-/** A spec the run may write the next revision of (D6; slice 8b D4). */
+/** A spec the run may write the next revision of. */
 interface TargetSpec {
   readonly number: number;
   readonly latest: StoredRevision;
-  /** Every revision of the spec, oldest first: ids are checked against them all (S7-5). */
+  /** Every revision of the spec, oldest first: ids are checked against them all. */
   readonly revisions: readonly StoredRevision[];
   /** Whether its next revision may cite a note (`isNoted`). */
   readonly noted: boolean;
@@ -468,19 +470,18 @@ function targetOf(db: Reader, spec: StoredSpec): TargetSpec {
 }
 
 /**
- * Records a map-scope `to_spec` run's outcome in one transaction (S7-4, D6, S7-10; slice 8b S8b-3,
- * S8b-5): each new spec (`specNumber` null) numbered per project at revision 1; the next revision
- * of every spec whose latest revision is this map's unapproved one (the re-clear must name each;
- * another map's draft of a spec is a hold, not one to leave out); the next revision of a project
- * spec whose latest revision is approved, on any map, when nothing holds it (`specHold`), leaving
- * that revision approved; an approved spec the run does not name is untouched (L125 (3)). Each
- * wait names a held spec of the project, and records it with the hold seen now or replaces the
- * note of the map's open wait on it; an open wait the run leaves out is kept. Zero specs is
- * accepted when the outcome has a wait, the map wrote specs (all approved, else one is left out),
- * or the map waits on a spec.
- * Output breaking D2 or the id rules (S7-5), naming a spec it may not write, naming one twice,
+ * Records a map-scope `to_spec` run's outcome in one transaction: each new spec (`specNumber` null)
+ * numbered per project at revision 1; the next revision of every spec whose latest revision is this
+ * map's unapproved one (the re-clear must name each; another map's draft of a spec is a hold, not
+ * one to leave out); the next revision of a project spec whose latest revision is approved, on any
+ * map, when nothing holds it (`specHold`), leaving that revision approved; an approved spec the run
+ * does not name is untouched. Each wait names a held spec of the project, and records it with the
+ * hold seen now or replaces the note of the map's open wait on it; an open wait the run leaves out
+ * is kept. Zero specs is accepted when the outcome has a wait, the map wrote specs (all approved,
+ * else one is left out), or the map waits on a spec.
+ * Output breaking the schema or the id rules, naming a spec it may not write, naming one twice,
  * leaving one out, a wait on an unheld spec or a spec named twice fails the run
- * `spec_content_invalid` and writes nothing; the retry carries the problem (S7b-15).
+ * `spec_content_invalid` and writes nothing; the retry carries the problem.
  */
 export function recordSpecs(
   actor: Actor,
@@ -490,7 +491,7 @@ export function recordSpecs(
 ): Result<null, RunFailure> {
   return write(db, actor, (tx): Result<null, RunFailure> => {
     if (isReplaced(tx, runId)) {
-      // A run a reopen cancelled saves nothing and is not retried (S7b-6).
+      // A run a reopen cancelled saves nothing and is not retried.
       return ok(null);
     }
     const run = runningRun(tx, runId);
@@ -501,7 +502,7 @@ export function recordSpecs(
     const projectSpecs = readProjectSpecs(tx, projectId);
     const resolved = resolvedNumbers(readWaypoints(tx, run.mapId));
     const mapSpecs = readMapSpecs(tx, run.mapId);
-    // The re-clear names every spec whose latest revision is this map's unapproved one (D6).
+    // The re-clear names every spec whose latest revision is this map's unapproved one.
     const open: TargetSpec[] = mapSpecs
       .map((spec) => targetOf(tx, spec))
       .filter((spec) => spec.latest.mapId === run.mapId && spec.latest.approvedAt === null);
@@ -588,7 +589,7 @@ export function recordSpecs(
       }
       waits.push({ specificationId: spec.id, note: wait.note, hold });
     }
-    // Specs number per project from 1 (S7-2).
+    // Specs number per project from 1.
     let number = Math.max(0, ...projectSpecs.map((spec) => spec.number));
     const at = now();
     for (const written of outcome.specs) {
@@ -628,7 +629,7 @@ export function recordSpecs(
 /**
  * The spec numbered `specNumber` when the run may write its next revision, else null: one of the
  * map's `open` specs, or a project spec whose latest revision is approved (on any map, this map's
- * included, L125 (3)) and which nothing holds against this map (S8b-3, S8b-4).
+ * included) and which nothing holds against this map.
  */
 function writableSpec(
   tx: Tx,
@@ -652,19 +653,18 @@ function writableSpec(
 }
 
 /**
- * Records a spec-scoped `to_spec` run's revision (S7-7, S7-12; slice 8b D4, S8b-6, S8b-7): the
- * spec's next revision from the run's map. A repair's latest is the map's own unapproved revision,
- * which it supersedes (a rejected or noted latest is already superseded); the new revision is then
- * reviewed. A release run (the wait its `released_by_run` names) or a note run on an approved spec
- * (it carries a message) writes after the latest revision, approved on any map, superseding
- * nothing; it re-reads `specHold` first, and when the spec is held by then (a delivery started,
- * issue 20) it saves nothing, its wait is open (a release run's reopened, a note run's recorded
- * with the note and the hold seen now) and the run ends completed. Ids are checked against every
- * revision of the spec (S7-5). Output breaking D2 or the id rules, citing a note on a spec with
- * no note-directed revision and no note on this run (S7b-11), or whose `removed` is not exactly
- * the ids it drops from the latest (`removalsProblem`, RC4), fails the run `spec_content_invalid`;
- * the revision is stored with its `removed`.
- * A run the re-clear or a reopen ended saves nothing (S7-25, S7b-6).
+ * Records a spec-scoped `to_spec` run's revision: the spec's next revision from the run's map. A
+ * repair's latest is the map's own unapproved revision, which it supersedes (a rejected or noted
+ * latest is already superseded); the new revision is then reviewed. A release run (the wait its
+ * `released_by_run` names) or a note run on an approved spec (it carries a message) writes after
+ * the latest revision, approved on any map, superseding nothing; it re-reads `specHold` first, and
+ * when the spec is held by then (a delivery started) it saves nothing, its wait is open (a release
+ * run's reopened, a note run's recorded with the note and the hold seen now) and the run ends
+ * completed. Ids are checked against every revision of the spec. Output breaking the schema or the
+ * id rules, citing a note on a spec with no note-directed revision and no note on this run, or
+ * whose `removed` is not exactly the ids it drops from the latest (`removalsProblem`), fails the
+ * run `spec_content_invalid`; the revision is stored with its `removed`.
+ * A run the re-clear or a reopen ended saves nothing.
  */
 export function recordRevision(
   actor: Actor,
@@ -725,8 +725,8 @@ export function recordRevision(
       revisions.map((revision) => revision.content),
       isNoted(tx, latest) || (!repair && run.hatchMessageId !== null),
     );
-    // The id rules first, then the declared removals against the latest revision (RC4), then
-    // what each clause relies on and adds (RC1).
+    // The id rules first, then the declared removals against the latest revision, then
+    // what each clause relies on and adds.
     const failure =
       problem ??
       removalsProblem(outcome.removed, latest.content, outcome.revision) ??
@@ -752,7 +752,7 @@ export function mapProjectFolder(db: Reader, mapId: string): string {
 }
 
 /**
- * The problem of a written revision's clause declarations (RC1) against the map's survey and its
+ * The problem of a written revision's clause declarations against the map's survey and its
  * project's files (`referencesProblem`), refused as `spec_content_invalid`, or null.
  */
 function declarationsProblem(
@@ -776,7 +776,7 @@ function mapProjectId(db: Reader, mapId: string): string {
   return row.projectId;
 }
 
-/** The map's closed waypoints as a review read them (D1): resolved or out of scope, with when. */
+/** The map's closed waypoints as a review read them: resolved or out of scope, with when. */
 function reviewSources(db: Reader, mapId: string): SpecReviewSource[] {
   const exclusions = readExclusions(db, mapId);
   return readWaypoints(db, mapId).flatMap((waypoint): SpecReviewSource[] => {
@@ -809,14 +809,14 @@ function reviewSources(db: Reader, mapId: string): SpecReviewSource[] {
 }
 
 /**
- * Records a `spec_review` run's outcome pinned to the reviewed revision (S7-6): `passed` exactly
+ * Records a `spec_review` run's outcome pinned to the reviewed revision: `passed` exactly
  * when it has no finding. A finding naming a clause or criterion the revision lacks, or a waypoint
- * not resolved on the map, fails the run `review_reference_unknown` and writes nothing (L132 (a)).
+ * not resolved on the map, fails the run `review_reference_unknown` and writes nothing.
  * Its escalated findings each open (or link) a Grilling waypoint in the same transaction
  * (`escalatedPositions`, never a waypoint another finding of the same review went to); past
  * `SPEC_REVIEW_FAILED_CAP` every finding escalates at once, the `decision` ones to the person, and
- * past `SPEC_REVIEW_PERSON_CAP` all of them (RC4); a failed, unescalated, revise-only review makes a
- * repair due (S7-7).
+ * past `SPEC_REVIEW_PERSON_CAP` all of them; a failed, unescalated, revise-only review makes a
+ * repair due.
  */
 export function recordSpecReview(
   actor: Actor,
@@ -826,7 +826,7 @@ export function recordSpecReview(
 ): Result<null, RunFailure> {
   return write(db, actor, (tx): Result<null, RunFailure> => {
     if (isReplaced(tx, runId)) {
-      // A review a reopen cancelled saves nothing and is not retried (S7b-6).
+      // A review a reopen cancelled saves nothing and is not retried.
       return ok(null);
     }
     const run = runningRun(tx, runId);

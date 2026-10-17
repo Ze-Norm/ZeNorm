@@ -3,7 +3,7 @@ import { Slot } from "radix-ui";
 
 import { cn } from "@/lib/utils";
 
-// Round 3 cards: square, a strong hairline border, no shadow or built-in padding; each use sets
+// Cards: square, a strong hairline border, no shadow or built-in padding; each use sets
 // its own layout and spacing.
 function Card({
   className,

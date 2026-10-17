@@ -32,7 +32,7 @@ export function e2eRoot(): string {
 }
 
 /**
- * Where each `node src/main.ts` the e2e spawns is recorded (CR-10): a file under the run's root
+ * Where each `node src/main.ts` the e2e spawns is recorded: a file under the run's root
  * named by the pid, holding the folder to remove with it. Whoever stops the server removes the
  * file; one left here means a worker died first, and the global teardown kills that pid.
  */
@@ -196,7 +196,7 @@ export function nestedInnerRepo(): string {
 }
 
 /**
- * The delivery flows of `completion.spec.ts`; each adds its own project (slice 8 ticket 10).
+ * The delivery flows of `completion.spec.ts`; each adds its own project.
  * `pull-request`'s repository has an `origin` on github.com (`GITHUB_ORIGIN_URL`), whose pushes
  * land in `pushTargetRepo()`.
  */
@@ -228,7 +228,7 @@ export function pushTargetRepo(): string {
   return join(e2eRoot(), "github-origin.git");
 }
 
-/** The folder holding the fake `gh`, first on the worker server's `PATH` (2.4). */
+/** The folder holding the fake `gh`, first on the worker server's `PATH`. */
 export function ghBinDir(): string {
   return join(e2eRoot(), "gh-bin");
 }
@@ -238,13 +238,13 @@ export function ghStateDir(): string {
   return join(e2eRoot(), "gh-state");
 }
 
-/** Makes the fake gh report pull request `number` merged on GitHub (C4). */
+/** Makes the fake gh report pull request `number` merged on GitHub. */
 export function reportPullRequestMerged(number: number): void {
   writeFileSync(join(ghStateDir(), `pr-${String(number)}`), "MERGED");
 }
 
 /**
- * A stand-in for the GitHub CLI (2.4), kept in `ghBinDir()`: every call appends its arguments as
+ * A stand-in for the GitHub CLI, kept in `ghBinDir()`: every call appends its arguments as
  * one line to `<state>/calls`. `gh auth status` succeeds; `gh pr create` numbers the pull request
  * from 1 and prints its URL on its `--repo`; `gh pr view <url> --json state` prints the state in
  * `<state>/pr-<number>`, `OPEN` when there is none. Any other call exits 2.
@@ -287,7 +287,7 @@ export function releaseRunReleaseFile(): string {
   return join(e2eRoot(), "fake-release-run-release");
 }
 
-/** The revision flows of `revisions.spec.ts`; each adds its own project (slice 8b ticket 10). */
+/** The revision flows of `revisions.spec.ts`; each adds its own project. */
 export const REVISION_FLOWS = [
   "revise",
   "departure",

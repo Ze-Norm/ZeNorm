@@ -10,7 +10,7 @@ import type { StartedZeNorm, StartupInput, ZeNormAssets } from "./startup.ts";
 
 /**
  * What an entry composes: its arguments, its assets, its config fallback and its server plugins,
- * in order (S9-18).
+ * in order.
  */
 export interface ServeOptions extends ZeNormAssets {
   /** The arguments `--config` is read from: the process's, or those after `zenorm run`. */
@@ -32,7 +32,7 @@ function logError(message: string, error: unknown): void {
 /** Prints a startup refusal as one JSON line `{ code, message, subject }` to stderr. */
 export function printRefusal(error: StartupError): void {
   const { code, message, subject } = error;
-  // `plugin_start_failed` names its plugin and phase too (CR9b-11).
+  // `plugin_start_failed` names its plugin and phase too.
   const line =
     "data" in error ? { code, message, subject, data: error.data } : { code, message, subject };
   console.error(JSON.stringify(line));
@@ -135,8 +135,8 @@ function handleShutdown({ db, app }: StartedZeNorm, server: ServerType): void {
     let closeFailed = false;
     void shutDown({
       closeServer: async () => {
-        // Open `/events` streams would hold the close; end them first (S9-15). A keep-alive
-        // connection still serving a request is ended at the bound (S9-14b item 15).
+        // Open `/events` streams would hold the close; end them first. A keep-alive
+        // connection still serving a request is ended at the bound.
         app.closeStreams();
         const closed = await closeHttpServer(server, SERVER_CLOSE_BOUND_MS);
         if (closed.forced) {
@@ -157,7 +157,7 @@ function handleShutdown({ db, app }: StartedZeNorm, server: ServerType): void {
       },
     }).then(() => {
       // Exit explicitly: an executor or plugin past its stop bound may still hold open handles
-      // (a socket, a timer, a child) that would keep the process alive (CR9b-18).
+      // (a socket, a timer, a child) that would keep the process alive.
       const code = closeFailed ? 1 : 0;
       console.log(`ZeNorm stopped; exiting with code ${String(code)}`);
       process.exit(code);

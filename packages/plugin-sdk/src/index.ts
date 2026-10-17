@@ -1,8 +1,8 @@
 /**
- * The plugin SDK (slice 9 spec S9-18, D16, S9-22): the only ZeNorm API a plugin imports, beside
- * `@zenorm/contracts`. A plugin is one package with a server entry (`definePlugin`) and, when it
- * renders anything, a web entry (`defineWebPlugin`). The app composes both in code:
- * `createApp({ plugins })` and `createWebApp({ plugins })`.
+ * The plugin SDK: the only ZeNorm API a plugin imports, beside `@zenorm/contracts`. A plugin is one
+ * package with a server entry (`definePlugin`) and, when it renders anything, a web entry
+ * (`defineWebPlugin`). The app composes both in code: `createApp({ plugins })` and `createWebApp({
+ * plugins })`.
  */
 import type {
   ChangeEntityType,
@@ -75,7 +75,7 @@ export interface PluginManifest {
   readonly sdk: string;
 }
 
-/** A subscriber key: one change-feed table, or `*` for every row (SDK §3.4). */
+/** A subscriber key: one change-feed table, or `*` for every row. */
 export type SubscriberKey = ChangeEntityType | "*";
 
 /**
@@ -86,8 +86,8 @@ export type SubscriberKey = ChangeEntityType | "*";
 export type Subscriber = (event: ChangeEvent) => void;
 
 /**
- * What a plugin's `seams` and `subscribers` receive beside its config (CR9b-1): reads of the
- * server's own data, made at call time.
+ * What a plugin's `seams` and `subscribers` receive beside its config: reads of the server's own
+ * data, made at call time.
  */
 export interface PluginContext {
   /**
@@ -97,7 +97,7 @@ export interface PluginContext {
   readonly projectName: (projectId: string) => string | null;
 }
 
-/** What `routes` receives (CR9b-13): the composed seams, so a raw route can check its request. */
+/** What `routes` receives: the composed seams, so a raw route can check its request. */
 export interface PluginRouteContext extends PluginContext {
   /** The composition's identity seam: the User a request is from. */
   readonly identify: Identify;
@@ -126,8 +126,8 @@ export interface ServerPluginContributions<Config> {
    */
   readonly routes?: (config: Config, context: PluginRouteContext) => Hono;
   /**
-   * Delivery executors (S9-22), called once at startup; `delivery.executor` picks one by name.
-   * They get no context: the registry is checked before the database is opened (QA-1).
+   * Delivery executors, called once at startup; `delivery.executor` picks one by name. They get no
+   * context: the registry is checked before the database is opened.
    */
   readonly executors?: (config: Config) => readonly DeliveryExecutor[];
   /** Awaited after migrations and before the server listens; a rejection fails startup. */
@@ -185,9 +185,9 @@ function bind<Config>(
   };
 }
 
-/** The server entry of a plugin (SDK §2), with a config schema. */
+/** The server entry of a plugin, with a config schema. */
 export function definePlugin<Config>(definition: ServerPluginDefinition<Config>): ServerPlugin;
-/** The server entry of a plugin (SDK §2) that takes no config section. */
+/** The server entry of a plugin that takes no config section. */
 export function definePlugin(definition: ServerPluginDefinitionWithoutConfig): ServerPlugin;
 export function definePlugin<Config>(
   definition: ServerPluginDefinition<Config> | ServerPluginDefinitionWithoutConfig,
@@ -220,7 +220,7 @@ export function definePlugin<Config>(
   };
 }
 
-/** The slots a web plugin renders into (SDK §3.6; D16 keeps three), with each slot's props. */
+/** The slots a web plugin renders into, with each slot's props. */
 export interface SlotProps {
   /** The end of the top bar; `projectId` is the project on screen, if any. */
   readonly "header.end": { readonly projectId: string | null };
@@ -248,7 +248,7 @@ export type SlotComponents = {
   readonly [S in SlotName]?: ComponentType<SlotProps[S]>;
 };
 
-/** The web entry of a plugin (SDK §2): its manifest and slot components. */
+/** The web entry of a plugin: its manifest and slot components. */
 export interface WebPlugin extends PluginManifest {
   readonly kind: "web";
   readonly slots: SlotComponents;

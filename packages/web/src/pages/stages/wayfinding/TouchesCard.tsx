@@ -8,10 +8,9 @@ import { Card } from "@/components/ui/card";
 import { laterRevisionsLine, touchOrigin } from "./touches.ts";
 
 /**
- * A spec this waypoint changes, named when the map was charted (slice 8b D13, the demo's
- * `TouchesCard`): the spec, opened on the map that wrote the touched revision; that map and whether
- * the revision is delivered; each touched criterion's text with its clause's title; and how many
- * revisions came after it.
+ * A spec this waypoint changes, named when the map was charted: the spec, opened on the map that
+ * wrote the touched revision; that map and whether the revision is delivered; each touched
+ * criterion's text with its clause's title; and how many revisions came after it.
  */
 export function TouchesCard({ touch }: { touch: WaypointTouchView }) {
   const later = laterRevisionsLine(touch.laterRevisions);

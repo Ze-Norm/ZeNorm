@@ -7,13 +7,12 @@ import { describe, expect, test } from "vitest";
 import { createImplementStreamParser, type ImplementStreamContext } from "./delivery-stream.ts";
 
 /**
- * A stream shaped like the QA `orchestrator.jsonl` and the CLI 2.1.295 probe (spec Testing
- * Decisions, agent): `Agent` and `Task` subagents, background (`async_launched`, then a
- * `task_notification`) and foreground, a repeat for T2 whose hand-back is CLI 2.1.296's (a framed
- * `tool_result` with an `agentId … <usage>` trailer beside the clean structured `tool_use_result`,
- * L197 item 1), an untied review subagent naming the unpinned T9, an erroring then a succeeding
- * merge, a 1240-character report, a ticket merged with no report, a 600-character text and a line
- * that is not JSON.
+ * A stream shaped like a real `orchestrator.jsonl` and the CLI 2.1.295 probe: `Agent` and `Task`
+ * subagents, background (`async_launched`, then a `task_notification`) and foreground, a repeat for
+ * T2 whose hand-back is CLI 2.1.296's (a framed `tool_result` with an `agentId … <usage>` trailer
+ * beside the clean structured `tool_use_result`), an untied review subagent naming the unpinned T9,
+ * an erroring then a succeeding merge, a 1240-character report, a ticket merged with no report, a
+ * 600-character text and a line that is not JSON.
  */
 const FIXTURE = readFileSync(join(import.meta.dirname, "delivery-stream.fixture.jsonl"), "utf8");
 
@@ -50,7 +49,7 @@ function orchestrator(text: string): ImplementEvent {
   return { kind: "line", who: "orchestrator", ticket: null, text };
 }
 
-describe("the orchestrator stream parser (D4)", () => {
+describe("the orchestrator stream parser", () => {
   test("emits the fixture's lines, starts and merges in stream order", () => {
     const events = parse([FIXTURE], CONTEXT);
 
@@ -166,7 +165,7 @@ describe("the orchestrator stream parser (D4)", () => {
     ]);
   });
 
-  test("a report is the structured hand-back, else the tool_result text, else null; paths are relative (L197 items 1, 7)", () => {
+  test("a report is the structured hand-back, else the tool_result text, else null; paths are relative", () => {
     const launch = (id: string, ticket: string): string =>
       JSON.stringify({
         type: "assistant",

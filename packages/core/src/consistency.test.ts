@@ -101,7 +101,7 @@ function stage(status: Awaited<ReturnType<typeof overview>>["status"], name: str
   return found;
 }
 
-describe("the due consistency pass (S6b-10, D5)", () => {
+describe("the due consistency pass", () => {
   const AT = "2026-10-08T12:00:00.000Z";
   const ids = [uuidv7(), uuidv7(), uuidv7()] as const;
   const resolved = (id: string) => ({ id, status: "resolved" as const, resolvedAt: AT });
@@ -125,7 +125,7 @@ describe("the due consistency pass (S6b-10, D5)", () => {
     map: { destinationConfirmedAt: AT },
     waypoints: [resolved(ids[0]), resolved(ids[1])],
     rounds: [{ status: "submitted" }],
-    // The confirming chart, then its code survey (harness change #1).
+    // The confirming chart, then its code survey.
     runs: [run({}), run({ purpose: "survey" })],
     fogCount: 0,
     passes: [],
@@ -205,7 +205,7 @@ describe("the due consistency pass (S6b-10, D5)", () => {
     expect(isCleared({ ...base, passes: capped })).toBe(true);
   });
 
-  test("a consistency run running or awaiting retry holds clearing back (S6b-11)", () => {
+  test("a consistency run running or awaiting retry holds clearing back", () => {
     const passed = { ...base, passes: [comparedAll] };
     expect(
       isCleared({
@@ -230,7 +230,7 @@ describe("the due consistency pass (S6b-10, D5)", () => {
   });
 });
 
-describe("the pass on a map (S6b-10, S6b-11)", () => {
+describe("the pass on a map", () => {
   test("resolving the last of three waypoints starts the pass, not to_spec; its request lists every resolved waypoint", async () => {
     resolveAll();
     expect(mapRuns("to_spec")).toEqual([]);
@@ -395,7 +395,7 @@ describe("the pass on a map (S6b-10, S6b-11)", () => {
     }
   });
 
-  test("two resolved waypoints need a pass; one resolved and the rest out of scope clears at once (L4)", async () => {
+  test("two resolved waypoints need a pass; one resolved and the rest out of scope clears at once", async () => {
     const outOfScope = (number: number) => {
       const ruled = recordGrill(context.user, context.db, grillingRun(context, mapId, number).id, {
         round: null,
@@ -423,7 +423,7 @@ describe("the pass on a map (S6b-10, S6b-11)", () => {
   });
 });
 
-describe("retries of the pass (S6b-12)", () => {
+describe("retries of the pass", () => {
   const timedOut = { code: "agent_timed_out", message: "Timed out" } as const;
 
   test("a failed pass is retried once; a failed retry stops the map scope until Try again", async () => {
@@ -509,7 +509,7 @@ describe("Existing Records", () => {
   });
 });
 
-describe("Existing Records with a stopped draft run (L121)", () => {
+describe("Existing Records with a stopped draft run", () => {
   test("a stopped to_spec retry does not block the due pass; the overview reads working; a clean pass runs to_spec fresh", async () => {
     resolveAll();
     cleanPass(context, mapId);
@@ -542,7 +542,7 @@ describe("Existing Records with a stopped draft run (L121)", () => {
   });
 });
 
-describe("a final round answered by plain choices and fog (S7b-14, L120)", () => {
+describe("a final round answered by plain choices and fog", () => {
   async function fogged(fog: string[]): Promise<void> {
     mapId = await newMap(context, project, "Export data");
     propose(context, mapId);
@@ -584,7 +584,7 @@ describe("a final round answered by plain choices and fog (S7b-14, L120)", () =>
     answerThird();
     const recorded = resolveThird([]);
     expect(recorded.ok).toBe(true);
-    // Every waypoint is resolved and fog remains: the fog run, not the pass (harness change #4).
+    // Every waypoint is resolved and fog remains: the fog run, not the pass.
     const fogRun = runningMapRun(context, mapId);
     expect(fogRun.purpose).toBe("fog");
     expect(readPasses(context.db, mapId)).toEqual([]);

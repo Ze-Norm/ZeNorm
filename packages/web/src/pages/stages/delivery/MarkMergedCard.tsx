@@ -9,9 +9,9 @@ import { orpc } from "@/orpc";
 import { markMergedRefusalMessage, required } from "@/pages/stages/delivery/words";
 
 /**
- * A passed run's card (slice 8 S8-5, D9): core's "Mark merged" action, whose button calls
+ * A passed run's card: core's "Mark merged" action, whose button calls
  * `delivery.markMerged`. While git checks the final commit is in the base branch the button reads
- * "Checking <commit> is in <base>…"; a refusal shows beside it (L33).
+ * "Checking <commit> is in <base>…"; a refusal shows beside it.
  */
 export function MarkMergedCard({
   mapId,

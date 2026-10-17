@@ -102,7 +102,7 @@ function renderedMarks(shown: SpecRun): [string, string][] {
   );
 }
 
-describe("the steps while a run publishes its pull request (5.4)", () => {
+describe("the steps while a run publishes its pull request", () => {
   it("reads Review done and Merge working, still five steps", () => {
     const publishing = run({});
     expect(RUN_STEPS.map((step) => stepMark(publishing, step))).toEqual([
@@ -158,7 +158,7 @@ describe("the steps while a run publishes its pull request (5.4)", () => {
   });
 });
 
-describe("the Merge step of a passed run (C5)", () => {
+describe("the Merge step of a passed run", () => {
   it("with a pull request: the person's, merged on GitHub", () => {
     const passed = run({
       state: "passed",
@@ -208,7 +208,7 @@ describe("the Merge step of a passed run (C5)", () => {
     expect(markup).toContain(`href="${PULL_REQUEST.url}"`);
   });
 
-  it("a merged pull request reads Merge done, merged on GitHub (C4)", () => {
+  it("a merged pull request reads Merge done, merged on GitHub", () => {
     const merged = run({
       state: "passed",
       endedAt: "2026-10-14T10:30:00.000Z",
@@ -264,7 +264,7 @@ function actionsMarkup(state: "open" | "closed", checking: boolean): string {
   );
 }
 
-describe("the pull request card's actions (C5)", () => {
+describe("the pull request card's actions", () => {
   it("an open pull request: its link to merge on GitHub, and Check now", () => {
     const markup = actionsMarkup("open", false);
     expect(markup).toContain("Open pull request #12");
@@ -272,7 +272,7 @@ describe("the pull request card's actions (C5)", () => {
     expect(buttonLabels(markup)).toEqual(["Check now"]);
   });
 
-  it("a closed pull request shows closed, with Check now as its only action and no Mark merged (5.1)", () => {
+  it("a closed pull request shows closed, with Check now as its only action and no Mark merged", () => {
     const markup = actionsMarkup("closed", false);
     expect(buttonLabels(markup)).toEqual(["Check now"]);
     expect(markup).not.toContain("<a ");
@@ -334,7 +334,7 @@ function repairRun(fields: Partial<DeliveryRun>): DeliveryRun {
   };
 }
 
-describe("a repair attempt on the run's steps (C3)", () => {
+describe("a repair attempt on the run's steps", () => {
   it("is back on Implement, as a repair with its attempt out of the pinned limit", () => {
     const repairing = repairRun({ repairAttempts: 1, checkResults: [FAILED, PASSED, TIMED_OUT] });
     expect(stepMark(repairing, "implement")).toBe("working");

@@ -173,7 +173,7 @@ function PendingCheckRow({ command, running }: { command: string; running: boole
   );
 }
 
-/** The check results stored so far: each is stored as it finishes (D5), none before the first. */
+/** The check results stored so far: each is stored as it finishes, none before the first. */
 function storedResults(run: SpecRun): readonly CheckResult[] {
   if (run.checkResults === null) {
     return [];
@@ -181,7 +181,7 @@ function storedResults(run: SpecRun): readonly CheckResult[] {
   return run.checkResults;
 }
 
-/** A note of the verdict, not blocking (the demo's Review step rows). */
+/** A note of the verdict, not blocking, as a Review step row. */
 function NoteRow({ finding }: { finding: VerdictFinding }) {
   return (
     <div className="grid gap-0.5 border-t border-border py-2.5 pr-3.5 pl-3.5 text-[13px] first:border-t-0 sm:pl-[44px]">
@@ -201,11 +201,11 @@ function NoteRow({ finding }: { finding: VerdictFinding }) {
 }
 
 /**
- * "The run, step by step" (slice 8 D9, the demo's `RunSteps`): Prepare; Implement, with each pinned
- * ticket's status from `map.overview`; Verify, each check with its output on demand; Review, the
- * verdict and its notes (blocking findings stand above the card); and Merge, the person's, which
- * also shows ZeNorm opening the pull request (`publishing`, 5.4). Steps are marked by the run's
- * stored phase; the step a run stopped in says why.
+ * "The run, step by step": Prepare; Implement, with each pinned ticket's status from
+ * `map.overview`; Verify, each check with its output on demand; Review, the verdict and its notes
+ * (blocking findings stand above the card); and Merge, the person's, which also shows ZeNorm
+ * opening the pull request (`publishing`, 5.4). Steps are marked by the run's stored phase; the
+ * step a run stopped in says why.
  */
 export function RunSteps({
   run,
@@ -218,7 +218,7 @@ export function RunSteps({
   tickets: readonly TicketContent[];
   /** The spec revision the run's ticket set was cut from. */
   revision: number;
-  /** Where the ticket rows link (D10). */
+  /** Where the ticket rows link. */
   links: RunTicketLinks;
 }) {
   const mark = (step: RunStep) => stepMark(run, step);
@@ -228,7 +228,7 @@ export function RunSteps({
   function stoppedLine(): ReactNode {
     switch (run.state) {
       case "failed":
-        // The stored reason, as the head's lede (the demo's `endReason`; L197 item 6).
+        // The stored reason, as the head's lede.
         return <AgentText text={required(run.failure, "failure", run).message} />;
       case "blocked": {
         const blocking = required(run.verdict, "verdict", run).findings.filter(
@@ -301,10 +301,10 @@ export function RunSteps({
       : `${String(mergedTickets)} of ${plural(tickets.length, "ticket")} implemented.`;
   const checksPassed = `${String(passedChecks)} of ${plural(checks.length, "required check")} passed, rerun by ZeNorm itself.`;
   const verifying = mark("verify");
-  // While a repair attempt runs the steps go back to Implement (C3).
+  // While a repair attempt runs the steps go back to Implement.
   const repair = repairAttempt(run);
   const implementing = repair === null ? implemented : repairLine(repair);
-  // A run that made repair attempts says how many on its Verify line (3.2).
+  // A run that made repair attempts says how many on its Verify line.
   const repairedPass = repairedVerifyLine(run, true);
   const verified = repairedPass ?? checksPassed;
   const stillFailing =
@@ -409,7 +409,7 @@ export function RunSteps({
     </section>
   );
 
-  /** The Merge step's line: on a run with a pull request, the person merges it on GitHub (C5). */
+  /** The Merge step's line: on a run with a pull request, the person merges it on GitHub. */
   function mergeLine(): ReactNode {
     switch (merge) {
       case "done":

@@ -23,7 +23,7 @@ function implementingLine(who: RunActor, executor: string): string {
   );
 }
 
-describe("a ticket row's latest line names the run's executor (CR9b-6)", () => {
+describe("a ticket row's latest line names the run's executor", () => {
   it("reads Orchestrator for a local run", () => {
     expect(implementingLine("orchestrator", "local")).toContain("Orchestrator: ");
   });

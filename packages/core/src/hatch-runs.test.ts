@@ -159,7 +159,7 @@ const REWORD: HatchChange = {
   question: "Which columns does the export carry?",
 };
 
-describe("the hatch queue (S7b-3)", () => {
+describe("the hatch queue", () => {
   test("two messages on one map are answered oldest first, one run at a time", async () => {
     const mapId = await clearedMap(context, project);
     const first = await send(mapId, "Does nested mean any depth?");
@@ -225,7 +225,7 @@ describe("the hatch queue (S7b-3)", () => {
     ]);
     expect(message(first).reply).toBeNull();
     expect(hatchRunsOf(mapId).filter((candidate) => candidate.state === "running")).toEqual([]);
-    // A failed hatch run adds no activity line (L148).
+    // A failed hatch run adds no activity line.
     expect(stopped.activity).toEqual(activity);
 
     const tried = tryAgain(context.user, context.db, retry.id);
@@ -238,7 +238,7 @@ describe("the hatch queue (S7b-3)", () => {
     expect(runningHatch(mapId).hatchMessageId).toBe(second);
   });
 
-  test("L162 (7): Try again on a stopped message starts nothing while the chart runs or awaits its retry", async () => {
+  test("Try again on a stopped message starts nothing while the chart runs or awaits its retry", async () => {
     const mapId = await newMap(context, project, "Export data");
     propose(context, mapId);
     const sent = await send(mapId, "Does nested mean any depth?");
@@ -296,7 +296,7 @@ describe("the hatch queue (S7b-3)", () => {
   });
 });
 
-describe("a hatch run's outcome (S7b-4)", () => {
+describe("a hatch run's outcome", () => {
   test("a reply with no change is stored with its run in one transaction; the message reads replied", async () => {
     const mapId = await clearedMap(context, project);
     const sent = await send(mapId, "Does nested mean any depth?");
@@ -439,8 +439,8 @@ describe("a hatch run's outcome (S7b-4)", () => {
   });
 });
 
-describe("a refused change (S7b-5)", () => {
-  // `spec_in_flight` reads the spec's work for its sentence (L180 (1)); notes.test.ts covers it.
+describe("a refused change", () => {
+  // `spec_in_flight` reads the spec's work for its sentence; notes.test.ts covers it.
   test.each(HatchRefusal.exclude(["spec_in_flight"]).options)(
     "%s stores core's sentence and the code, writes nothing else and starts no retry",
     async (refusal) => {
@@ -478,7 +478,7 @@ describe("a refused change (S7b-5)", () => {
   );
 });
 
-describe("a hatch run and the map's status (D6)", () => {
+describe("a hatch run and the map's status", () => {
   test("a working or stopped hatch run moves no status and adds no line", async () => {
     const mapId = await chartedMap(context, project);
     const before = await overview(mapId);
@@ -525,7 +525,7 @@ describe("a hatch run and the map's status (D6)", () => {
   });
 });
 
-describe("the primitives a reopen and the directions share (S7b-6)", () => {
+describe("the primitives a reopen and the directions share", () => {
   test("a run cancelled reopened that then returns a result saves nothing and is not retried", async () => {
     const mapId = await chartedMap(context, project);
     const sent = await send(mapId, "Does nested mean any depth?");
@@ -586,7 +586,7 @@ describe("the primitives a reopen and the directions share (S7b-6)", () => {
   });
 });
 
-describe("the hatch request's tickets review and stopped waypoints (slice 7c D8)", () => {
+describe("the hatch request's tickets review and stopped waypoints", () => {
   /**
    * A map whose spec has ticket set v1 and a running hatch run; the review the set's writing
    * started is deleted after the message, so each test inserts the `tickets_review` rows it reads.
@@ -598,7 +598,7 @@ describe("the hatch request's tickets review and stopped waypoints (slice 7c D8)
     return { ...drafted, hatch: runningHatch(drafted.mapId) };
   }
 
-  test("S7c-13: a running tickets_review is listed in flight and reads running", async () => {
+  test("a running tickets_review is listed in flight and reads running", async () => {
     const { mapId, specificationId, hatch } = await setWithHatch();
     insertTicketsReviewRun(context, { mapId, specificationId, state: "running" });
 
@@ -613,7 +613,7 @@ describe("the hatch request's tickets review and stopped waypoints (slice 7c D8)
     });
   });
 
-  test("S7c-13: a stopped tickets_review is listed in flight and reads stopped", async () => {
+  test("a stopped tickets_review is listed in flight and reads stopped", async () => {
     const { mapId, specificationId, hatch } = await setWithHatch();
     insertTicketsReviewRun(context, { mapId, specificationId, state: "stopped" });
 
@@ -656,7 +656,7 @@ describe("the hatch request's tickets review and stopped waypoints (slice 7c D8)
     });
   });
 
-  test("S7c-13: a held set carries held and each escalated finding's title and question", async () => {
+  test("a held set carries held and each escalated finding's title and question", async () => {
     const { mapId, specificationId, ticketSetId, hatch } = await setWithHatch();
     const findings = [
       { finding: TICKETS_REVISE_FINDING, escalated: false },
@@ -677,7 +677,7 @@ describe("the hatch request's tickets review and stopped waypoints (slice 7c D8)
     });
   });
 
-  test("S7c-14: a waypoint stopped after a failed retry is marked stopped; the others are not", async () => {
+  test("a waypoint stopped after a failed retry is marked stopped; the others are not", async () => {
     const mapId = await chartedMap(context, project);
     failRun(context.user, context.db, grillingRun(context, mapId, 1).id, TIMED_OUT);
     failRun(context.user, context.db, grillingRun(context, mapId, 1).id, TIMED_OUT);
@@ -694,7 +694,7 @@ describe("the hatch request's tickets review and stopped waypoints (slice 7c D8)
     expect(sent.waypoints[0]?.waiting).toBeNull();
   });
 
-  test("S7c-14: a waypoint whose first attempt failed and awaits its retry is not stopped", async () => {
+  test("a waypoint whose first attempt failed and awaits its retry is not stopped", async () => {
     const mapId = await chartedMap(context, project);
     failRun(context.user, context.db, grillingRun(context, mapId, 1).id, TIMED_OUT);
     await send(mapId, "Is waypoint 1 running?");
@@ -705,7 +705,7 @@ describe("the hatch request's tickets review and stopped waypoints (slice 7c D8)
   });
 });
 
-describe("a hatch reply proposing a map (map proposals, C2)", () => {
+describe("a hatch reply proposing a map (map proposals)", () => {
   type ProposeMap = Extract<HatchChange, { kind: "propose_map" }>;
   const LINE = "Moving a project between folders is a later effort.";
   const IDEA = "Move a project to another folder.";
@@ -847,7 +847,7 @@ describe("a hatch reply proposing a map (map proposals, C2)", () => {
     expect(exclusionRows(mapId)).toEqual(exclusionsBefore);
   }
 
-  test("naming a position with no line is refused exclusion_not_found: core's sentence, nothing saved, no retry (2.4)", async () => {
+  test("naming a position with no line is refused exclusion_not_found: core's sentence, nothing saved, no retry", async () => {
     const mapId = await mapWithLine(CONFIRMATION.waypoints);
 
     await expectRefused(mapId, 2, "exclusion_not_found");
@@ -855,7 +855,7 @@ describe("a hatch reply proposing a map (map proposals, C2)", () => {
     expect(proposalRows(mapId)).toEqual([]);
   });
 
-  test("naming a line already linked to a map is refused exclusion_already_split: nothing saved, no retry (2.4)", async () => {
+  test("naming a line already linked to a map is refused exclusion_already_split: nothing saved, no retry", async () => {
     const mapId = await mapWithLine(CONFIRMATION.waypoints);
     await replyWith(mapId, splitOff(1));
     const [first] = proposalRows(mapId);
@@ -868,7 +868,7 @@ describe("a hatch reply proposing a map (map proposals, C2)", () => {
   });
 
   test.each(["confirmed", "dismissed"] as const)(
-    "a proposal splitting off a line, %s, leaves that line once in Out of scope (2.1)",
+    "a proposal splitting off a line, %s, leaves that line once in Out of scope",
     async (decision) => {
       const mapId = await mapWithLine(CONFIRMATION.waypoints);
       await replyWith(mapId, splitOff(1));
@@ -891,7 +891,7 @@ describe("a hatch reply proposing a map (map proposals, C2)", () => {
     },
   );
 
-  test("a proposal made after Spec started is saved and the map's stages are unchanged (2.2)", async () => {
+  test("a proposal made after Spec started is saved and the map's stages are unchanged", async () => {
     const mapId = await mapWithLine([]);
     const toSpec = runningMapRun(context, mapId);
     expect(toSpec.purpose).toBe("to_spec");
@@ -904,7 +904,7 @@ describe("a hatch reply proposing a map (map proposals, C2)", () => {
     expect(run(toSpec.id).state).toBe("running");
   });
 
-  test("of two proposals naming one line, the first's confirm links it; the second's is refused exclusion_already_split and it can be dismissed (4.4)", async () => {
+  test("of two proposals naming one line, the first's confirm links it; the second's is refused exclusion_already_split and it can be dismissed", async () => {
     const mapId = await mapWithLine(CONFIRMATION.waypoints);
     await replyWith(mapId, splitOff(1));
     await replyWith(mapId, splitOff(1));
@@ -931,7 +931,7 @@ describe("a hatch reply proposing a map (map proposals, C2)", () => {
   });
 });
 
-describe("the hatch request's destination rounds (DR-14, D7)", () => {
+describe("the hatch request's destination rounds", () => {
   test("carries the submitted map-level round, as stored", async () => {
     const mapId = await clearedMap(context, project);
     await send(mapId, "Does nested mean any depth?");

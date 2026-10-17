@@ -57,7 +57,7 @@ const REASON = RejectTicketSetInput.shape.reason.parse("Split the exporter.");
 const REVISE = { finding: TICKETS_REVISE_FINDING, escalated: false };
 const DECISION = { finding: TICKETS_DECISION_FINDING, escalated: true };
 
-/** The review of the map's one ticket set, as `map.overview` gives it (D11). */
+/** The review of the map's one ticket set, as `map.overview` gives it. */
 async function reviewOf(mapId: string): Promise<TicketSetReview | null> {
   const overview = await getMapOverview(context.db, mapId, RUNNERS);
   if (!overview.ok) throw new Error(overview.error.code);
@@ -69,7 +69,7 @@ async function reviewOf(mapId: string): Promise<TicketSetReview | null> {
 /**
  * The review of the map's one ticket set straight from `ticketSetReview`, for a failed review that
  * is neither held nor followed by a running repair: `map.overview` reads that as a programmer error,
- * as recording a revise-only failed review starts its repair (S7c-4).
+ * as recording a revise-only failed review starts its repair.
  */
 function storedReviewOf(drafted: { mapId: string; specificationId: string }) {
   const set = readTicketSetOf(context.db, approvedRevision(drafted.specificationId).id);
@@ -100,7 +100,7 @@ function approvedRevision(specificationId: string) {
   return approved;
 }
 
-describe("the one read of a ticket set's review (slice 7c D11, S7c-5)", () => {
+describe("the one read of a ticket set's review", () => {
   test("pending while the version has no review and no tickets_review runs", async () => {
     const { mapId } = await unreviewedTicketSet(context, project);
 
@@ -194,9 +194,9 @@ describe("the one read of a ticket set's review (slice 7c D11, S7c-5)", () => {
     expect(storedReviewOf(drafted)?.state).toBe("findings");
   });
 
-  test("a set approved with no review reads none (Existing Records)", async () => {
+  test("a set approved with no review, from before tickets reviews, reads none", async () => {
     const drafted = await unreviewedTicketSet(context, project);
-    // Slice 7's plain approval, which approved a set with no review.
+    // A plain approval from before tickets reviews, which approved a set with no review.
     const at = new Date().toISOString();
     writeTestData(context, (tx) =>
       tx
@@ -210,7 +210,7 @@ describe("the one read of a ticket set's review (slice 7c D11, S7c-5)", () => {
   });
 });
 
-describe("pendingRewrite's findings and review repair (slice 7c D4)", () => {
+describe("pendingRewrite's findings and review repair", () => {
   test("a failed, unescalated review is repaired with its findings and no reason", async () => {
     const drafted = await unreviewedTicketSet(context, project);
     insertTicketsReview(context, { ...drafted, findings: [REVISE] });
@@ -231,7 +231,7 @@ describe("pendingRewrite's findings and review repair (slice 7c D4)", () => {
 
     expect(pending?.rewrite.reason).toBe("Ship the exporter first.");
     expect(pending?.rewrite.findings).toEqual([TICKETS_REVISE_FINDING, TICKETS_DECISION_FINDING]);
-    // Without the note the held set has no rewrite due: only the person releases a hold (S7c-8).
+    // Without the note the held set has no rewrite due: only the person releases a hold.
     expect(() => pendingRewrite(context.db, approved, null)).toThrow();
   });
 
@@ -262,9 +262,9 @@ describe("pendingRewrite's findings and review repair (slice 7c D4)", () => {
   });
 });
 
-// --- Departures (S8b-13; demo Q14) ---
+// --- Departures ---
 
-describe("the tickets review must name every reasonless departure (S8b-13)", () => {
+describe("the tickets review must name every reasonless departure", () => {
   /**
    * Spec 1's r1 delivered (T1, T2), then another map's r2 with the same text, approved, whose set
    * gives 1.1 `work` by T3 (a departure: it is unchanged and delivered) with `reason`, and 1.2

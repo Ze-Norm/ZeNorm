@@ -50,7 +50,7 @@ export interface CommandOption {
   readonly description: string;
 }
 
-/** One command `zenorm` takes: everything that registers it, its options and its help (C8). */
+/** One command `zenorm` takes: everything that registers it, its options and its help. */
 export interface CommandEntry {
   readonly name: string;
   readonly description: string;
@@ -71,7 +71,7 @@ const HELP_FLAGS: readonly string[] = ["-h", "--help"];
 /** The version flags the program takes. */
 const VERSION_FLAGS: readonly string[] = ["-V", "--version"];
 
-/** Native Windows is refused (2.1): ZeNorm runs on macOS and Linux, WSL 2 included. */
+/** Native Windows is refused: ZeNorm runs on macOS and Linux, WSL 2 included. */
 export function refusePlatform(platform: NodeJS.Platform): Result<null, StartupError> {
   if (platform !== "win32") return ok(null);
   return err({
@@ -104,7 +104,7 @@ export function isNodeAtLeast(version: string, minimum: string): boolean {
   return havePatch >= needPatch;
 }
 
-/** Node older than `MINIMUM_NODE_VERSION` is refused, naming both versions (C2). */
+/** Node older than `MINIMUM_NODE_VERSION` is refused, naming both versions. */
 export function refuseNodeVersion(nodeVersion: string): Result<null, StartupError> {
   if (isNodeAtLeast(nodeVersion, MINIMUM_NODE_VERSION)) return ok(null);
   return err({
@@ -114,7 +114,7 @@ export function refuseNodeVersion(nodeVersion: string): Result<null, StartupErro
   });
 }
 
-/** The refusals every command runs first, before reading its arguments or anything else (2.3). */
+/** The refusals every command runs first, before reading its arguments or anything else. */
 export function refuseEnvironment(input: CliInput): Result<null, StartupError> {
   const platform = refusePlatform(input.platform);
   if (!platform.ok) return platform;
@@ -131,10 +131,10 @@ function argumentsInvalid(argv: readonly string[], reason: string): StartupError
 }
 
 /**
- * What commander would accept but 2.5 refuses (C2): no command at all, and help or version asked
- * with anything else. Commander answers a help flag after an unknown command or with an extra
- * argument, and the version flag wherever it sits, before it checks the rest. So a help or version
- * flag is accepted only alone, or a help flag right after a command the table has.
+ * What commander would accept but `zenorm` refuses as `arguments_invalid`: no command at all, and
+ * help or version asked with anything else. Commander answers a help flag after an unknown command
+ * or with an extra argument, and the version flag wherever it sits, before it checks the rest. So a
+ * help or version flag is accepted only alone, or a help flag right after a command the table has.
  */
 export function refuseBeforeParse(
   argv: readonly string[],
@@ -161,7 +161,7 @@ export function refuseBeforeParse(
 }
 
 /**
- * Every option value's check, in place of a choice list (C8): an empty value, one that starts with
+ * Every option value's check, in place of a choice list: an empty value, one that starts with
  * `-` (another option taken as the value) and a second value for the same option are refused.
  * There is no library default, so the first value arrives with `previous` undefined.
  */
@@ -197,7 +197,7 @@ interface Outcome {
 }
 
 /**
- * The commander program for `table` (C8). The exit and output hooks are set before any command is
+ * The commander program for `table`. The exit and output hooks are set before any command is
  * added, since a command copies them only when it is added; the help command is off; every
  * command refuses excess arguments; and each option value goes through `optionValue`.
  */
@@ -242,7 +242,7 @@ export function standardConfigPath(env: Env): string | null {
   return join(home, ".config", "zenorm", "config.json");
 }
 
-/** The command's config path: `--config`, else `ZENORM_CONFIG`, else the standard path (C2). */
+/** The command's config path: `--config`, else `ZENORM_CONFIG`, else the standard path. */
 export function cliConfigPath(config: string | undefined, env: Env): Result<string, StartupError> {
   return configPath(configArgs(config), env, standardConfigPath(env));
 }
@@ -263,7 +263,7 @@ export const runCommand: Command = async (context) => {
 };
 
 /**
- * A refusal as readable text for a terminal (7.2): its message, then its code and subject, and for
+ * A refusal as readable text for a terminal: its message, then its code and subject, and for
  * `plugin_start_failed` the plugin and phase that failed. No line of it is JSON.
  */
 export function formatRefusal(error: StartupError): string {
@@ -276,8 +276,8 @@ export function formatRefusal(error: StartupError): string {
 }
 
 /**
- * The reporter `runCli` refuses through (C7): readable text when standard error is a terminal,
- * else apps/zenorm's one JSON line `{ code, message, subject }` (7.1). The bin passes whether
+ * The reporter `runCli` refuses through: readable text when standard error is a terminal,
+ * else apps/zenorm's one JSON line `{ code, message, subject }`. The bin passes whether
  * fd 2 is a terminal; tests choose either form.
  */
 export function refusalReporter(stderrIsTerminal: boolean): (error: StartupError) => void {

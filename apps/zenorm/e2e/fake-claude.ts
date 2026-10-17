@@ -1,64 +1,63 @@
 #!/usr/bin/env node
 /**
- * The scripted Claude Code CLI stand-in the e2e config points `agent.claudePath` at, so `pnpm check`
- * never runs the real `claude`. It first tells the role from the argv (slice 4 spec, Testing
- * decisions): `--output-format stream-json` is the delivery orchestrator, a `--json-schema` with
- * the root property `reviewedCommit` is the delivery reviewer, anything else is a planning call.
+ * The scripted Claude Code CLI stand-in the e2e config points `agent.claudePath` at, so
+ * `pnpm check` never runs the real `claude`. It first tells the role from the argv:
+ * `--output-format stream-json` is the delivery orchestrator, a `--json-schema` with the root
+ * property `reviewedCommit` is the delivery reviewer, anything else is a planning call.
  *
- * - Planning: checks the argv shape of the headless run (slice 2 spec D4) and answers by the
- *   `--json-schema` root properties (slice 6a ticket 01's stand-in keys): a chart by its step (DR-22),
- *   told apart by roots only: `choose` (`waypoints` and `final`, after an answered destination round
- *   that is not the last: a confirmation in the flat shape, `kind` `confirmation` and the follow-up's
- *   `intro`, `final` and `questions` null; its prompt carries the plain line
- *   `Answered destination rounds: <k>`), `confirm` (`waypoints` without `final`, after a final round
- *   or at the cap) and a confirming chart either way (Grilling waypoints 1, 2 and 3, with 2 and 3
- *   blocked by 1, no fog and no Out of scope line), a first chart (`propose`: `summary` without
- *   `waypoints`; the reading, the proposed destination and a two-question destination round, its
- *   fields at the root), a waypoint's grilling (`final` and `decision`: by
- *   the prompt's `Waypoint number:` and `Answered rounds on this waypoint:` lines, waypoint 1 asks a
- *   non-final then a final round, 2 and 3 one final round), a grilling after a final round
- *   (`decision` without `final`: a resolution with no map change), or slice 7's spec calls (L132's stand-in keys), tested
- *   before the chart because a spec review also has a `summary` root: a map's specs (`specs`: one
- *   spec whose clauses name the prompt's `Resolved waypoints:`, or the destination when there are
- *   none; two or four with `[fake:two-specs]` or `[fake:four-specs]`; on a re-clear, the next
- *   revision of each `Spec N, latest revision R, not approved:` with " (revised)" titles), a spec
- *   repair (`revision`: the spec with " (revised)" titles), a spec review (`summary` and `findings`
- *   with a `Review of: spec N revision R` prompt line: no finding, except that
+ * - Planning: checks the argv shape of the headless run and answers by the `--json-schema` root
+ *   properties: a chart by its step, told apart by roots only: `choose` (`waypoints` and `final`,
+ *   after an answered destination round that is not the last: a confirmation in the flat shape,
+ *   `kind` `confirmation` and the follow-up's `intro`, `final` and `questions` null; its prompt
+ *   carries the plain line `Answered destination rounds: <k>`), `confirm` (`waypoints` without
+ *   `final`, after a final round or at the cap) and a confirming chart either way (Grilling
+ *   waypoints 1, 2 and 3, with 2 and 3 blocked by 1, no fog and no Out of scope line), a first
+ *   chart (`propose`: `summary` without `waypoints`; the reading, the proposed destination and a
+ *   two-question destination round, its fields at the root), a waypoint's grilling (`final` and
+ *   `decision`: by the prompt's `Waypoint number:` and `Answered rounds on this waypoint:` lines,
+ *   waypoint 1 asks a non-final then a final round, 2 and 3 one final round), a grilling after a
+ *   final round (`decision` without `final`: a resolution with no map change), or the spec calls,
+ *   tested before the chart because a spec review also has a `summary` root: a map's specs
+ *   (`specs`: one spec whose clauses name the prompt's `Resolved waypoints:`, or the destination
+ *   when there are none; two or four with `[fake:two-specs]` or `[fake:four-specs]`; on a re-clear,
+ *   the next revision of each `Spec N, latest revision R, not approved:` with " (revised)" titles),
+ *   a spec repair (`revision`: the spec with " (revised)" titles), a spec review (`summary` and
+ *   `findings` with a `Review of: spec N revision R` prompt line: no finding, except that
  *   `[fake:review-fails-once]` fails the spec's first review with one `revise` finding,
  *   `[fake:review-escalates]` fails its first three with one, so the third escalates, and
- *   `[fake:review-decision]` fails its first with a `decision` and a `revise` finding, counted by the
- *   prompt's earlier findings (a repair rewrites the draft in place, L241); later reviews pass, so
- *   each path reaches approval once its escalated waypoints are resolved), a tickets review (the same `summary` and
- *   `findings` roots with a `Review of: tickets N version V` prompt line, tested before the spec
- *   review's: see below) or a ticket set (`tickets`, `dispositions`, `slicing` and `execution`: T1
- *   and T2, T2 blocked by T1, each naming `pointers` (`src/index.ts`), a `work` disposition per
- *   criterion; with
- *   `[fake:tickets-already-done]` T1 alone, and criterion 2.1 `satisfied` with evidence and no
- *   ticket; a rewrite's prompt names the version it replaces (`Rewrite of ticket set version: <n>`,
- *   not `none`) and carries the review's `FINDINGS` block, a rejection's or note's `REASON`
- *   block or both, so its titles gain " (revised)").
- * - Orchestrator: checks its flags, then reads the tickets file its prompt names (`Tickets:`, core's
- *   `renderTickets`: `## T<n> <title>`, `Carries criteria …`, `Blocked by …`) and plays slice 8 D4's
- *   stream per ticket in graph order: an orchestrator `Bash` `git worktree add <runDir>/tickets/t<n>
- *   -b <run branch>-t<n> <run branch>`, an `Agent` `tool_use` described `T<n>: <title>`, subagent
- *   lines carrying its `parent_tool_use_id` (a text block, and a `Write` of `zenorm-fake-t<n>.txt`
- *   in the ticket worktree with its result), the `Agent` `tool_result` (a short report), the
- *   ticket's commit in its worktree and an orchestrator `Bash` `git merge --no-ff <run branch>-t<n>`
- *   with its non-error result, run in its working directory (the run worktree); then a success
- *   `result`. Every commit and merge is made under the run identity in its environment, so
- *   verifying passes. Its markers come from the spec file its prompt names (`Spec:`), whose problem
- *   carries the idea's markers (see Planning): `[fake:delivery-held]` holds after T1 is merged and
- *   T2's `Agent` is printed, until `fake-delivery-release` exists under `$ZENORM_E2E_ROOT` (60 s
- *   cap; the hold is async, so the lines before it are flushed); `[fake:delivery-closing-held]`
- *   holds after the last merge, as the real session reviews and runs the checks, until
- *   `fake-delivery-closing-release` exists under `$ZENORM_E2E_ROOT` (60 s cap); `[fake:ticket-unmerged]` skips the
- *   last ticket's merge and deletes its worktree and branch, and still ends with success. When a
- *   `Check:` line contains `[fake:slow]` it waits for SIGTERM before anything else, exit 143. A
- *   repair prompt (`Repair attempt: <n> of <limit>`, with a `FAILING-CHECK-1` block) merges no
- *   ticket: an `Agent` described with no ticket id writes `zenorm-fake-repair-<n>.txt` in the run
- *   worktree, which the orchestrator commits, then a success `result`; with `[fake:repair-held]` in
- *   the spec it holds after printing the `Agent`, until `fake-repair-release` exists under
- *   `$ZENORM_E2E_ROOT` (60 s cap).
+ *   `[fake:review-decision]` fails its first with a `decision` and a `revise` finding, counted by
+ *   the prompt's earlier findings (a repair rewrites the draft in place); later reviews pass, so
+ *   each path reaches approval once its escalated waypoints are resolved), a tickets review (the
+ *   same `summary` and `findings` roots with a `Review of: tickets N version V` prompt line, tested
+ *   before the spec review's: see below) or a ticket set (`tickets`, `dispositions`, `slicing` and
+ *   `execution`: T1 and T2, T2 blocked by T1, each naming `pointers` (`src/index.ts`), a `work`
+ *   disposition per criterion; with `[fake:tickets-already-done]` T1 alone, and criterion 2.1
+ *   `satisfied` with evidence and no ticket; a rewrite's prompt names the version it replaces
+ *   (`Rewrite of ticket set version: <n>`, not `none`) and carries the review's `FINDINGS` block, a
+ *   rejection's or note's `REASON` block or both, so its titles gain " (revised)").
+ * - Orchestrator: checks its flags, then reads the tickets file its prompt names (`Tickets:`,
+ *   core's `renderTickets`: `## T<n> <title>`, `Carries criteria …`, `Blocked by …`) and plays a
+ *   stream per ticket in graph order: an orchestrator `Bash`
+ *   `git worktree add <runDir>/tickets/t<n> -b <run branch>-t<n> <run branch>`, an `Agent`
+ *   `tool_use` described `T<n>: <title>`, subagent lines carrying its `parent_tool_use_id` (a text
+ *   block, and a `Write` of `zenorm-fake-t<n>.txt` in the ticket worktree with its result), the
+ *   `Agent` `tool_result` (a short report), the ticket's commit in its worktree and an orchestrator
+ *   `Bash` `git merge --no-ff <run branch>-t<n>` with its non-error result, run in its working
+ *   directory (the run worktree); then a success `result`. Every commit and merge is made under the
+ *   run identity in its environment, so verifying passes. Its markers come from the spec file its
+ *   prompt names (`Spec:`), whose problem carries the idea's markers (see Planning):
+ *   `[fake:delivery-held]` holds after T1 is merged and T2's `Agent` is printed, until
+ *   `fake-delivery-release` exists under `$ZENORM_E2E_ROOT` (60 s cap; the hold is async, so the
+ *   lines before it are flushed); `[fake:delivery-closing-held]` holds after the last merge, as the
+ *   real session reviews and runs the checks, until `fake-delivery-closing-release` exists under
+ *   `$ZENORM_E2E_ROOT` (60 s cap); `[fake:ticket-unmerged]` skips the last ticket's merge and
+ *   deletes its worktree and branch, and still ends with success. When a `Check:` line contains
+ *   `[fake:slow]` it waits for SIGTERM before anything else, exit 143. A repair prompt
+ *   (`Repair attempt: <n> of <limit>`, with a `FAILING-CHECK-1` block) merges no ticket: an `Agent`
+ *   described with no ticket id writes `zenorm-fake-repair-<n>.txt` in the run worktree, which the
+ *   orchestrator commits, then a success `result`; with `[fake:repair-held]` in the spec it holds
+ *   after printing the `Agent`, until `fake-repair-release` exists under `$ZENORM_E2E_ROOT` (60 s
+ *   cap).
  * - Reviewer: checks its read-only tools and answers a verdict naming the prompt's `Final commit:`
  *   with no findings, or, when the spec file its prompt names contains `[fake:review-blocked]`, one
  *   blocking spec finding on `zenorm-fake-t1.txt` whose `criterion` is T1's first criterion (from
@@ -68,8 +67,7 @@
  *   `## Why`.
  *
  * Every spec the planning stand-in writes has the fixed problem sentence followed by the idea's
- * `[fake:…]` markers, so the delivery markers above ride in the idea (slice 8 spec review
- * blocker 7).
+ * `[fake:…]` markers, so the delivery markers above ride in the idea.
  *
  * A failed call runs out of turns (`error_max_turns`) and keeps its prompt under
  * `$ZENORM_E2E_ROOT` by its session id; the retry that resumes it (`--resume`) answers that prompt.
@@ -84,33 +82,33 @@
  * only, so a waypoint, the Spec stage, a spec review or a tickets review stops;
  * `[fake:fail-twice:hatch]` does it for the idea's first two hatch replies, so a message stops;
  * `[fake:fail-twice:release]` for the idea's first two spec revisions (`revision` root), which on a
- * waiting map are its wait's release run, so the released wait stops on Try again (S9-8). An idea
+ * waiting map are its wait's release run, so the released wait stops on Try again. An idea
  * containing `[fake:no-waypoints]` is confirmed with no waypoints, so the map clears at once. An
  * idea containing `[fake:kinds]` is confirmed with Research 1, Task 2 and Grilling 3 (blocked by 1
  * and 2), one fog item and one Out of scope line; waypoint 3's resolution moves the fog out of
  * scope. One containing `[fake:fog-run]` is confirmed with the default waypoints and one fog item;
- * every waypoint's resolution leaves the fog, and the map's fog run (harness change #4; schema root
+ * every waypoint's resolution leaves the fog, and the map's fog run (schema root
  * `fogForPerson`) moves every listed fog item out of scope.
  *
- * Hatch replies (slice 7b D2; schema root `reply`, checked before every other root, read-only
+ * Hatch replies (schema root `reply`, checked before every other root, read-only
  * tools; the prompt carries `Message from the person:`) read their markers from the prompt's `MESSAGE`
- * block only, never from the earlier messages it replays (L153 (d)). A message with no marker gets
+ * block only, never from the earlier messages it replays. A message with no marker gets
  * a reply and no change; otherwise a reply and the one change the marker names:
  * `[fake:hatch-reopen:<n>]` reopens waypoint n; `[fake:hatch-revise]` revises the spec on screen;
  * `[fake:hatch-tickets]` rewrites its ticket set; `[fake:hatch-open]` opens a new Grilling waypoint
  * blocked by none; `[fake:hatch-out-of-scope:<n>]` rules waypoint n out of scope;
  * `[fake:hatch-accept-report:<n>]` accepts waypoint n's unanswered report with a gist; and
- * `[fake:hatch-run:<n>]` runs waypoint n again (waiting or stopped, L157); `[fake:hatch-propose]`
+ * `[fake:hatch-run:<n>]` runs waypoint n again (waiting or stopped); `[fake:hatch-propose]`
  * proposes a new map with its own Out of scope line; and `[fake:hatch-split:<n>]` proposes one
  * splitting off the map's Out of scope line at position n (map proposals). `open_waypoint`,
  * `rule_out_of_scope` and `accept_report` always carry `fog`: empty lists, unless the change leaves
  * no other waypoint `open` or `claimed` (by the prompt's `Waypoint <n> status:` lines) and the
  * prompt lists fog (`Fog item at position n:`), which then moves out of scope. A spec repair whose
  * prompt says `Revise because: note` (the revision a `[fake:hatch-revise]` note starts) cites
- * `{ kind: "note" }` on C1, so its "your note" source shows (L158 (c)); a ticket set rewrite reads
+ * `{ kind: "note" }` on C1, so its "your note" source shows; a ticket set rewrite reads
  * the note as its reason (`REASON` block) like a rejection's.
  *
- * Research and Task runs (slice 6b; schema roots `report` and `done`, read-only tools for Task, the
+ * Research and Task runs (schema roots `report` and `done`, read-only tools for Task, the
  * web tools added for Research): a research run answers with one finding and one source; a task
  * run asks one round with options, then (by the prompt's `Answered rounds on this waypoint:` line)
  * is `done`. Neither changes the map. An idea containing `[fake:research-unanswered]` or
@@ -119,14 +117,14 @@
  * the second, a task run with no earlier outcome (`Earlier outcomes on this task: 0`) fails
  * without asking, and the next is `done`.
  *
- * Consistency passes (slice 6b; schema root `findings`) are clean: no findings. With an idea
+ * Consistency passes (schema root `findings`) are clean: no findings. With an idea
  * containing `[fake:conflict]`, the first pass (`Waypoints opened by an earlier pass: 0`) finds
  * one conflict between waypoints 1 and 2, which opens a Grilling waypoint; later passes are clean.
  *
  * An idea containing `[fake:split]` makes the first chart offer two maps split off the idea (CSV
  * imports and nightly exports), each with its title, idea and line (idea-phase split).
  *
- * The destination markers (DR-23) ride in the idea and are read with the chart prompt's
+ * The destination markers ride in the idea and are read with the chart prompt's
  * `Answered destination rounds: <k>` line; each follow-up (`kind` `followUp` in `choose`'s flat
  * shape) revises the destination, naming the round it follows, and asks one question.
  * `[fake:destination-follow-up]` asks one non-final follow-up at 1, then confirms (`choose` at 2);
@@ -147,32 +145,32 @@
  *
  * An idea containing `[fake:review-held]` holds the planning review of revision 1 running until a
  * file `fake-review-release` exists under `$ZENORM_E2E_ROOT` (the e2e writes it once a note sent
- * meanwhile is refused `spec_in_flight`, S7b-5); it gives up after 20 s.
+ * meanwhile is refused `spec_in_flight`); it gives up after 20 s.
  *
- * Tickets reviews (slice 7c D2; `Review of: tickets N version V`) pass with no finding, except, by
+ * Tickets reviews (`Review of: tickets N version V`) pass with no finding, except, by
  * the idea's markers: `[fake:tickets-fail-once]` fails version 1 with one `revise` finding;
  * `[fake:tickets-held]` fails versions 1 to 3 with one each, so version 3's review escalates;
  * `[fake:tickets-decision]` fails version 1 with one `decision` finding; later versions pass. Each
  * finding names the reviewed version's first ticket and the approved revision's first criterion
  * (from the prompt's `Version ticket ids:` and `Revision criterion ids:` lines), so core's
- * reference check (S7c-3) accepts it.
+ * reference check accepts it.
  * `[fake:tickets-review-held]` holds the review of version 1 running until a file
  * `fake-tickets-review-release` exists under `$ZENORM_E2E_ROOT` (20 s cap), as `[fake:review-held]`
  * does with its own file. `[fake:tickets-repair-held:<key>]` holds a repair (a To Tickets rewrite
  * carrying a `FINDINGS` block) running until `fake-tickets-repair-release-<key>` exists (20 s cap),
  * so the e2e sees its status row; each spec file holds by its own key, so files running at once
  * never release each other's repair. `[fake:tickets-long-summary]` gives a review a summary as long as a
- * real reviewer's (L180 (4)), so the panel clamps it. The markers are read from the prompt's `IDEA`
+ * real reviewer's, so the panel clamps it. The markers are read from the prompt's `IDEA`
  * block.
  *
- * An idea containing `[fake:states]` (ticket 08's Wayfinding states) is confirmed with Research 1
+ * An idea containing `[fake:states]` (for the Wayfinding states) is confirmed with Research 1
  * and Grilling 2 unblocked, Task 3 and Research 4 blocked by 2, Grilling 5 unblocked, and one fog
  * item; waypoint 5's first run rules it out of scope. It is never meant to clear.
  *
- * Revising a delivered spec (slice 8b; the prompt lines in `packages/agent/src/revision-prompt-parts.ts`
+ * Revising a delivered spec (the prompt lines in `packages/agent/src/revision-prompt-parts.ts`
  * and `spec-prompt.ts` it keys on are named here, so a prompt edit knows what it breaks):
  *
- * - `[fake:three-criteria]` (ticket 10: put it in the idea of the FIRST map, the one whose spec a
+ * - `[fake:three-criteria]` (put it in the idea of the FIRST map, the one whose spec a
  *   later map revises) gives the canned spec a third criterion, `1.2` under C1, carried by T1 with a
  *   `work` disposition (with `[fake:tickets-already-done]`, T1 keeps both). Without it the canned
  *   spec has two criteria and every earlier flow is unchanged; `[fake:revise:<n>]` needs three, and
@@ -182,9 +180,9 @@
  *   <r>|not held:` and `Project spec <n> criterion ids: a, b, c`, and when the line reads `approved`
  *   its first waypoint touches `{ specNumber: n, revision: r, criteria: [b] }` (b, the criterion the
  *   revision changes); while another map's draft is latest it touches the latest approved revision
- *   instead (`… latest approved revision: <r>`, `… approved criterion ids:`, L213 D-5); with no
+ *   instead (`… latest approved revision: <r>`, `… approved criterion ids:`); with no
  *   approved revision, no touch. Touches go only on charted waypoints, never on a hatch
- *   change (L204). A first map To Spec (no `Spec <n>, latest revision …` line of the map's own)
+ *   change. A first map To Spec (no `Spec <n>, latest revision …` line of the map's own)
  *   reads spec n's `<<<SPEC-<n>-REVISION-<r> nonce` JSON block and writes its next revision with
  *   `specNumber: n` and ids kept: the first criterion word for word, the second changed, the last
  *   removed and a new one with the next free id of the last's clause (on the gated spec: 1.1 kept,
@@ -196,26 +194,27 @@
  *   criterion and gives " (revised)" titles. Its problem is the canned sentence with THIS map's
  *   idea markers, so a revision's delivery reads the markers of the map that wrote it.
  * - A release run (`Revise because: wait`, with the note in the `<<<WAIT nonce` block) writes the
- *   next revision of the shown (approved) revision with the note as a new criterion of C1, next free
- *   id, C1 citing the source its `Wait from:` line offers (the note, else the destination), every
- *   other id kept, as `[fake:hatch-revise]`'s note revision does (the demo's
- *   `revisionFromNote`). `[fake:hatch-revise]` (`Revise because: note`) works the same on an approved
- *   spec; core decides whether it may. With `[fake:release-held]` in the waiting map's idea, the
- *   release run holds running until `fake-release-run-release` exists under `$ZENORM_E2E_ROOT`
- *   (20 s cap), so the e2e sees the released wait before its revision lands (S8b-10).
+ *   next revision of the shown (approved) revision with the note as a new criterion of C1, next
+ *   free id, C1 citing the source its `Wait from:` line offers (the note, else the destination),
+ *   every other id kept, as `[fake:hatch-revise]`'s note revision does. `[fake:hatch-revise]`
+ *   (`Revise because: note`) works the same on an approved spec; core decides whether it may. With
+ *   `[fake:release-held]` in the waiting map's idea, the release run holds running until
+ *   `fake-release-run-release` exists under `$ZENORM_E2E_ROOT` (20 s cap), so the e2e sees the
+ *   released wait before its revision lands.
  * - To Tickets writes the canned T1 and T2 (unchanged) unless the idea carries `[fake:revise:<n>]`
- *   (a same-map repair's revision 2 has a text delta too); with it, a later set from `First ticket number:
- *   <n>`, each `Reading <id>: <change>, expected <kind>, baseline <T> (revision <r>, run <n>, commit
- *   <c>)|baseline none`, each `Removed criterion <id> (clause <C>)` and each `Earlier ticket <T>
- *   (revision <r>): criteria <ids>|none; delivered in run <n>, commit <c>|not delivered`, as the
- *   demo's `reconcile`: expected `delivered` names the baseline ticket; expected `work` goes to a
- *   ticket following up its baseline ticket, or with no baseline to one ticket per clause; expected
- *   `retained` names the undelivered earlier ticket that carries it, and when none does it is a
- *   mismatch (never a guess); a removed criterion is `removed` with the ticket that follows up the
- *   delivered ticket that built it (else the ticket of its clause, given that follow-up), with a
- *   reason naming that ticket, run and commit, or with no ticket when no delivered earlier ticket
- *   carries it. Tickets are numbered from the first ticket number. On the gated spec: 1.1
- *   `delivered` T1, T3 (follow-up T1) carries 1.2, T4 (follow-up T2) carries 2.2 and takes 2.1 out.
+ *   (a same-map repair's revision 2 has a text delta too); with it, a later set from
+ *   `First ticket number: <n>`, each `Reading <id>: <change>, expected <kind>, baseline <T>
+ *   (revision <r>, run <n>, commit <c>)|baseline none`, each `Removed criterion <id> (clause <C>)`
+ *   and each `Earlier ticket <T> (revision <r>): criteria <ids>|none; delivered in run <n>, commit
+ *   <c>|not delivered`, and reconciles them: expected `delivered` names the baseline ticket;
+ *   expected `work` goes to a ticket following up its baseline ticket, or with no baseline to one
+ *   ticket per clause; expected `retained` names the undelivered earlier ticket that carries it,
+ *   and when none does it is a mismatch (never a guess); a removed criterion is `removed` with the
+ *   ticket that follows up the delivered ticket that built it (else the ticket of its clause, given
+ *   that follow-up), with a reason naming that ticket, run and commit, or with no ticket when no
+ *   delivered earlier ticket carries it. Tickets are numbered from the first ticket number. On the
+ *   gated spec: 1.1 `delivered` T1, T3 (follow-up T1) carries 1.2, T4 (follow-up T2) carries 2.2
+ *   and takes 2.1 out.
  * - `[fake:departure]` writes the first `delivered` reading `work` with a reason;
  *   `[fake:departure-no-reason]` writes it with no reason until a rewrite carrying a `FINDINGS`
  *   block, which gives one.
@@ -281,7 +280,7 @@ const TICKETS_LONG_SUMMARY_MARKER = "[fake:tickets-long-summary]";
 const RELEASE_HELD_MARKER = "[fake:release-held]";
 /** The file under `$ZENORM_E2E_ROOT` that releases a held wait release run (`fixture.ts` names it too). */
 const RELEASE_RUN_RELEASE_FILE = "fake-release-run-release";
-/** A summary the length of a real reviewer's (600 to 1000 characters, L180 (4), E-3). */
+/** A summary the length of a real reviewer's (600 to 1000 characters). */
 const LONG_TICKETS_SUMMARY = Array.from(
   { length: 8 },
   (_, index) =>
@@ -290,7 +289,7 @@ const LONG_TICKETS_SUMMARY = Array.from(
 const REVIEW_HELD_MAX_MS = 20_000;
 /**
  * The `[fake:delivery-held]` cap: longer than a review's, because the held-run flow checks the
- * ticket rows, Run activity, the ticket page and a reload while it holds (slice 8 ticket 10), each
+ * ticket rows, Run activity, the ticket page and a reload while it holds, each
  * seen only on a 2 s poll. The e2e orchestrator timeout (2 minutes) stays well above it.
  */
 const DELIVERY_HELD_MAX_MS = 60_000;
@@ -313,7 +312,7 @@ const REPAIR_ATTEMPT_LINE = /^Repair attempt: (\d+) of (\d+)$/m;
 /** Every `[fake:…]` marker in a text, in order. */
 const ANY_MARKER = /\[fake:[^\]]+\]/g;
 const SIGTERM_EXIT = 143;
-/** The hatch prompt's line before the message block (slice 7b D2, L149). */
+/** The hatch prompt's line before the message block. */
 const HATCH_MESSAGE_LINE = "Message from the person:";
 const HATCH_REPLY = "Simulated reply: the records answer this, and nothing on the map changes.";
 const HATCH_REVISE_MARKER = "[fake:hatch-revise]";
@@ -339,7 +338,7 @@ const THIRD_CRITERION = {
   id: "1.2",
   text: "The file starts with a header row naming each column.",
 };
-/** `[fake:revise:<n>]`: the map revises project spec n (slice 8b). */
+/** `[fake:revise:<n>]`: the map revises project spec n. */
 const REVISE_MARKER = /\[fake:revise:(\d+)\]/;
 const DEPARTURE_MARKER = "[fake:departure]";
 const DEPARTURE_NO_REASON_MARKER = "[fake:departure-no-reason]";
@@ -359,7 +358,7 @@ const EXPECTED_FLAGS: readonly (readonly [string, string])[] = [
   ["--effort", "medium"],
   ["--permission-mode", "dontAsk"],
 ];
-/** Every planning call reads only; a research run may also read the web (slice 6b D2). */
+/** Every planning call reads only; a research run may also read the web. */
 const PLANNING_TOOLS = "Read,Grep,Glob";
 const RESEARCH_TOOLS = "Read,Grep,Glob,WebFetch,WebSearch";
 
@@ -415,7 +414,7 @@ const DESTINATION =
   "A CSV export of every record, offered from the project page, for existing users.";
 
 /**
- * The destination markers (DR-23), read with the chart prompt's `Answered destination rounds: <k>`
+ * The destination markers, read with the chart prompt's `Answered destination rounds: <k>`
  * line: `[fake:destination-follow-up]` asks one non-final follow-up at 1, then confirms;
  * `[fake:destination-final]` asks a final follow-up at 1 and expects the `confirm` roots at 2;
  * `[fake:destination-cap]` asks a non-final follow-up at every `choose` and expects the `confirm`
@@ -432,7 +431,7 @@ function followUpDestination(answered: number): string {
 }
 
 /**
- * A `choose` chart's follow-up in the flat shape (DR-5): the revised title, summary and
+ * A `choose` chart's follow-up in the flat shape: the revised title, summary and
  * destination, and one question on what the answers moved; the confirmation's fields null.
  */
 function followUp(answered: number, final: boolean): object {
@@ -461,7 +460,7 @@ function followUp(answered: number, final: boolean): object {
   };
 }
 
-/** A `choose` chart's confirmation in the flat shape (DR-22): the follow-up's round fields null. */
+/** A `choose` chart's confirmation in the flat shape: the follow-up's round fields null. */
 function choiceConfirmation(): object {
   return {
     kind: "confirmation",
@@ -473,7 +472,7 @@ function choiceConfirmation(): object {
 }
 
 /**
- * A `choose` chart's reply (DR-22, DR-23): with no destination marker, a confirmation; with one, a
+ * A `choose` chart's reply: with no destination marker, a confirmation; with one, a
  * follow-up or a confirmation by the answered rounds, or a mismatch where the marker expects the
  * `confirm` roots.
  */
@@ -504,7 +503,7 @@ function chooseChart(): object {
   return choiceConfirmation();
 }
 
-/** Three Grilling waypoints; the default chart has no fog and no Out of scope line (slice 6b). */
+/** Three Grilling waypoints; the default chart has no fog and no Out of scope line. */
 const WAYPOINTS = [
   {
     kind: "grilling",
@@ -529,7 +528,7 @@ const WAYPOINTS = [
   },
 ];
 
-/** `[fake:kinds]`: Research 1, Task 2 and Grilling 3, blocked by both (slice 6b). */
+/** `[fake:kinds]`: Research 1, Task 2 and Grilling 3, blocked by both. */
 const KINDS_WAYPOINTS = [
   {
     kind: "research",
@@ -556,7 +555,7 @@ const KINDS_WAYPOINTS = [
 
 /**
  * `[fake:states]`: Research 1 and Grilling 2 unblocked, Task 3 and Research 4 blocked by 2, and
- * Grilling 5, which its first run rules out of scope; one fog item (slice 6b, ticket 08).
+ * Grilling 5, which its first run rules out of scope; one fog item.
  */
 const STATES_WAYPOINTS = [
   KINDS_WAYPOINTS[0],
@@ -639,7 +638,7 @@ const GRILL_RESOLUTION = {
   agentDecided: ["Your own words override the chosen options"],
 };
 
-/** A resolving run's map changes: none (slice 6b D3). */
+/** A resolving run's map changes: none. */
 const NO_MAP_CHANGES = {
   newWaypoints: [],
   fogOutOfScope: [],
@@ -655,7 +654,7 @@ const SPEC_TITLES = [SPEC_TITLE, "Import data from CSV", "Schedule exports", "Ke
 
 /**
  * The canned problem sentence, followed by the idea's `[fake:…]` markers, so the rendered
- * `inputs/spec.md` carries them to the delivery stand-ins (slice 8 spec review blocker 7).
+ * `inputs/spec.md` carries them to the delivery stand-ins.
  */
 function specProblem(): string {
   const markers = idea === undefined ? [] : [...idea.matchAll(ANY_MARKER)].map((match) => match[0]);
@@ -995,7 +994,7 @@ if (prompt.includes(FAIL_MARKER)) {
   failRun();
 }
 
-/** The idea's text, from the prompt's `<<<IDEA nonce` block (L63); every planning prompt has one. */
+/** The idea's text, from the prompt's `<<<IDEA nonce` block; every planning prompt has one. */
 function ideaText(): string | undefined {
   return /^<<<IDEA (\S+)\n([\s\S]*?)\nIDEA \1>>>$/m.exec(prompt)?.[2];
 }
@@ -1045,13 +1044,13 @@ type PlanningKind =
 
 function planningKind(): PlanningKind {
   const properties = schemaProperties();
-  // The hatch's root `reply` first (slice 7b D2), then slice 7's roots: a spec review's `summary`
+  // The hatch's root `reply` first, then the spec calls' roots: a spec review's `summary`
   // would otherwise read as a first chart.
-  // A code survey's root `entries` (harness change #1) names no other call.
+  // A code survey's root `entries` names no other call.
   if ("entries" in properties) {
     return "survey";
   }
-  // The fog run's root `fogForPerson` (harness change #4) names no other call.
+  // The fog run's root `fogForPerson` names no other call.
   if ("fogForPerson" in properties) {
     return "fog";
   }
@@ -1064,7 +1063,7 @@ function planningKind(): PlanningKind {
   if ("revision" in properties) {
     return "revise";
   }
-  // A tickets review shares the spec review's roots; its prompt line tells them apart (L170 (b)).
+  // A tickets review shares the spec review's roots; its prompt line tells them apart.
   if (
     "summary" in properties &&
     "findings" in properties &&
@@ -1083,7 +1082,7 @@ function planningKind(): PlanningKind {
   ) {
     return "tickets";
   }
-  // A chart's three steps (DR-22): `choose` and `confirm` have `waypoints`, `propose` `summary` alone.
+  // A chart's three steps: `choose` and `confirm` have `waypoints`, `propose` `summary` alone.
   if ("waypoints" in properties || "summary" in properties) {
     return "chart";
   }
@@ -1283,7 +1282,7 @@ async function holdUntilReleasedAsync(marker: string, file: string): Promise<voi
 }
 
 /**
- * The orchestrator (slice 8 D4's stream shape): per ticket in graph order, a ticket worktree, an
+ * The orchestrator's stream: per ticket in graph order, a ticket worktree, an
  * `Agent` subagent writing the ticket's file, its commit there and a `git merge --no-ff` into the
  * run worktree, then a success `result`. The hold is async, so the lines printed before it reach
  * the runner while it holds.
@@ -1380,7 +1379,7 @@ async function orchestrate(): Promise<void> {
 }
 
 /**
- * A repair attempt (C2): one `Agent`, described with no ticket id, writes
+ * A repair attempt: one `Agent`, described with no ticket id, writes
  * `zenorm-fake-repair-<attempt>.txt` in the run worktree; the orchestrator commits it on the run
  * branch and ends with success. It merges no ticket. With `[fake:repair-held]` in the spec it holds
  * after the `Agent` line until the e2e releases it.
@@ -1684,7 +1683,7 @@ function resolvingMapChanges(): unknown {
 }
 
 /**
- * The map's fog run (harness change #4): every listed fog item moves out of scope; with
+ * The map's fog run: every listed fog item moves out of scope; with
  * `[fake:propose]`, every one is proposed as a new map instead.
  */
 function fogRunOutput(): unknown {
@@ -1964,7 +1963,7 @@ function nothingNewRevision(shown: ShownRevision): ShownRevision {
   };
 }
 
-/** The prompt's `Project spec <n>, latest revision <r>, …:` line, read (slice 8b D6). */
+/** The prompt's `Project spec <n>, latest revision <r>, …:` line, read. */
 function projectSpecStatus(specNumber: number): {
   revision: number;
   approved: boolean;
@@ -1988,7 +1987,7 @@ function projectSpecStatus(specNumber: number): {
  * The touch `[fake:revise:<n>]`'s confirming chart puts on its first waypoint: spec n's latest
  * approved revision and the criterion the revision changes. While another map's draft is the
  * latest revision, the approved one comes from the prompt's `Project spec <n> latest approved
- * revision: <r>` and `Project spec <n> approved criterion ids:` lines (L213 D-5). None when spec n
+ * revision: <r>` and `Project spec <n> approved criterion ids:` lines. None when spec n
  * has no approved revision.
  */
 function revisionTouch(): unknown {
@@ -2026,7 +2025,7 @@ function latestApprovedRevision(specNumber: number): number | null {
   return value === "none" ? null : Number(value);
 }
 
-/** The confirming chart's waypoints, the first touching `[fake:revise:<n>]`'s spec (L202 (1)). */
+/** The confirming chart's waypoints, the first touching `[fake:revise:<n>]`'s spec. */
 function withRevisionTouch<T extends object | undefined>(waypoints: readonly T[]): T[] {
   const touch = revisionTouch();
   return waypoints.map((waypoint, index) =>
@@ -2034,7 +2033,7 @@ function withRevisionTouch<T extends object | undefined>(waypoints: readonly T[]
   );
 }
 
-/** One `Reading <id>: …` line of a To Tickets prompt (slice 8b D8). */
+/** One `Reading <id>: …` line of a To Tickets prompt. */
 interface Reading {
   id: string;
   change: string;
@@ -2090,13 +2089,13 @@ type LaterDisposition =
   | { criterion: string; kind: "removed"; group: string | null; reason: string };
 
 /**
- * A later revision's set, from the prompt's readings as the demo's `reconcile` does: `delivered`
- * names the baseline ticket; `work` goes to a ticket following up the baseline ticket (or, with no
- * baseline, one per clause); `retained` names the earlier ticket carrying it; each removed criterion
- * is taken out by the ticket following up the delivered ticket that built it (else the ticket of its
- * clause, else a ticket of its own), or is `removed` with no ticket when none delivered it. Tickets
- * are numbered from `First ticket number:`. `[fake:departure]` writes the first `delivered`
- * reading `work` with a reason; `[fake:departure-no-reason]` with none until a repair.
+ * A later revision's set, from the prompt's readings: `delivered` names the baseline ticket; `work`
+ * goes to a ticket following up the baseline ticket (or, with no baseline, one per clause);
+ * `retained` names the earlier ticket carrying it; each removed criterion is taken out by the
+ * ticket following up the delivered ticket that built it (else the ticket of its clause, else a
+ * ticket of its own), or is `removed` with no ticket when none delivered it. Tickets are numbered
+ * from `First ticket number:`. `[fake:departure]` writes the first `delivered` reading `work` with
+ * a reason; `[fake:departure-no-reason]` with none until a repair.
  */
 function laterTicketSet() {
   const first = promptNumber("First ticket number: ");
@@ -2247,7 +2246,7 @@ function laterTicketSet() {
   };
 }
 
-/** One `disposition_without_reason` finding per `Departure <id>: no reason` line (slice 8b S8b-13). */
+/** One `disposition_without_reason` finding per `Departure <id>: no reason` line. */
 function departureFindings(): unknown[] {
   return [...prompt.matchAll(/^Departure (\S+): no reason$/gm)].map(([, id]) => ({
     kind: "disposition_without_reason",
@@ -2365,7 +2364,7 @@ function specReviewOutput(): unknown {
   if (idea?.includes(REVIEW_HELD_MARKER) === true && number === 1) {
     holdUntilReleased(REVIEW_HELD_MARKER, REVIEW_RELEASE_FILE);
   }
-  // A repair or re-clear rewrites a draft in place (L241), so a review's place in the loop is told
+  // A repair or re-clear rewrites a draft in place, so a review's place in the loop is told
   // by the spec's earlier failed reviews (the prompt's `Revision N:` lines under EARLIER FINDINGS).
   const earlierBlock = /^<<<EARLIER-FINDINGS (\S+)$([\s\S]*?)^EARLIER-FINDINGS \1>>>$/m.exec(
     prompt,
@@ -2401,7 +2400,7 @@ function firstId(label: string): string {
 /**
  * The version's first ticket and the approved revision's first criterion, from the prompt's
  * `Version ticket ids:` and `Revision criterion ids:` lines, so a finding names only ids the
- * version and the revision carry (S7c-3).
+ * version and the revision carry.
  */
 function reviewedIds(): { ticket: string; criterion: string } {
   return { ticket: firstId("Version ticket"), criterion: firstId("Revision criterion") };
@@ -2471,7 +2470,7 @@ function ticketsReviewOutput(): unknown {
 function ticketSetOutput(): unknown {
   // A same-map repair's revision 2 has a text delta too, and keeps the canned set (51 flows).
   const set = reviseTarget() === undefined ? firstSetOutput() : laterTicketSet();
-  // The line is always sent; a rewrite names the version it replaces (L137 (b)).
+  // The line is always sent; a rewrite names the version it replaces.
   if (!/^Rewrite of ticket set version: \d+$/m.test(prompt)) {
     return set;
   }
@@ -2508,7 +2507,7 @@ function firstSetOutput() {
     : first;
 }
 
-/** The message the hatch run replies to, from the prompt's `MESSAGE` block (L153 (d)). */
+/** The message the hatch run replies to, from the prompt's `MESSAGE` block. */
 function hatchMessage(): string {
   if (!prompt.includes(HATCH_MESSAGE_LINE)) {
     mismatch(`the hatch prompt has no \`${HATCH_MESSAGE_LINE}\` line`);
@@ -2527,7 +2526,7 @@ function hatchTarget(message: string, name: string): number | undefined {
 }
 
 /**
- * A hatch change's fog settlement (L157): every fog item moves out of scope when no waypoint but
+ * A hatch change's fog settlement: every fog item moves out of scope when no waypoint but
  * `target` is still `open` or `claimed`; otherwise none.
  */
 function hatchFog(target: number | null): unknown {
@@ -2537,7 +2536,7 @@ function hatchFog(target: number | null): unknown {
   return others.length === 0 ? fogMovedOutOfScope() : NO_MAP_CHANGES;
 }
 
-/** A hatch run's reply to the prompt's message (slice 7b D2): by its marker, one change or none. */
+/** A hatch run's reply to the prompt's message: by its marker, one change or none. */
 function hatchOutput(): unknown {
   const message = hatchMessage();
   const reply = (text: string, change: unknown) => ({ reply: text, change });
@@ -2617,9 +2616,9 @@ function hatchOutput(): unknown {
 
 /**
  * A spec repair: the latest revision the prompt shows with " (revised)" titles; a note's repair
- * cites the note on C1 (S7b-11, L158 (c)); a wait's release (`Revise because: wait`) adds the wait's
- * note as a criterion of C1 with the next free id (the demo's `revisionFromNote`), C1 citing the
- * source its `Wait from:` line offers. Every repair keeps each id, so `removed` is empty.
+ * cites the note on C1; a wait's release (`Revise because: wait`) adds the wait's note as a
+ * criterion of C1 with the next free id, C1 citing the source its `Wait from:` line offers. Every
+ * repair keeps each id, so `removed` is empty.
  */
 function reviseOutput(): unknown {
   const revision = repaired(firstShownRevision());
@@ -2637,7 +2636,7 @@ function reviseOutput(): unknown {
     }
     const next = Math.max(...first.criteria.map((criterion) => Number(criterion.id.split(".")[1])));
     const added = { id: `${first.id.slice(1)}.${String(next + 1)}`, text: note };
-    // The changed clause cites the source the prompt offers (S8b-16, N-1): the note for a
+    // The changed clause cites the source the prompt offers: the note for a
     // note's wait, else the destination; core refuses a note on a decision-born wait.
     const from = /^Wait from: (a note|this map's decisions)$/m.exec(prompt)?.[1];
     if (from === undefined) {
@@ -2689,7 +2688,7 @@ function structuredOutput(): unknown {
     case "tickets":
       return ticketSetOutput();
     case "chart":
-      // `choose` (DR-22): a confirmation or, by the destination markers, a follow-up (DR-23).
+      // `choose`: a confirmation or, by the destination markers, a follow-up.
       if ("waypoints" in properties && "final" in properties) {
         return chooseChart();
       }
@@ -2716,7 +2715,7 @@ function structuredOutput(): unknown {
 
 /**
  * A confirming chart's reply, by the idea's markers; `[fake:propose]` adds its proposal. The map's
- * title and summary are the proposal's (L253), so every flow's map title is unchanged.
+ * title and summary are the proposal's, so every flow's map title is unchanged.
  */
 function confirmingChart(): object {
   const chart = chartByMarkers();

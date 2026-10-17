@@ -67,7 +67,7 @@ const BASE: SpecRunBase = {
 };
 const NOTE = "Parents must be exported too.";
 
-/** A decision finding (S7-9): it opens a Grilling waypoint, so the map reads un-cleared. */
+/** A decision finding: it opens a Grilling waypoint, so the map reads un-cleared. */
 const DECISION: SpecReviewFinding = {
   kind: "undefined_term",
   route: "decision",
@@ -90,12 +90,12 @@ afterEach(async () => {
   await closeTestContext(context);
 });
 
-/** SPEC with a new title: every id kept, so no clause needs a source (S7-5). */
+/** SPEC with a new title: every id kept, so no clause needs a source. */
 function kept(title: string): DraftContent {
   return { ...SPEC, title, clauses: SPEC.clauses.map((clause) => ({ ...clause, sources: [] })) };
 }
 
-/** `kept(title)` plus a new clause C2 whose only source is a note (S7b-11). */
+/** `kept(title)` plus a new clause C2 whose only source is a note. */
 function citingNote(title: string): DraftContent {
   const base = kept(title);
   return {
@@ -212,7 +212,7 @@ function setOf(ticketSetId: string) {
   return set;
 }
 
-/** Whether the tickets review of `version` escalated a finding (S7c-5). */
+/** Whether the tickets review of `version` escalated a finding. */
 function heldOf(ticketSetId: string, version: number): boolean {
   const recorded = readTicketsReview(context.db, ticketSetId, version);
   if (recorded === null) throw new Error(`Version ${String(version)} has no review`);
@@ -222,7 +222,7 @@ function heldOf(ticketSetId: string, version: number): boolean {
 const REVISE: HatchChange = { kind: "revise_spec" };
 const REWRITE: HatchChange = { kind: "rewrite_tickets" };
 
-describe("spec note (S7b-11, S7b-13)", () => {
+describe("spec note", () => {
   test("a note on a passed draft supersedes it with no rejection, starts a spec-scoped to_spec carrying the message, and its revision is reviewed with the note", async () => {
     const { mapId, specificationId } = await reviewedSpec(context, project);
     const { message } = await note(mapId, REVISE, "spec");
@@ -280,7 +280,7 @@ describe("spec note (S7b-11, S7b-13)", () => {
     expect(revisions(specificationId)).toHaveLength(1);
   });
 
-  test("a note-directed revision does not restart the count (RC4): failed reviews count since the last approval", async () => {
+  test("a note-directed revision does not restart the count: failed reviews count since the last approval", async () => {
     const { mapId, specificationId, specRevisionId } = await reviewedSpec(context, project);
     await note(mapId, REVISE, "spec");
     // r1's review reads failed, as if the note came straight after a failed review.
@@ -300,7 +300,7 @@ describe("spec note (S7b-11, S7b-13)", () => {
     expect(escalatedOf(latest(specificationId))).toEqual([true]);
   });
 
-  test("S7b-5 boundary: refused spec_in_flight while the draft's review runs, writing only the reply; applied after it ends", async () => {
+  test("refused spec_in_flight while the draft's review runs, writing only the reply; applied after it ends", async () => {
     const { mapId, specificationId } = await draftedSpec(context, project);
     const refused = await note(mapId, REVISE, "spec");
     expect(refused.message).toMatchObject({
@@ -333,7 +333,7 @@ describe("spec note (S7b-11, S7b-13)", () => {
     expect(hasSpecRun(mapId, "to_spec")).toBe(false);
   });
 
-  test("S8b-7: a note on an approved spec writes r2 through a note run, r1 still approved", async () => {
+  test("a note on an approved spec writes r2 through a note run, r1 still approved", async () => {
     const { mapId, specificationId } = await reviewedTicketSet(context, project);
     const applied = await note(mapId, REVISE, "spec");
     expect(applied.message).toMatchObject({ refusal: null, change: REVISE });
@@ -388,7 +388,7 @@ describe("spec note (S7b-11, S7b-13)", () => {
   });
 });
 
-describe("a note's run ended by a reopen (S7b-6, S7b-8)", () => {
+describe("a note's run ended by a reopen", () => {
   test("the re-clear carries the note as the spec's feedback and its revision is note-directed", async () => {
     const { mapId, specificationId } = await reviewedSpec(context, project, [DECISION]);
     resolve(context, mapId, 1);
@@ -401,13 +401,13 @@ describe("a note's run ended by a reopen (S7b-6, S7b-8)", () => {
     await note(mapId, REVISE, "spec");
     await note(mapId, { kind: "reopen", waypoint: 1 }, "wayfinding");
     expect(hasSpecRun(mapId, "to_spec")).toBe(false);
-    // A reopened waypoint is decided again in a new round (S7b-7, L156 (1)).
+    // A reopened waypoint is decided again in a new round.
     ask(context, mapId, 1, false);
     answer(context, mapId, 1, PLAIN_ANSWERS);
     resolve(context, mapId, 1);
     const reclear = runningMapRun(context, mapId);
     const map = readMap(context.db, mapId);
-    // The first re-clear rewrote r1 in place (L241); the note superseded it.
+    // The first re-clear rewrote r1 in place; the note superseded it.
     expect(
       draftSpecsRequest(context.db, map, reclear, BASE, readMapRounds(context.db, map.id)).specs,
     ).toMatchObject([
@@ -431,7 +431,7 @@ describe("a note's run ended by a reopen (S7b-6, S7b-8)", () => {
   });
 });
 
-describe("a note's to_spec stopped (L158 (d), L162 (7))", () => {
+describe("a note's to_spec stopped", () => {
   const TIMED_OUT = { code: "agent_timed_out", message: "The agent timed out" } as const;
 
   /** A cleared map whose spec 1 is r2 with its review passed, its note's to_spec stopped. */
@@ -494,7 +494,7 @@ describe("a note's to_spec stopped (L158 (d), L162 (7))", () => {
     resolve(context, mapId, 1);
     const reclear = runningMapRun(context, mapId);
     const map = readMap(context.db, mapId);
-    // The first re-clear rewrote r1 in place (L241); the note superseded it.
+    // The first re-clear rewrote r1 in place; the note superseded it.
     expect(
       draftSpecsRequest(context.db, map, reclear, BASE, readMapRounds(context.db, map.id)).specs,
     ).toMatchObject([
@@ -512,7 +512,7 @@ describe("a note's to_spec stopped (L158 (d), L162 (7))", () => {
   });
 });
 
-describe("ticket note (S7b-12, S7b-13, D8)", () => {
+describe("ticket note", () => {
   test("on an awaiting_review set: a to_tickets rewrite carrying the message, the note its reason; version 2 awaiting_review, no rejection", async () => {
     const { mapId, ticketSetId } = await reviewedTicketSet(context, project);
     const { message } = await note(mapId, REWRITE, "tickets");
@@ -589,10 +589,10 @@ describe("ticket note (S7b-12, S7b-13, D8)", () => {
     expect(specRun(mapId, "to_tickets").id).toBe(rewrite.id);
   });
 
-  test("S7c-8: refused spec_in_flight while a tickets_review runs on the spec", async () => {
+  test("refused spec_in_flight while a tickets_review runs on the spec", async () => {
     const { mapId } = await draftedTicketSet(context, project);
     const review = specRun(mapId, "tickets_review");
-    // L180 (1): the reply speaks of the tickets, and of no Try again while nothing is stopped.
+    // The reply speaks of the tickets, and of no Try again while nothing is stopped.
     expect((await note(mapId, REWRITE, "tickets")).message).toMatchObject({
       refusal: "spec_in_flight",
       reply: SPEC_IN_FLIGHT_SENTENCES.rewrite_tickets.working,
@@ -601,7 +601,7 @@ describe("ticket note (S7b-12, S7b-13, D8)", () => {
     expect(hasSpecRun(mapId, "to_tickets")).toBe(false);
   });
 
-  test("S7c-8: refused spec_in_flight while a review repair runs, and while it is stopped", async () => {
+  test("refused spec_in_flight while a review repair runs, and while it is stopped", async () => {
     const { mapId } = await draftedTicketSet(context, project);
     recordRunningTicketsReview(context, mapId, FAILED_TICKETS_REVIEW);
     const repair = specRun(mapId, "to_tickets");
@@ -613,7 +613,7 @@ describe("ticket note (S7b-12, S7b-13, D8)", () => {
     const failure = { code: "agent_timed_out", message: "The agent timed out" } as const;
     failRun(context.user, context.db, repair.id, failure);
     failRun(context.user, context.db, specRun(mapId, "to_tickets").id, failure);
-    // L180 (1): a stopped scope's reply, and only it, points at Try again.
+    // A stopped scope's reply, and only it, points at Try again.
     expect((await note(mapId, REWRITE, "tickets")).message).toMatchObject({
       refusal: "spec_in_flight",
       reply: SPEC_IN_FLIGHT_SENTENCES.rewrite_tickets.stopped,
@@ -624,7 +624,7 @@ describe("ticket note (S7b-12, S7b-13, D8)", () => {
     expect(hasSpecRun(mapId, "to_tickets")).toBe(false);
   });
 
-  test("S7c-8: on a held set the note starts the rewrite carrying the message, the note outranking the held findings; its version is reviewed and restarts the count", async () => {
+  test("on a held set the note starts the rewrite carrying the message, the note outranking the held findings; its version is reviewed and restarts the count", async () => {
     const { mapId, ticketSetId } = await heldTicketSet(context, project);
     const { message } = await note(mapId, REWRITE, "tickets");
     expect(message.refusal).toBeNull();
@@ -651,12 +651,12 @@ describe("ticket note (S7b-12, S7b-13, D8)", () => {
     expect(hasSpecRun(mapId, "to_tickets")).toBe(false);
   });
 
-  test("L180 (2): a note's ask reaches the review of the version it wrote and the repair after it", async () => {
+  test("a note's ask reaches the review of the version it wrote and the repair after it", async () => {
     const { mapId, ticketSetId } = await heldTicketSet(context, project);
     const { message } = await note(mapId, REWRITE, "tickets");
     const rewriting = specRun(mapId, "to_tickets");
     expect(rewriting.hatchMessageId).toBe(message.id);
-    // L180 (3): while the note's rewrite works, the review reads pending, not the held findings.
+    // While the note's rewrite works, the review reads pending, not the held findings.
     expect((await overview(mapId)).specs[0]?.ticketSets[0]?.review).toEqual({ state: "pending" });
     expect(recordTicketSet(context.user, context.db, rewriting.id, TICKETS).ok).toBe(true);
     const noted = { kind: "note", version: 4, text: NOTE } as const;
@@ -676,7 +676,7 @@ describe("ticket note (S7b-12, S7b-13, D8)", () => {
     });
   });
 
-  test("S8b-7 (rewrites L158 (a)): revise_spec on an approved spec with its own to_tickets running is refused spec_in_flight", async () => {
+  test("revise_spec on an approved spec with its own to_tickets running is refused spec_in_flight", async () => {
     const { mapId, specificationId, ticketSetId } = await reviewedTicketSet(context, project);
     expect(rejectTicketSet(context.user, context.db, { ticketSetId, reason: "Split T2" }).ok).toBe(
       true,
@@ -724,7 +724,7 @@ describe("ticket note (S7b-12, S7b-13, D8)", () => {
       refusal: "spec_in_flight",
       reply: SPEC_IN_FLIGHT_SENTENCES.rewrite_tickets.delivering,
     });
-    // S8b-7: an active delivery run refuses a spec note spec_in_flight; spec_approved is gone.
+    // An active delivery run refuses a spec note spec_in_flight; spec_approved is gone.
     expect((await note(mapId, REVISE, "tickets")).message).toMatchObject({
       refusal: "spec_in_flight",
       reply: SPEC_IN_FLIGHT_SENTENCES.revise_spec.delivering,
@@ -732,7 +732,7 @@ describe("ticket note (S7b-12, S7b-13, D8)", () => {
   });
 });
 
-describe("delivery spec rendering (L151)", () => {
+describe("delivery spec rendering", () => {
   test("a clause sourced from a note renders that source", async () => {
     const { mapId, specificationId } = await reviewedSpec(context, project);
     await note(mapId, REVISE, "spec");

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { mapName } from "@/lib/map";
 import { cn } from "@/lib/utils";
 
-/** A `you` action's button label as core names it (S7b-16); a missing one is a programmer error. */
+/** A `you` action's button label as core names it; a missing one is a programmer error. */
 function labelOf(next: NextAction): string {
   if (next.label === null) {
     throw new Error(`A ${next.who} action on ${next.stage} has no button label`);
@@ -16,7 +16,7 @@ function labelOf(next: NextAction): string {
   return next.label;
 }
 
-/** The map's first next action: its headline and the stage its row links (spec D4). */
+/** The map's first next action: its headline and the stage its row links. */
 function firstNext(overview: MapOverview): { first: NextAction; rest: NextAction[] } {
   const [first, ...rest] = overview.status.next;
   if (first === undefined) {
@@ -26,7 +26,7 @@ function firstNext(overview: MapOverview): { first: NextAction; rest: NextAction
 }
 
 /**
- * The map a row opens (the demo's `actionRoute`): a wait on another map's spec opens the map that
+ * The map a row opens: a wait on another map's spec opens the map that
  * holds it, any other action this map.
  */
 function targetMap(overview: MapOverview, first: NextAction): string {
@@ -40,9 +40,9 @@ function targetMap(overview: MapOverview, first: NextAction): string {
 }
 
 /**
- * Map rows as the demo draws them (spec D4, D6): the name with its project label, the first next
- * action as the headline, the mini rail, and an action linking the stage that action is on. Below
- * `sm` the name block takes the row's width and the rail and the action share a second line.
+ * Map rows: the name with its project label, the first next action as the headline, the mini rail,
+ * and an action linking the stage that action is on. Below `sm` the name block takes the row's
+ * width and the rail and the action share a second line.
  */
 export function MapRows({
   overviews,
@@ -73,7 +73,7 @@ export function MapRows({
               className="col-span-2 min-w-0 sm:col-span-1"
               title={first.detail === null ? first.headline : `${first.headline} ${first.detail}`}
             >
-              {/* A real title runs past one line; two show before it is cut (real-data review). */}
+              {/* A real title runs past one line; two show before it is cut. */}
               <div className="flex items-start gap-2">
                 <span className="line-clamp-2 min-w-0 flex-1 font-semibold">
                   {mapName(overview.map)}
@@ -84,7 +84,7 @@ export function MapRows({
                   </Badge>
                 )}
               </div>
-              {/* The headline on its own line, the detail under it (UX audit G1). */}
+              {/* The headline on its own line, the detail under it. */}
               <div className="truncate text-[12.5px] text-muted-foreground">
                 {first.headline}
                 {alsoYours > 0 && (

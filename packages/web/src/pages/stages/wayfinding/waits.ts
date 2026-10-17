@@ -9,7 +9,7 @@ interface WaypointsOf<W extends Numbered> {
   readonly wayfinding: { readonly waypoints: readonly W[] };
 }
 
-/** The waypoint numbered `number`; an unknown number is the route's error (L100 (1)). */
+/** The waypoint numbered `number`; an unknown number is the route's error. */
 export function waypointByNumber<W extends Numbered>(detail: WaypointsOf<W>, number: number): W {
   const waypoint = detail.wayfinding.waypoints.find((candidate) => candidate.number === number);
   if (waypoint === undefined) {

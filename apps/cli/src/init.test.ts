@@ -199,7 +199,7 @@ afterEach(async () => {
   await rm(home, { recursive: true, force: true });
 });
 
-describe("zenorm init writes a config run starts from (3.1 to 3.4)", () => {
+describe("zenorm init writes a config run starts from", () => {
   test("a tested model: its own table, the claude on PATH and dataDir beside the config", async () => {
     expect(await init("claude.ai", [TESTED_MODEL])).toBe(0);
     expect(reported).toEqual([]);
@@ -211,7 +211,7 @@ describe("zenorm init writes a config run starts from (3.1 to 3.4)", () => {
     expect(config.agent.claudePath).toBe(join(binDir, "claude"));
     expect(config.dataDir).toBe(join(configDir, DATA_DIR_NAME));
     expect((await stat(config.dataDir)).isDirectory()).toBe(true);
-    // 3.4: every other key as the example config has it.
+    // Every other key as the example config has it.
     expect(config.server).toEqual({ host: "127.0.0.1", port: 4310 });
     expect(config.agent).toMatchObject({
       effort: "medium",
@@ -304,7 +304,7 @@ describe("zenorm init writes a config run starts from (3.1 to 3.4)", () => {
   });
 });
 
-describe("refusals that write nothing (3.3, 4.1)", () => {
+describe("refusals that write nothing", () => {
   test("no claude on PATH is agent_cli_missing", async () => {
     const empty = join(home, "empty");
     await mkdir(empty);
@@ -337,7 +337,7 @@ describe("refusals that write nothing (3.3, 4.1)", () => {
   });
 });
 
-describe("a cancelled question is init_not_interactive with nothing written (3.7)", () => {
+describe("a cancelled question is init_not_interactive with nothing written", () => {
   test.each([
     { question: "the sign-in method", state: "signed_out", answers: [null] },
     { question: "the model", state: "claude.ai", answers: [null] },
@@ -361,7 +361,7 @@ describe("a cancelled question is init_not_interactive with nothing written (3.7
   });
 });
 
-describe("Claude Code's sign-in (4.4)", () => {
+describe("Claude Code's sign-in", () => {
   test.each(["claude.ai", "third_party"] as const)("signed in as %s: no login", async (state) => {
     expect(await init(state, [TESTED_MODEL])).toBe(0);
     expect(reported).toEqual([]);
@@ -377,7 +377,7 @@ describe("Claude Code's sign-in (4.4)", () => {
   });
 });
 
-describe("an existing config file (3.5)", () => {
+describe("an existing config file", () => {
   const ORIGINAL = '{ "kept": true }\n';
 
   beforeEach(async () => {
@@ -422,7 +422,7 @@ describe("an existing config file (3.5)", () => {
   });
 });
 
-describe("the data folder (3.6)", () => {
+describe("the data folder", () => {
   test("an existing one keeps its files, and run migrates its database there", async () => {
     const dataDir = join(configDir, DATA_DIR_NAME);
     await mkdir(dataDir, { recursive: true });

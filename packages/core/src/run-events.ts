@@ -10,7 +10,7 @@ import { write } from "./writes.ts";
 type Reader = Pick<ZeNormDatabase, "select">;
 
 /**
- * A line's text as stored (D4, D5): at most 500 characters as the contract counts them (UTF-16
+ * A line's text as stored: at most 500 characters as the contract counts them (UTF-16
  * units, which also bounds SQLite's code-point `length`), cut by the shared `cutAgentText` (never
  * inside a code or bold pair, ending "…"). An empty text is a programmer error.
  */
@@ -31,7 +31,7 @@ export interface RunLine {
 }
 
 /**
- * Inserts a line into a run's activity (S8-9, D5) inside the caller's `write`, numbered
+ * Inserts a line into a run's activity inside the caller's `write`, numbered
  * `seq = max + 1`, stamped now, its text cut by `cutRunEventText`. An unknown run is a programmer
  * error (the foreign key refuses it).
  */
@@ -83,7 +83,7 @@ export function readRunEvents(db: Reader, runId: string): RunEvent[] {
     .all();
 }
 
-/** `delivery.activity` (S8-9): a run's lines oldest first, or `delivery_run_not_found`. */
+/** `delivery.activity`: a run's lines oldest first, or `delivery_run_not_found`. */
 export function getDeliveryActivity(
   db: Reader,
   runId: string,

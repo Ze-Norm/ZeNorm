@@ -13,7 +13,7 @@ function title(error: WebPluginError): string {
 }
 
 /**
- * The page `createWebApp` shows in place of the app when its plugins cannot run (D16): an unknown
+ * The page `createWebApp` shows in place of the app when its plugins cannot run: an unknown
  * slot, or a plugin set that differs from the server's. Nothing else renders and no query runs.
  */
 export function PluginBlockingPage({ error }: { error: WebPluginError }) {

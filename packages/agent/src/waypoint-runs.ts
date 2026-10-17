@@ -80,9 +80,9 @@ export function waypointRunConfig(config: PlanningRunConfig): PlanningRunConfig 
 }
 
 /**
- * The planning agent's research of one waypoint (spec D2) through the Claude Code CLI at
- * `config.claudePath`: it may read the repository and the web, and change nothing. It runs under
- * `waypointRunConfig`, and its prompt states its turn budget.
+ * The planning agent's research of one waypoint through the Claude Code CLI at `config.claudePath`:
+ * it may read the repository and the web, and change nothing. It runs under `waypointRunConfig`,
+ * and its prompt states its turn budget.
  */
 export function claudeCodeResearchWaypoint(config: PlanningRunConfig): ResearchWaypoint {
   const research = waypointRunConfig(config);
@@ -99,9 +99,9 @@ export function claudeCodeResearchWaypoint(config: PlanningRunConfig): ResearchW
 }
 
 /**
- * The planning agent's work on one Task waypoint (spec D2) through the Claude Code CLI at
- * `config.claudePath`: read-only for the first release (L115). It runs under `waypointRunConfig`, and
- * its prompt states its turn budget.
+ * The planning agent's work on one Task waypoint through the Claude Code CLI at
+ * `config.claudePath`: read-only for the first release. It runs under `waypointRunConfig`, and its
+ * prompt states its turn budget.
  */
 export function claudeCodeWorkTask(config: PlanningRunConfig): WorkTask {
   const task = waypointRunConfig(config);
@@ -118,8 +118,8 @@ export function claudeCodeWorkTask(config: PlanningRunConfig): WorkTask {
 }
 
 /**
- * The planning agent's consistency pass (spec D2) through the Claude Code CLI at `config.claudePath`.
- * Its structured output is built once, from `config.limits`.
+ * The planning agent's consistency pass through the Claude Code CLI at `config.claudePath`. Its
+ * structured output is built once, from `config.limits`.
  */
 export function claudeCodeCheckConsistency(config: PlanningRunConfig): CheckConsistency {
   const output = structuredOutput(consistencyOutcome(config.limits));

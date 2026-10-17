@@ -23,9 +23,9 @@ function failedCriterion(revision: SpecRevisionView, criterion: string) {
 }
 
 /**
- * A blocking finding (slice 8 S8-11, D9; the demo's `FindingCard`): the criterion it fails, linked
- * to its clause on the Spec stage, and the tickets that carry it, or "Not tied to a criterion"; the
- * file it is about when it names one (deviation 4). Agent text renders through `AgentText` (L141).
+ * A blocking finding: the criterion it fails, linked to its clause on the Spec stage, and the
+ * tickets that carry it, or "Not tied to a criterion"; the file it is about when it names one.
+ * Agent text renders through `AgentText`.
  */
 export function FindingCard({
   mapId,

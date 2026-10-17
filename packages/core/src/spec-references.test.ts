@@ -86,7 +86,7 @@ function withClause(fields: {
   };
 }
 
-describe("referencesProblem (RC1)", () => {
+describe("referencesProblem", () => {
   test("FACTS identifiers, lifecycle states and names found in a source file resolve", () => {
     const content = withClause({
       text: "Try again refuses `planning_run_not_stopped` on a `cancelled` run.",
@@ -190,7 +190,7 @@ describe("referencesProblem (RC1)", () => {
   });
 });
 
-describe("clauseReferences (RC1)", () => {
+describe("clauseReferences", () => {
   test("each reliance with its line, FACTS meaning and the code around it", () => {
     const references = clauseReferences(
       withClause({

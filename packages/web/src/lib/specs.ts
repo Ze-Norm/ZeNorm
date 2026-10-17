@@ -14,19 +14,19 @@ import type {
   TicketSetView,
 } from "@zenorm/contracts";
 
-/** The stages a map's specs each have their own of (slice 7 D11). */
+/** The stages a map's specs each have their own of. */
 export type SpecStage = "spec" | "tickets" | "delivery";
 
 export const SPEC_STAGES: readonly SpecStage[] = ["spec", "tickets", "delivery"];
 
-/** Side-by-side tabs hold this many specs; more become the picker (D11). */
+/** Side-by-side tabs hold this many specs; more become the picker. */
 export const MAX_SPEC_TABS = 3;
 
 export function isSpecStage(stage: string): stage is SpecStage {
   return SPEC_STAGES.some((entry) => entry === stage);
 }
 
-/** A spec's status in one of its stages, as `map.overview` derives it (D8). */
+/** A spec's status in one of its stages, as `map.overview` derives it. */
 export function specStageStatus(spec: MapSpec, stage: SpecStage): StageStatus {
   const [specStatus, tickets, delivery] = spec.stages;
   switch (stage) {
@@ -40,7 +40,7 @@ export function specStageStatus(spec: MapSpec, stage: SpecStage): StageStatus {
 }
 
 /**
- * The spec a stage shows (slice 7c D9): the one numbered by the route, else the stage's default
+ * The spec a stage shows: the one numbered by the route, else the stage's default
  * that `map.overview` decides (`defaultSpecs`); undefined while the map has written none.
  */
 export function shownSpec(
@@ -76,7 +76,7 @@ export interface TallyCount {
 }
 
 /**
- * The picker's tally (D11): how many specs need you in this stage, are being worked, are done, and
+ * The picker's tally: how many specs need you in this stage, are being worked, are done, and
  * are not here yet (idle or later), leaving out a count of none.
  */
 export function specTally(specs: readonly MapSpec[], stage: SpecStage): TallyCount[] {
@@ -92,7 +92,7 @@ export function specTally(specs: readonly MapSpec[], stage: SpecStage): TallyCou
 }
 
 /**
- * **Next waiting on you** (D11): the next spec after the one shown that needs you in this stage,
+ * **Next waiting on you**: the next spec after the one shown that needs you in this stage,
  * looking onward and wrapping round; undefined when no other spec does.
  */
 export function nextWaiting(
@@ -114,7 +114,7 @@ export type FooterSource =
   | { kind: "destination"; mapId: string; mapTitle: string }
   | { kind: "note"; mapId: string; mapTitle: string };
 
-/** A clause's footer (D9): "From …" and, once a set exists, "Checked by …". */
+/** A clause's footer: "From …" and, once a set exists, "Checked by …". */
 export interface ClauseFooter {
   from: FooterSource[];
   /** The tickets carrying any of the clause's criteria; empty while the revision has no set. */
@@ -122,11 +122,10 @@ export interface ClauseFooter {
 }
 
 /**
- * A clause's footer (D9; slice 8b D2): its resolved sources (core walks them back through every
- * revision, on whichever map, the demo's `clauseSources`), waypoints in their order, then each map's
- * destination, then each map's note through the hatch ("your note", slice 7b S7b-11), each keeping
- * its map (CR-2); and the tickets of the
- * revision's ticket set (undefined while none exists) that carry any of its criteria.
+ * A clause's footer: its resolved sources (core walks them back through every revision, on
+ * whichever map), waypoints in their order, then each map's destination, then each map's note
+ * through the hatch ("your note"), each keeping its map; and the tickets of the revision's ticket
+ * set (undefined while none exists) that carry any of its criteria.
  */
 export function clauseFooter(
   clause: Pick<Clause, "criteria">,
@@ -164,8 +163,8 @@ export function clauseFooter(
 }
 
 /**
- * The text delta's criteria count (the demo's `changeTally`): new, changed, moved, removed and
- * unchanged, leaving out a count of none.
+ * The text delta's criteria count: new, changed, moved, removed and unchanged, leaving out a count
+ * of none.
  */
 export function changeTally(delta: TextDelta): string {
   const changes = Object.values(delta.criteria);
@@ -185,9 +184,8 @@ export function changeTally(delta: TextDelta): string {
 }
 
 /**
- * A changed clause's line in the delta panel (the demo's `ChangesPanel` line): its changed, new and
- * moved criteria and those it drops, by id, leaving out a kind with none; empty when only the
- * clause's own wording changed.
+ * A changed clause's line in the delta panel: its changed, new and moved criteria and those it
+ * drops, by id, leaving out a kind with none; empty when only the clause's own wording changed.
  */
 export function clauseChangeLine(
   clause: Pick<Clause, "id" | "criteria">,
@@ -212,7 +210,7 @@ export function clauseChangeLine(
     .join(" · ");
 }
 
-/** A clause's change in the delta; every clause of the revision has one (S8b-10). */
+/** A clause's change in the delta; every clause of the revision has one. */
 export function clauseChange(delta: TextDelta, clauseId: string): TextDelta["clauses"][string] {
   const change = delta.clauses[clauseId];
   if (change === undefined) {
@@ -221,7 +219,7 @@ export function clauseChange(delta: TextDelta, clauseId: string): TextDelta["cla
   return change;
 }
 
-/** A criterion's change in the delta; every criterion of the revision has one (S8b-10). */
+/** A criterion's change in the delta; every criterion of the revision has one. */
 export function criterionChange(
   delta: TextDelta,
   criterionId: string,
@@ -236,8 +234,8 @@ export function criterionChange(
 }
 
 /**
- * The "Was" line under a criterion (the demo's `ClauseBlock`): a changed one's earlier wording,
- * named by its earlier id when that differs; a moved one's earlier id; null for any other.
+ * The "Was" line under a criterion: a changed one's earlier wording, named by its earlier id when
+ * that differs; a moved one's earlier id; null for any other.
  */
 export type WasLine =
   { kind: "changed"; label: string; text: string } | { kind: "moved"; line: string } | null;
@@ -257,9 +255,9 @@ export function wasLine(criterionId: string, change: TextDelta["criteria"][strin
 }
 
 /**
- * The earlier tickets a clause's criteria carry over in the revision's set (the demo's
- * "Delivered under rN by …"), grouped by the revision each was delivered under (its reading's
- * baseline, E-2), oldest first: each `delivered` disposition's ticket, once each, in order.
+ * The earlier tickets a clause's criteria carry over in the revision's set ("Delivered under rN
+ * by …"), grouped by the revision each was delivered under (its reading's baseline), oldest
+ * first: each `delivered` disposition's ticket, once each, in order.
  */
 export function deliveredUnder(
   clause: Pick<Clause, "criteria">,
@@ -292,7 +290,7 @@ export function deliveredUnder(
   return groups.sort((a, b) => a.revision - b.revision);
 }
 
-/** The revisions of a spec this map wrote, oldest first (the demo's `latestRevisionOn` reads the last). */
+/** The revisions of a spec this map wrote, oldest first. */
 export function ownRevisions(
   spec: Pick<MapSpec, "number" | "revisions">,
   mapId: string,
@@ -314,8 +312,8 @@ export function ownTicketSets(
 }
 
 /**
- * The spec's delivery runs pinned to revisions this map wrote, newest first (the demo's `runsOn`;
- * slice 8b D9): another map's runs on the spec are that map's.
+ * The spec's delivery runs pinned to revisions this map wrote, newest first: another map's runs
+ * on the spec are that map's.
  */
 export function runsOn<Run extends { ticketSetId: string }>(
   spec: Pick<MapSpec, "number" | "revisions" | "ticketSets"> & { runs: readonly Run[] },
@@ -325,7 +323,7 @@ export function runsOn<Run extends { ticketSetId: string }>(
   return spec.runs.filter((run) => sets.has(run.ticketSetId));
 }
 
-/** What this map's latest run says of one clause (the demo's `ClauseBlock`, slice 8 parts). */
+/** What this map's latest run says of one clause. */
 export interface ClauseRunMarks {
   /** The clause's criteria the run's blocking findings name: "fails review". */
   failing: string[];
@@ -334,7 +332,7 @@ export interface ClauseRunMarks {
 }
 
 /**
- * The marks this map's latest run (the demo's `latestRunOn`, newest of `runsOn`) puts on a clause:
+ * The marks this map's latest run (the newest of `runsOn`) puts on a clause:
  * the criteria among `criteria` its blocking findings name, and whether it is merged with one of
  * `checkedBy` in its pinned set. No run, no marks.
  */
@@ -379,7 +377,7 @@ export function revisionBefore(spec: MapSpec, delta: TextDelta): SpecRevisionVie
 }
 
 /**
- * The spec a next action is about (tickets review B6): one the map wrote, else one it waits on (a
+ * The spec a next action is about: one the map wrote, else one it waits on (a
  * wait's action, or its release run's), which the map's Spec stage shows under Waits; undefined
  * for an action about no spec.
  */
@@ -425,7 +423,7 @@ export function specNextAction(
   return own.find((action) => action.stage === "delivery") ?? own[0];
 }
 
-/** Whether the map waits on spec `specNumber` without having written it (slice 8b E-1). */
+/** Whether the map waits on spec `specNumber` without having written it. */
 export function waitsOnly(
   detail: Pick<MapOverviewDetail, "specs" | "waits">,
   specNumber: number,

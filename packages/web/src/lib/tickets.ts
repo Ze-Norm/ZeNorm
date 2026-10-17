@@ -19,8 +19,8 @@ import type {
 import { clauseChange } from "@/lib/specs";
 
 /**
- * A ticket set's dispositions tallied by kind for a line of text (slice 7c D7, slice 8b D12; the
- * demo's `dispositionTally`): "2 need work · 1 carry over · 1 removed", a kind with none left out.
+ * A ticket set's dispositions tallied by kind for a line of text: "2 need work · 1 carry over ·
+ * 1 removed", a kind with none left out.
  */
 export function dispositionTally(dispositions: readonly Disposition[]): string {
   return tallyParts(dispositions)
@@ -28,7 +28,7 @@ export function dispositionTally(dispositions: readonly Disposition[]): string {
     .join(" · ");
 }
 
-/** The tally's kinds in the demo's order, each with its plural label. */
+/** The tally's kinds in order, each with its plural label. */
 const TALLY_ORDER: readonly (readonly [Disposition["kind"], string])[] = [
   ["work", "need work"],
   ["delivered", "carry over"],
@@ -52,9 +52,9 @@ export function tallyParts(
 }
 
 /**
- * One row of the reconciliation (slice 8b D12, the demo's `Reconciliation`): a criterion of the
- * revision, or one it removed, under its clause, with the set's disposition of it and how its text
- * changed (null on a first revision, which has no text delta).
+ * One row of the reconciliation: a criterion of the revision, or one it removed, under its clause,
+ * with the set's disposition of it and how its text changed (null on a first revision, which has no
+ * text delta).
  */
 export interface ReconciliationRow {
   clause: Clause;
@@ -76,13 +76,13 @@ function dispositionOf(dispositions: readonly Disposition[], criterion: string):
 }
 
 /**
- * The reconciliation's rows (slice 8b D12, the demo's `Reconciliation`): every criterion of the
- * revision and every one it takes out (`takenOut`, core's `removedCriteria`: the text delta's and
- * one an earlier revision dropped, CR-3), under its clause, the revision's clauses in order, then
- * the clauses its delta dropped, then any other clause a taken-out criterion sat in; within a clause
- * the revision's criteria come before the removed ones. A criterion without exactly one
- * disposition, or a disposition of a criterion the revision neither has nor takes out, is a
- * programmer error: core checks the set against the revision.
+ * The reconciliation's rows: every criterion of the revision and every one it takes out
+ * (`takenOut`, core's `removedCriteria`: the text delta's and one an earlier revision dropped),
+ * under its clause, the revision's clauses in order, then the clauses its delta dropped, then any
+ * other clause a taken-out criterion sat in; within a clause the revision's criteria come before
+ * the removed ones. A criterion without exactly one disposition, or a disposition of a criterion
+ * the revision neither has nor takes out, is a programmer error: core checks the set against the
+ * revision.
  */
 export function reconciliationRows(
   content: SpecRevisionContent,
@@ -143,7 +143,7 @@ export function reconciliationRows(
 }
 
 /**
- * The reconciliation's rows under their clause (UX audit B1): each clause once, in the rows' order,
+ * The reconciliation's rows under their clause: each clause once, in the rows' order,
  * with its rows and, past a first revision, how its text changed (`"removed"` for a clause the
  * revision dropped; null on a first revision).
  */
@@ -165,7 +165,7 @@ export function reconciliationGroups(
       continue;
     }
     // A clause the delta does not name is one it dropped, or one only a criterion an earlier
-    // revision dropped still names (CR-3): removed either way.
+    // revision dropped still names: removed either way.
     let change: ReconciliationGroup["change"] = null;
     if (delta !== null) {
       change = row.clause.id in delta.clauses ? clauseChange(delta, row.clause.id) : "removed";
@@ -187,7 +187,7 @@ export function onTicketCard(row: ReconciliationRow, departure: boolean): boolea
 }
 
 /**
- * The lede's count of the revision's criteria (UX audit B3): "18 criteria, all need work" when
+ * The lede's count of the revision's criteria: "18 criteria, all need work" when
  * every disposition is of one kind, else the count and the tally ("20 criteria · 18 need work ·
  * 2 removed").
  */
@@ -218,8 +218,8 @@ function singular(label: string): string {
 }
 
 /**
- * A ticket set's state for the page's eyebrow (UX audit B3), in the rail's words: "approved <when>",
- * "replaced by revision n" (S8b-9), "rewrite running" or "rewrite stopped" while the spec's To
+ * A ticket set's state for the page's eyebrow, in the rail's words: "approved <when>",
+ * "replaced by revision n", "rewrite running" or "rewrite stopped" while the spec's To
  * Tickets rewrites the set (`drafting`, after a rejection, a note or a repair; the current
  * version's review is the old one until the rewrite saves), else the review's state: "review
  * running", "awaiting approval", "review needs you" on a held set, "n findings", "review stopped".
@@ -263,7 +263,7 @@ export function ticketSetStateLine(
   }
 }
 
-/** Where a ticket of an earlier set was delivered (the demo's `deliveryOf`), from the run records. */
+/** Where a ticket of an earlier set was delivered, from the run records. */
 export interface TicketDelivery {
   ticket: TicketContent;
   revision: number;
@@ -274,7 +274,7 @@ export interface TicketDelivery {
 }
 
 /**
- * The delivery of one ticket of one of the spec's sets (slice 8b S8b-11): a merged run of that set
+ * The delivery of one ticket of one of the spec's sets: a merged run of that set
  * whose row for the ticket is merged, or null when no merged run delivered it.
  */
 export function setTicketDelivery(
@@ -325,14 +325,14 @@ export function earlierTicketDelivery(
   return null;
 }
 
-/** A project spec's badge (slice 8b D13, the demo's `SpecRow`): its delivery, as a `Badge` variant. */
+/** A project spec's badge: its delivery, as a `Badge` variant. */
 export interface SpecRowBadge {
   tone: "work" | "ok" | "secondary";
   label: string;
 }
 
 /**
- * The project page's badges for one spec (the demo's `SpecRow`): "delivery run n running" while a
+ * The project page's badges for one spec: "delivery run n running" while a
  * run is active, else "delivered · run n" once a run merged, else "not delivered"; and, when the
  * latest revision is not the merged one, that revision and its state ("r2 draft").
  */
@@ -364,14 +364,14 @@ export function specRowBadges(spec: ProjectSpec): {
 /** The colour of the panel's badge, a `Badge` variant. */
 export type ReviewBadgeTone = "work" | "ok" | "bad";
 
-/** The Tickets review panel's content (slice 7c D7, the demo's `TicketsReview` and `ReviewBadge`). */
+/** The Tickets review panel's content. */
 export interface TicketsReviewPanel {
   badge: { tone: ReviewBadgeTone; label: string };
   /** The running sentence while the review is pending or running, else the review's summary; null when stopped (it has none). */
   text: string | null;
   /**
-   * Each finding: its title, kind and route as stable codes (CR-4), its explanation, the tickets
-   * and criteria it names, and whether it escalated (UX audit B4).
+   * Each finding: its title, kind and route as stable codes, its explanation, the tickets and
+   * criteria it names, and whether it escalated.
    */
   findings: Pick<
     TicketsReviewFindingRecord,
@@ -379,11 +379,11 @@ export interface TicketsReviewPanel {
   >[];
 }
 
-/** The demo's running sentence, with "against the text delta and the baseline" again (D12, reversing L166). */
+/** The running sentence, which checks each disposition against the text delta and the baseline. */
 export const TICKETS_REVIEW_RUNNING =
   "A fresh agent is tracing every criterion to its clause and checking each disposition against the text delta and the baseline.";
 
-/** The panel for a set's current version's review; a pending review reads as running (L167 (B2)). */
+/** The panel for a set's current version's review; a pending review reads as running. */
 export function ticketsReviewPanel(review: TicketSetReview): TicketsReviewPanel {
   switch (review.state) {
     case "pending":
@@ -427,7 +427,7 @@ export function ticketsReviewPanel(review: TicketSetReview): TicketsReviewPanel 
   }
 }
 
-/** A held set's escalated findings (S7c-5); an empty list when the review does not hold the set. */
+/** A held set's escalated findings; an empty list when the review does not hold the set. */
 export function heldFindings(review: TicketSetReview | null): TicketsReviewFindingRecord[] {
   if (review?.state !== "findings" || !review.held) {
     return [];
@@ -435,7 +435,7 @@ export function heldFindings(review: TicketSetReview | null): TicketsReviewFindi
   return review.findings.filter((finding) => finding.escalated);
 }
 
-/** A waypoint behind a ticket's clauses, on whichever map wrote it (the demo's `decisionsBehind`). */
+/** A waypoint behind a ticket's clauses, on whichever map wrote it. */
 export interface TicketDecision {
   mapId: string;
   mapTitle: string;
@@ -446,10 +446,10 @@ export interface TicketDecision {
 }
 
 /**
- * The waypoints behind a ticket's clauses (the demo's `decisionsBehind`): each clause's resolved
- * sources in the revision, walked back through every revision across maps (`clauseSources`), in
- * the clauses' order, each map's waypoint once. A clause carried from another map's revision cites
- * that map's waypoints, never this map's (mid QA P-2).
+ * The waypoints behind a ticket's clauses: each clause's resolved sources in the revision, walked
+ * back through every revision across maps (`clauseSources`), in the clauses' order, each map's
+ * waypoint once. A clause carried from another map's revision cites that map's waypoints, never
+ * this map's.
  */
 export function ticketDecisions(
   revision: Pick<SpecRevisionView, "revision" | "clauseSources">,
@@ -484,7 +484,7 @@ export function ticketDecisions(
 }
 
 /**
- * A build or testing line's run-in labels in bold (UX audit B2): a paragraph or line the writer
+ * A build or testing line's run-in labels in bold: a paragraph or line the writer
  * opens with a short label and a colon ("Core: …", "Web/e2e: …", "Migration test: …") reads as
  * a labelled block. Markdown strong, which `AgentText` renders; a label already marked is left.
  */

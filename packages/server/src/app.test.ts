@@ -324,14 +324,14 @@ const SURVEY: CodeSurveyDraft = {
 
 /**
  * The code survey port: it answers at once with `SURVEY`, so the flows these tests drive go on from
- * a confirmed chart to its waypoints (harness change #1). Records each request.
+ * a confirmed chart to its waypoints. Records each request.
  */
 const surveyCode: SurveyCode = (request) => {
   surveyRequests.push(request);
   return Promise.resolve(ok(SURVEY));
 };
 
-/** The fog run's port (harness change #4): it moves every fog item out of scope at once. */
+/** The fog run's port: it moves every fog item out of scope at once. */
 const settleFog: SettleFog = (request) =>
   Promise.resolve(
     ok({
@@ -608,7 +608,7 @@ describe("maps over /rpc", () => {
     });
   });
 
-  test("map.create returns before the held chart resolves; the map and its chart run exist (S6a-2)", async () => {
+  test("map.create returns before the held chart resolves; the map and its chart run exist", async () => {
     const project = await addProject();
 
     const detail = await client.map.create({ projectId: project.id, idea: "  Add dark mode  " });
@@ -763,7 +763,7 @@ describe("maps over /rpc", () => {
     expect(submitted).toMatchObject({ status: "submitted", answers });
     const confirming = (await nthCall(chartPort.calls, 1)).request;
     expect(confirming.mapRounds).toEqual([{ questions: ROUND.questions, answers, final: false }]);
-    // The confirming chart sees what round 1 was asked about (DR-3).
+    // The confirming chart sees what round 1 was asked about.
     expect(confirming.proposed).toEqual({
       title: PROPOSAL.title,
       summary: PROPOSAL.summary,
@@ -1010,7 +1010,7 @@ describe("grilling over /rpc", () => {
     });
 
     const call = await nthCall(grillPort.calls, 0);
-    // The confirmed chart's code survey ran first and is stored on the map (harness change #1).
+    // The confirmed chart's code survey ran first and is stored on the map.
     expect(surveyRequests.map((request) => request.waypoints.length)).toEqual([
       CONFIRMATION.waypoints.length,
     ]);
@@ -1044,7 +1044,7 @@ describe("grilling over /rpc", () => {
 
     const plain = ROUND.questions.map(() => ({ optionIndex: 0, note: "", accepted: true }));
     await client.questionRound.submit({ roundId: asked.waypointRound.id, answers: plain });
-    // Plain choices start the grilling run after the final round (S7b-14); the run resolves it.
+    // Plain choices start the grilling run after the final round; the run resolves it.
     const after = await nthCall(grillPort.calls, 1);
     expect(after.request.afterFinal).toBe(true);
     const running = await client.map.overview({ mapId: map.id });
@@ -1389,7 +1389,7 @@ describe("specs over /rpc", () => {
     expect(log).not.toHaveBeenCalled();
   });
 
-  test("the runner records a passed tickets review; a failing review is retried, then stops with Try again (S7c-2, S7c-10)", async () => {
+  test("the runner records a passed tickets review; a failing review is retried, then stops with Try again", async () => {
     const { mapId } = await clearedMap();
     const specRevisionId = await reviewedSpec(mapId, 0);
     await client.spec.approve({ specRevisionId });
@@ -1423,7 +1423,7 @@ describe("specs over /rpc", () => {
     expect(log).not.toHaveBeenCalled();
   });
 
-  test("a failure is retried once; a failed retry stops the map, and Try again writes again (S6a-12)", async () => {
+  test("a failure is retried once; a failed retry stops the map, and Try again writes again", async () => {
     const { mapId } = await clearedMap();
     (await nthCall(specsPort.calls, 0)).resolve(NOT_LOGGED_IN);
     // The retry runs by itself: Spec still reads working.
@@ -1499,7 +1499,7 @@ describe("specs over /rpc", () => {
     expect(failed.status.next[0]?.stopped?.code).toBe("planning_run_internal_error");
   });
 
-  test("a new app over the same database interrupts the held run and retries it (S6a-13)", async () => {
+  test("a new app over the same database interrupts the held run and retries it", async () => {
     const { mapId } = await clearedMap();
     await nthCall(specsPort.calls, 0);
 
@@ -1551,7 +1551,7 @@ describe("specs over /rpc", () => {
     await new Promise((resolve) => setTimeout(resolve, 50));
   }
 
-  test("no plugin seam or subscriber is called before its plugin's start, with a run to retry (CR9b-2)", async () => {
+  test("no plugin seam or subscriber is called before its plugin's start, with a run to retry", async () => {
     await clearedMap();
     await nthCall(specsPort.calls, 0);
     const calls: string[] = [];
@@ -1583,7 +1583,7 @@ describe("specs over /rpc", () => {
     expect(calls.filter((call) => call.endsWith("before start"))).toEqual([]);
   });
 
-  test("a plugin start that fails launches nothing, and launch refuses (CR9b-2)", async () => {
+  test("a plugin start that fails launches nothing, and launch refuses", async () => {
     await clearedMap();
     await nthCall(specsPort.calls, 0);
     const calls: string[] = [];
@@ -1627,7 +1627,7 @@ function makeRepo(name: string, commit: boolean): string {
   return folderPath;
 }
 
-/** What a planning port returns for an aborted call (spec D2). */
+/** What a planning port returns for an aborted call. */
 const PLANNING_CANCELLED: CancelledError = {
   code: "agent_cancelled",
   message: "Cancelled",
@@ -1678,7 +1678,7 @@ function storedRuns(mapId: string): unknown[] {
     .all(mapId);
 }
 
-describe("the planning runner's stop (S9-2)", () => {
+describe("the planning runner's stop", () => {
   test("stop aborts a held run, which writes nothing, its late usage included; launch then calls no port", async () => {
     const chart = stoppableChart();
     const stoppable = await appOf({
@@ -1939,7 +1939,7 @@ describe("map overviews over /rpc", () => {
       "wayfinding", // destination asked
       "wayfinding", // destination answered
       "wayfinding", // destination confirmed
-      "spec", // map cleared, spec being written (on Spec, L160)
+      "spec", // map cleared, spec being written (on Spec)
       "spec", // spec written
       "spec", // planning review passed
     ]);
@@ -1972,7 +1972,7 @@ describe("the hatch over /rpc", () => {
     expect(
       sent.messages.map(({ stage, spec, text, status }) => [stage, spec, text, status]),
     ).toEqual([["wayfinding", null, "Does nested mean any depth?", { state: "working" }]]);
-    // A hatch run is not a next action and moves no status (D6).
+    // A hatch run is not a next action and moves no status.
     expect(sent.status).toEqual(before.status);
     expect((await client.map.overview({ mapId })).messages).toEqual(sent.messages);
 
@@ -1992,7 +1992,7 @@ describe("the hatch over /rpc", () => {
     expect((await client.map.overview({ mapId })).messages).toHaveLength(1);
   });
 
-  test("the runner calls the hatch port for a sent message and stores its reply (S7b-3, S7b-4)", async () => {
+  test("the runner calls the hatch port for a sent message and stores its reply", async () => {
     const { mapId } = await clearedMap();
 
     await client.hatch.send({
@@ -2051,7 +2051,7 @@ async function approvedSet(): Promise<{
 }
 
 const DELIVERED_FILE = "delivered.txt";
-/** The body every stand-in pull request writer returns (C3's headings). */
+/** The body every stand-in pull request writer returns (the PR skill's four headings). */
 const PULL_REQUEST_BODY = "## Why\n\nDark mode.\n\n## What\n\n## Tests\n\n## Risks\n\nNone.\n";
 const PASSING_CHECK = "git status --short";
 const FAILING_CHECK = "git rev-parse --verify no-such-ref";
@@ -2063,7 +2063,7 @@ function gitIn(cwd: string, args: readonly string[]): string {
 /**
  * What a successful orchestrator leaves: one commit in the run worktree under the run identity,
  * with each pinned ticket's branch `<run branch>-t<n>` at it, so verifying finds every ticket
- * merged from git (S8-8).
+ * merged from git.
  */
 async function commitDelivery(request: ImplementRequest): Promise<string> {
   await writeFile(join(request.worktreePath, DELIVERED_FILE), "delivered\n");
@@ -2076,7 +2076,7 @@ async function commitDelivery(request: ImplementRequest): Promise<string> {
   return gitIn(request.worktreePath, ["rev-parse", "HEAD"]);
 }
 
-/** A pinned ticket's branch (D4). */
+/** A pinned ticket's branch. */
 function ticketBranch(runBranch: string, ticket: string): string {
   return `${runBranch}-t${ticket.slice(1)}`;
 }
@@ -2101,8 +2101,8 @@ function verdictFor(reviewedCommit: string, blocking: boolean): Verdict {
 }
 
 /**
- * Saves the (only) project's required checks and a repair limit of 0 (no repair), then starts a
- * run of the set (S8-3).
+ * Saves the (only) project's required checks and a repair limit of 0 (no repair), then starts a run
+ * of the set.
  */
 async function startRun(ticketSetId: string, checks: readonly string[]): Promise<DeliveryRun> {
   return await startRunWithRepairs(ticketSetId, checks, 0);
@@ -2126,7 +2126,7 @@ async function startRunWithRepairs(
   return await client.delivery.start({ ticketSetId });
 }
 
-/** The run with this id as `map.overview` reports it in spec 1's runs (S8-14). */
+/** The run with this id as `map.overview` reports it in spec 1's runs. */
 async function deliveryRun(mapId: string, runId: string): Promise<SpecRun> {
   const { specs } = await client.map.overview({ mapId });
   const run = firstSpecOf(specs).runs.find((candidate) => candidate.id === runId);
@@ -2157,7 +2157,7 @@ async function runIn(
 }
 
 /**
- * Waits for the runner's cleanup after a run's end (D8): its worktree is gone and its last line,
+ * Waits for the runner's cleanup after a run's end: its worktree is gone and its last line,
  * ZeNorm's cleanup line, names the run branch it keeps. Returns the run's lines.
  */
 async function cleanedUp(run: DeliveryRun): Promise<RunEvent[]> {
@@ -2236,7 +2236,7 @@ describe("delivery over /rpc", () => {
     const passed = await runIn(mapId, started.id, "passed", "reviewing");
     await cleanedUp(started);
     const { status } = await client.map.overview({ mapId });
-    // A passed, unmerged run awaits Mark merged (slice 8 D7, S8-6, L98).
+    // A passed, unmerged run awaits Mark merged.
     expect(status.stages[4]).toMatchObject({ stage: "delivery", tone: "needs-you" });
     expect(status.group).toBe("needs-you");
     expect(status.next[0]?.label).toBe("Mark merged");
@@ -2273,7 +2273,7 @@ describe("delivery over /rpc", () => {
     expect(failed.failure).toMatchObject({ code: "delivery_verdict_invalid" });
     expect(failed).toMatchObject({ finalCommit: final2, verdict: null });
     expect(failed.checkResults).toHaveLength(1);
-    // After a blocked and a failed end the worktrees and ticket branches are gone (S8-12).
+    // After a blocked and a failed end the worktrees and ticket branches are gone.
     await cleanedUp(second);
     const [project] = await client.project.list();
     if (project === undefined) throw new Error("No project is stored");
@@ -2310,7 +2310,7 @@ describe("delivery over /rpc", () => {
       [FAILING_CHECK, 128],
       [PASSING_CHECK, 0],
     ]);
-    // A repair limit of 0: no repair attempt, so no second implement call (C2).
+    // A repair limit of 0: no repair attempt, so no second implement call.
     expect(checksFailed).toMatchObject({ repairLimit: 0, repairAttempts: 0 });
     expect(implementPort.calls).toHaveLength(2);
     expect(reviewPort.calls).toHaveLength(0);
@@ -2351,7 +2351,7 @@ describe("delivery over /rpc", () => {
     });
     expect(cancelled.endedAt).not.toBeNull();
     expect(implement.signal.aborted).toBe(true);
-    // `"local"`'s wording is as before (CR9b-6).
+    // `"local"`'s wording is as before.
     const texts = (await client.delivery.activity({ runId: run.id })).map((line) => line.text);
     expect(texts.filter((text) => text.endsWith(" Starting Claude Code."))).toHaveLength(1);
     expect(texts).toContain("You cancelled the run. The executor was sent SIGTERM.");
@@ -2363,7 +2363,7 @@ describe("delivery over /rpc", () => {
     await vi.waitFor(async () => {
       expect(await deliveryRun(mapId, run.id)).toMatchObject(cancelled);
     }, DELIVERY_WAIT);
-    // Once the abort settles the runner removes the worktree and keeps the branch (S8-12).
+    // Once the abort settles the runner removes the worktree and keeps the branch.
     await vi.waitFor(() => {
       expect(existsSync(join(root, "runs", run.id, "worktree"))).toBe(false);
     }, DELIVERY_WAIT);
@@ -2500,7 +2500,7 @@ describe("delivery over /rpc", () => {
   });
 });
 
-describe("project settings, Mark merged and run activity over /rpc (slice 8)", () => {
+describe("project settings, Mark merged and run activity over /rpc", () => {
   test("project.saveSettings stores the branch, checks, repair limit and fix commands; refusals are coded", async () => {
     const project = await addProject();
     expect(project).toMatchObject({
@@ -2732,9 +2732,9 @@ function eventsOf(call: PendingSession<ImplementRequest, null>): (event: Impleme
 }
 
 /**
- * What the orchestrator does for one ticket (D4): a commit on `<run branch>-t<n>` in its own
- * worktree `<runDir>/tickets/t<n>`, merged `--no-ff` into the run worktree when `merge` is true.
- * Returns the ticket branch's head.
+ * What the orchestrator does for one ticket: a commit on `<run branch>-t<n>` in its own worktree
+ * `<runDir>/tickets/t<n>`, merged `--no-ff` into the run worktree when `merge` is true. Returns the
+ * ticket branch's head.
  */
 async function commitTicket(
   request: ImplementRequest,
@@ -2764,7 +2764,7 @@ function ticketRefs(folderPath: string, runBranch: string): string {
   return gitIn(folderPath, ["for-each-ref", "--format=%(refname)", `refs/heads/${runBranch}-t*`]);
 }
 
-describe("the delivery runner's events, lines and cleanup (slice 8)", () => {
+describe("the delivery runner's events, lines and cleanup", () => {
   test("events are stored as emitted, the merged commit is the ticket branch's head, checks are stored as they finish, and the passed run is cleaned up", async () => {
     const { project, mapId, ticketSetId } = await approvedSet();
     const checks = [PASSING_CHECK, "sleep 0.5"];
@@ -2790,7 +2790,7 @@ describe("the delivery runner's events, lines and cleanup (slice 8)", () => {
     }, DELIVERY_WAIT);
 
     implement.resolve({ ok: true, value: null });
-    // D5: the first check's result is stored while the second still runs.
+    // The first check's result is stored while the second still runs.
     const verifying = await vi.waitFor(async () => {
       const read = await deliveryRun(mapId, run.id);
       expect(read.checkResults).toHaveLength(1);
@@ -2838,7 +2838,7 @@ describe("the delivery runner's events, lines and cleanup (slice 8)", () => {
     expect(log).not.toHaveBeenCalled();
   });
 
-  test("a ticket left unmerged fails the run delivery_ticket_unmerged before any check (S8-8)", async () => {
+  test("a ticket left unmerged fails the run delivery_ticket_unmerged before any check", async () => {
     const { project, mapId, ticketSetId } = await approvedSet();
     const marker = join(root, "check-ran");
     const run = await startRun(ticketSetId, [`touch ${marker}`]);
@@ -2868,7 +2868,7 @@ describe("the delivery runner's events, lines and cleanup (slice 8)", () => {
     expect(log).not.toHaveBeenCalled();
   });
 
-  test("a ticket branch deleted before its merge is recorded fails the run delivery_ticket_unmerged with a ZeNorm line (L197 item 10)", async () => {
+  test("a ticket branch deleted before its merge is recorded fails the run delivery_ticket_unmerged with a ZeNorm line", async () => {
     const { mapId, ticketSetId } = await approvedSet();
     const run = await startRun(ticketSetId, [PASSING_CHECK]);
     const implement = await nthCall(implementPort.calls, 0);
@@ -2933,7 +2933,7 @@ describe("the delivery runner's events, lines and cleanup (slice 8)", () => {
     expect(log).not.toHaveBeenCalled();
   });
 
-  test("a shutdown aborts the active session and settles before the database closes; nothing is written after, and the restarted app reads the run interrupted (L197 item 12)", async () => {
+  test("a shutdown aborts the active session and settles before the database closes; nothing is written after, and the restarted app reads the run interrupted", async () => {
     const { mapId, ticketSetId } = await approvedSet();
     const run = await startRun(ticketSetId, [PASSING_CHECK]);
     const implement = await nthCall(implementPort.calls, 0);
@@ -3387,11 +3387,11 @@ describe("the request guard (Host on every route; Origin and JSON on /rpc)", () 
   });
 });
 
-describe("waits released across maps over /rpc (slice 8b S8b-6, tickets review B1)", () => {
+describe("waits released across maps over /rpc", () => {
   const WAIT_NOTE = "Add a CSV option.";
   const WAITS: DraftSpecsOutcome = { specs: [], waits: [{ specNumber: 1, note: WAIT_NOTE }] };
 
-  /** The waiting map's waits, read from the database (a wait-only map's overview is S8b-05's). */
+  /** The waiting map's waits, read from the database. */
   function waitsOn(mapId: string) {
     return db
       .select()
@@ -3447,9 +3447,9 @@ describe("waits released across maps over /rpc (slice 8b S8b-6, tickets review B
 });
 
 /**
- * A stand-in delivery executor that is not `"local"` and runs no agent (S9-22, D18): per pinned
- * ticket it commits on the ticket branch `<run branch>-t<n>`, merges that branch into the run
- * branch in `worktreePath` with `--no-ff`, then emits `ticket_merged`. Its reviewer passes.
+ * A stand-in delivery executor that is not `"local"` and runs no agent: per pinned ticket it
+ * commits on the ticket branch `<run branch>-t<n>`, merges that branch into the run branch in
+ * `worktreePath` with `--no-ff`, then emits `ticket_merged`. Its reviewer passes.
  */
 function standInExecutor(calls: string[]): DeliveryExecutor {
   return {
@@ -3495,7 +3495,7 @@ async function useExecutor(executor: DeliveryExecutor): Promise<void> {
   client = clientOf(app);
 }
 
-describe("delivery executors (S9-22, D18)", () => {
+describe("delivery executors", () => {
   test("a resumed run starts from the failed run's branch, keeps its merged tickets and passes", async () => {
     // The first run merges every ticket, then its session is cut off: the case resume exists for.
     const requests: ImplementRequest[] = [];
@@ -3643,7 +3643,7 @@ async function activityTexts(runId: string): Promise<string[]> {
 }
 
 /**
- * A stand-in for the `example` executor's repair (C2): a first call merges every ticket as
+ * A stand-in for the `example` executor's repair: a first call merges every ticket as
  * `standInExecutor` does; given `repair`, it merges nothing and commits `repair-<attempt>.txt` on
  * the run branch. Records every request.
  */
@@ -3665,7 +3665,7 @@ function repairingExecutor(requests: ImplementRequest[]): DeliveryExecutor {
   };
 }
 
-describe("repairs of failing checks (C2, C3)", () => {
+describe("repairs of failing checks", () => {
   test("a check failing until a repair commit passes after one attempt, the run implementing during it with its pinned limit", async () => {
     const { project, mapId, ticketSetId } = await approvedSet();
     const run = await startRunWithRepairs(ticketSetId, [PASSING_CHECK, REPAIRED_CHECK], 2);
@@ -3694,7 +3694,7 @@ describe("repairs of failing checks (C2, C3)", () => {
     });
     expect(repair.request.repair?.failedChecks[0]?.result.outputTail).toContain(REPAIR_FILE);
     // During the attempt the run is implementing, its attempt counted against its pinned limit,
-    // which a settings change does not move (3.1).
+    // which a settings change does not move.
     expect(await deliveryRun(mapId, run.id)).toMatchObject({
       state: "running",
       phase: "implementing",
@@ -3914,7 +3914,7 @@ describe("repairs of failing checks (C2, C3)", () => {
   });
 });
 
-describe("fix commands on the implement calls (C4)", () => {
+describe("fix commands on the implement calls", () => {
   test("the first call and each repair carry the run's pinned fix commands, unmoved by a settings change mid-run", async () => {
     const { project, mapId, ticketSetId } = await approvedSet();
     const fixCommands = ["pnpm format", "pnpm lint --fix"];
@@ -3970,7 +3970,7 @@ describe("fix commands on the implement calls (C4)", () => {
   });
 });
 
-describe("a person's Cancel of a deaf executor (CR9b-12)", () => {
+describe("a person's Cancel of a deaf executor", () => {
   test("the runner waits 15 s, logs, cleans up and lets go; a later event is ignored with a line", async () => {
     const executor: { onEvent: ((event: ImplementEvent) => void) | null } = { onEvent: null };
     await useExecutor({
@@ -3999,7 +3999,7 @@ describe("a person's Cancel of a deaf executor (CR9b-12)", () => {
 
     expect(log).toHaveBeenCalledWith(expect.stringMatching(new RegExp(`"deaf".*${run.id}`)), null);
     const lines = await cleanedUp(run);
-    // Off `"local"` the cancel line names no signal (CR9b-6).
+    // Off `"local"` the cancel line names no signal.
     expect(lines.map((line) => line.text)).toContain(
       "You cancelled the run. The executor was told to stop.",
     );
@@ -4013,8 +4013,8 @@ describe("a person's Cancel of a deaf executor (CR9b-12)", () => {
 });
 
 /**
- * A plugin whose checkout gives a clone of the stored folder, made on its first call (CR9b-3): a
- * fetched mirror, say. `clone` is where it is.
+ * A plugin whose checkout gives a clone of the stored folder, made on its first call: a fetched
+ * mirror, say. `clone` is where it is.
  */
 function clonePlugin(clone: string): ServerPlugin {
   return definePlugin({
@@ -4055,7 +4055,7 @@ function hasRef(folder: string, ref: string): boolean {
   }
 }
 
-describe("one folder per run, from the checkout seam (CR9b-3)", () => {
+describe("one folder per run, from the checkout seam", () => {
   test("a checkout that gives a clone gets a coherent run: worktree, merges, verifying, cleanup and Mark merged in the clone", async () => {
     const clone = join(await realpath(root), "clone");
     const calls: string[] = [];
@@ -4093,7 +4093,7 @@ describe("one folder per run, from the checkout seam (CR9b-3)", () => {
     expect(gitIn(clone, ["for-each-ref", `refs/heads/${run.branch}-t*`])).toBe("");
     const texts = lines.map((line) => line.text);
     expect(texts.filter((text) => /could not/i.test(text))).toEqual([]);
-    // The executor-neutral words (CR9b-6).
+    // The executor-neutral words.
     expect(
       texts.filter((text) => text.endsWith(' Starting the executor "stand-in".')),
     ).toHaveLength(1);
@@ -4156,7 +4156,7 @@ describe("one folder per run, from the checkout seam (CR9b-3)", () => {
   });
 });
 
-describe("createApp's database (CR9b-10)", () => {
+describe("createApp's database", () => {
   test("a database whose connection has no change-feed triggers is change_feed_missing", () => {
     const opened = openDatabase(join(root, "bare.sqlite"));
     if (!opened.ok) throw new Error(opened.error.code);
@@ -4184,13 +4184,14 @@ const GITHUB_URL = "https://github.com/acme/numbers.git";
 const GITHUB_PR_URL = "https://github.com/acme/numbers/pull/1";
 
 /**
- * A stand-in for the GitHub CLI, written first on the server process's `PATH` (2.4). Every call
- * appends its arguments as one line to `<state>/calls`. `gh auth status` succeeds, fails while
+ * A stand-in for the GitHub CLI, written first on the server process's `PATH`. Every call appends
+ * its arguments as one line to `<state>/calls`. `gh auth status` succeeds, fails while
  * `<state>/signed-out` exists, and hangs while `<state>/hang` exists. `gh pr create` fails while
  * `<state>/pr-fails` exists; otherwise it copies its `--body-file` to `<state>/body`, numbers the
- * pull request from 1 and prints its URL on its `--repo`, then hangs while `<state>/hold-after-open`
- * exists. `gh pr view <url> --json state` prints the state in `<state>/pr-<number>` (`OPEN` when
- * there is none) and fails while `<state>/view-fails` exists. Any other call exits 2.
+ * pull request from 1 and prints its URL on its `--repo`, then hangs while
+ * `<state>/hold-after-open` exists. `gh pr view <url> --json state` prints the state in
+ * `<state>/pr-<number>` (`OPEN` when there is none) and fails while `<state>/view-fails` exists.
+ * Any other call exits 2.
  */
 function fakeGhScript(state: string): string {
   return [
@@ -4239,7 +4240,7 @@ function fakeGhScript(state: string): string {
   ].join("\n");
 }
 
-describe("a passing run on a GitHub project opens a pull request (C1, C2, C3)", () => {
+describe("a passing run on a GitHub project opens a pull request", () => {
   let originalPath: string;
   /** The fake gh's state folder. */
   let ghState: string;
@@ -4288,7 +4289,7 @@ describe("a passing run on a GitHub project opens a pull request (C1, C2, C3)", 
 
   /**
    * A `PATH` that finds git but no gh: one folder holding only a link to the git first on the
-   * test's original `PATH` (2.4).
+   * test's original `PATH`.
    */
   async function pathWithoutGh(): Promise<string> {
     const git = originalPath
@@ -4307,7 +4308,7 @@ describe("a passing run on a GitHub project opens a pull request (C1, C2, C3)", 
     return { ...standInExecutor([]), name: "writes-pull-request", writePullRequest: write };
   }
 
-  test("a passed run pushes its branch and records its pull request open; Merge PR is next (1.3, 5.4)", async () => {
+  test("a passed run pushes its branch and records its pull request open; Merge PR is next", async () => {
     const requests: PullRequestRequest[] = [];
     await useExecutor(
       writingWith((request) => {
@@ -4337,7 +4338,7 @@ describe("a passing run on a GitHub project opens a pull request (C1, C2, C3)", 
     expect(readFileSync(join(ghState, "body"), "utf8")).toBe(
       `${PULL_REQUEST_BODY.trimEnd()}${PULL_REQUEST_FOOTER}`,
     );
-    // The writer is given the change, every ticket's report, the checks and the verdict (C3).
+    // The writer is given the change, every ticket's report, the checks and the verdict.
     const [request] = requests;
     expect(request).toMatchObject({
       finalCommit: passed.finalCommit,
@@ -4360,7 +4361,7 @@ describe("a passing run on a GitHub project opens a pull request (C1, C2, C3)", 
     expect(log).not.toHaveBeenCalled();
   });
 
-  test("a blocked run pushes nothing and opens no pull request (C1)", async () => {
+  test("a blocked run pushes nothing and opens no pull request", async () => {
     const written: PullRequestRequest[] = [];
     await useExecutor({
       ...writingWith((request) => {
@@ -4389,7 +4390,7 @@ describe("a passing run on a GitHub project opens a pull request (C1, C2, C3)", 
       remote: { name: "origin", url: "https://github.acme.example/acme/numbers.git" },
     },
     { name: "a github.com remote not named origin", remote: { name: "upstream", url: GITHUB_URL } },
-  ])("$name passes as today, with nothing pushed and no pull request (1.1)", async ({ remote }) => {
+  ])("$name passes as today, with nothing pushed and no pull request", async ({ remote }) => {
     const calls: string[] = [];
     await useExecutor(standInExecutor(calls));
     const { project, mapId, ticketSetId } = await approvedSet();
@@ -4409,7 +4410,7 @@ describe("a passing run on a GitHub project opens a pull request (C1, C2, C3)", 
     expect(status.next[0]?.label).toBe("Mark merged");
   });
 
-  test("a fork checkout opens its pull request on origin's repository, the fork (1.2)", async () => {
+  test("a fork checkout opens its pull request on origin's repository, the fork", async () => {
     await useExecutor(standInExecutor([]));
     const { project, mapId, ticketSetId } = await approvedSet();
     addRemote(project.folderPath, "origin", "git@github.com:me/numbers.git", pushTarget);
@@ -4430,7 +4431,7 @@ describe("a passing run on a GitHub project opens a pull request (C1, C2, C3)", 
     { code: "delivery_github_not_signed_in", setUp: () => "signed-out", pushes: false },
     { code: "delivery_pull_request_failed", setUp: () => "pr-fails", pushes: true },
   ] as const)(
-    "a failing gh step ends the run failed $code while publishing (2.1)",
+    "a failing gh step ends the run failed $code while publishing",
     async ({ code, setUp, pushes }) => {
       await writeFile(join(ghState, setUp()), "");
       await useExecutor(standInExecutor([]));
@@ -4448,7 +4449,7 @@ describe("a passing run on a GitHub project opens a pull request (C1, C2, C3)", 
     },
   );
 
-  test("gh missing from PATH ends the run failed delivery_gh_missing, nothing pushed (2.4)", async () => {
+  test("gh missing from PATH ends the run failed delivery_gh_missing, nothing pushed", async () => {
     const noGh = await pathWithoutGh();
     await useExecutor(
       writingWith(() => {
@@ -4469,7 +4470,7 @@ describe("a passing run on a GitHub project opens a pull request (C1, C2, C3)", 
     expect(ghCalls()).toEqual([]);
   });
 
-  test("a failed push ends the run failed delivery_push_failed (2.1)", async () => {
+  test("a failed push ends the run failed delivery_push_failed", async () => {
     await useExecutor(standInExecutor([]));
     const { project, mapId, ticketSetId } = await approvedSet();
     addRemote(project.folderPath, "origin", GITHUB_URL, join(root, "no-such-remote.git"));
@@ -4482,7 +4483,7 @@ describe("a passing run on a GitHub project opens a pull request (C1, C2, C3)", 
     expect(ghCalls()).toEqual(["auth status --hostname github.com"]);
   });
 
-  test("a sign-in check past its bound ends the run failed delivery_github_unreachable (2.1)", async () => {
+  test("a sign-in check past its bound ends the run failed delivery_github_unreachable", async () => {
     await writeFile(join(ghState, "hang"), "");
     await useExecutor(writingWith(pullRequestPort.port));
     const { project, mapId, ticketSetId } = await approvedSet();
@@ -4507,7 +4508,7 @@ describe("a passing run on a GitHub project opens a pull request (C1, C2, C3)", 
     expect(pushedBranches()).toEqual([]);
   });
 
-  test("after a failed open nothing is deleted, and a resume pushes a different branch (2.2)", async () => {
+  test("after a failed open nothing is deleted, and a resume pushes a different branch", async () => {
     await writeFile(join(ghState, "pr-fails"), "");
     await useExecutor(standInExecutor([]));
     const { project, mapId, ticketSetId } = await approvedSet();
@@ -4535,7 +4536,7 @@ describe("a passing run on a GitHub project opens a pull request (C1, C2, C3)", 
     expect(ghCalls().every((call) => /^(auth status|pr create) /.test(call))).toBe(true);
   });
 
-  test("a run cancelled after its pull request opened ends cancelled, and gh is never asked to close it (2.3)", async () => {
+  test("a run cancelled after its pull request opened ends cancelled, and gh is never asked to close it", async () => {
     await writeFile(join(ghState, "hold-after-open"), "");
     await useExecutor(standInExecutor([]));
     const { project, mapId, ticketSetId } = await approvedSet();
@@ -4578,7 +4579,7 @@ describe("a passing run on a GitHub project opens a pull request (C1, C2, C3)", 
       },
     },
   ] as const)(
-    "a writer failing $code ends the run failed with it, nothing pushed (3.1, 3.3)",
+    "a writer failing $code ends the run failed with it, nothing pushed",
     async ({ code, error }) => {
       await useExecutor(writingWith(() => Promise.resolve(err(error))));
       const { project, mapId, ticketSetId } = await approvedSet();
@@ -4594,7 +4595,7 @@ describe("a passing run on a GitHub project opens a pull request (C1, C2, C3)", 
     },
   );
 
-  test("while the writer works the run reads publishing, its Delivery stage working (5.4)", async () => {
+  test("while the writer works the run reads publishing, its Delivery stage working", async () => {
     await useExecutor(writingWith(pullRequestPort.port));
     const { project, mapId, ticketSetId } = await approvedSet();
     addRemote(project.folderPath, "origin", GITHUB_URL, pushTarget);
@@ -4649,7 +4650,7 @@ describe("a passing run on a GitHub project opens a pull request (C1, C2, C3)", 
     });
   }
 
-  test("Check now records a squash-merged pull request merged: Delivery reads done, with the Merged into line (4.1)", async () => {
+  test("Check now records a squash-merged pull request merged: Delivery reads done, with the Merged into line", async () => {
     const { mapId, run } = await passedWithPullRequest();
     await reportState("MERGED");
 
@@ -4669,7 +4670,7 @@ describe("a passing run on a GitHub project opens a pull request (C1, C2, C3)", 
     expect(prViews()).toEqual([`pr view ${GITHUB_PR_URL} --json state`]);
   });
 
-  test("Check now's refusals each change nothing (4.2)", async () => {
+  test("Check now's refusals each change nothing", async () => {
     const { mapId, run } = await passedWithPullRequest();
     await reportState("MERGED");
     const before = await deliveryRun(mapId, run.id);
@@ -4694,7 +4695,7 @@ describe("a passing run on a GitHub project opens a pull request (C1, C2, C3)", 
     expect(log).not.toHaveBeenCalled();
   });
 
-  test("a passed run with no pull request is refused delivery_no_pull_request (4.2)", async () => {
+  test("a passed run with no pull request is refused delivery_no_pull_request", async () => {
     await useExecutor(standInExecutor([]));
     const { mapId, ticketSetId } = await approvedSet();
     const started = await startRun(ticketSetId, [PASSING_CHECK]);
@@ -4709,7 +4710,7 @@ describe("a passing run on a GitHub project opens a pull request (C1, C2, C3)", 
     expect(ghCalls()).toEqual([]);
   });
 
-  test("the timer records a closed pull request closed and no longer checks it; Check now records a reopen open (C4)", async () => {
+  test("the timer records a closed pull request closed and no longer checks it; Check now records a reopen open", async () => {
     const { mapId, run } = await passedWithPullRequest();
     await reportState("CLOSED");
     const timed = await timedApp();
@@ -4742,7 +4743,7 @@ describe("a passing run on a GitHub project opens a pull request (C1, C2, C3)", 
     }
   });
 
-  test("a failed timer check is logged and changes nothing (C4)", async () => {
+  test("a failed timer check is logged and changes nothing", async () => {
     const { mapId, run } = await passedWithPullRequest();
     await reportState("MERGED");
     await writeFile(join(ghState, "view-fails"), "");

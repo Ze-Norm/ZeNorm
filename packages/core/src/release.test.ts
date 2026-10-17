@@ -1,7 +1,7 @@
 /**
- * Slice 8b ticket 07: waits released when nothing holds their spec (S8b-6, D3), notes on an
- * approved or delivered spec (S8b-7), the hatch's latest approved revision (S8b-8), Try again on a
- * release run (B6), cross-map planning (tickets review B1), and L206 (3) and (4).
+ * Waits released when nothing holds their spec, notes on an approved or delivered spec, the
+ * hatch's latest approved revision, Try again on a release run, cross-map planning, and stopped
+ * runs and notes on a replaced ticket set.
  */
 import { readMapRounds } from "./run-work.ts";
 import type {
@@ -93,12 +93,12 @@ afterEach(async () => {
   await closeTestContext(context);
 });
 
-/** SPEC with a new title: every id kept, so no clause needs a source (S7-5). */
+/** SPEC with a new title: every id kept, so no clause needs a source. */
 function kept(title: string): DraftContent {
   return { ...SPEC, title, clauses: SPEC.clauses.map((clause) => ({ ...clause, sources: [] })) };
 }
 
-/** `kept(title)` plus a new clause C2 whose only source is a note (S7b-11). */
+/** `kept(title)` plus a new clause C2 whose only source is a note. */
 function citingNote(title: string): DraftContent {
   return addingClause(title, { kind: "note" });
 }
@@ -171,7 +171,7 @@ function releaseRun(mapId: string): PlanningRun {
   return runOf(wait.releasedByRun);
 }
 
-/** A cleared map whose To Spec names only a wait on spec 1 with `note` (S8b-5). */
+/** A cleared map whose To Spec names only a wait on spec 1 with `note`. */
 async function waiting(note: string): Promise<string> {
   const mapId = await clearedMap(context, project);
   const recorded = recordSpecs(context.user, context.db, runningMapRun(context, mapId).id, {
@@ -182,7 +182,7 @@ async function waiting(note: string): Promise<string> {
   return mapId;
 }
 
-/** A cleared map whose To Spec writes spec 1's next revision (S8b-3), its review running. */
+/** A cleared map whose To Spec writes spec 1's next revision, its review running. */
 async function reviser(title: string): Promise<string> {
   const mapId = await clearedMap(context, project);
   const recorded = recordSpecs(context.user, context.db, runningMapRun(context, mapId).id, {
@@ -299,7 +299,7 @@ async function heldByRevising() {
   return { ...first, revising };
 }
 
-describe("release (S8b-6)", () => {
+describe("release", () => {
   test("a revision hold: approval starts the holder's to_tickets first; the wait releases when its ticket-set runs end, and the release revision closes it", async () => {
     const { specificationId } = await reviewedTicketSet(context, project);
     const holder = await reviser("Held");
@@ -358,7 +358,7 @@ describe("release (S8b-6)", () => {
     expect(running(waiter, "spec_review")).toBe(true);
   });
 
-  // S8b-16 (N-1): a wait To Spec recorded on a map with no waypoints, released on a spec with no
+  // A wait To Spec recorded on a map with no waypoints, released on a spec with no
   // note-directed revision: no waypoint decided the change and there is no note, so its new clause
   // cites the destination; a note source is refused.
   async function releasedDecisionWait() {
@@ -577,7 +577,7 @@ describe("release (S8b-6)", () => {
     });
   });
 
-  test("B6: Try again on a stopped release run starts it again, its wait released by the new run", async () => {
+  test("Try again on a stopped release run starts it again, its wait released by the new run", async () => {
     const { revising } = await heldByRevising();
     const waiter = await waiting(WAIT_NOTE);
     complete(revising);
@@ -597,7 +597,7 @@ describe("release (S8b-6)", () => {
   });
 });
 
-describe("across maps (tickets review B1)", () => {
+describe("across maps", () => {
   test("a to_tickets held back by another map's spec-scoped run starts in the transaction that ends that run", async () => {
     const { specificationId, mapId } = await reviewedTicketSet(context, project);
     const holder = await reviser("Held");
@@ -610,7 +610,7 @@ describe("across maps (tickets review B1)", () => {
   });
 });
 
-describe("notes on an approved or delivered spec (S8b-7)", () => {
+describe("notes on an approved or delivered spec", () => {
   test("a note on a delivered spec writes r2 through a note run, r1 still approved", async () => {
     const { mapId, specificationId } = await deliveredSpec(context, project);
     const message = await note(mapId, REVISE, "spec", NOTE);
@@ -752,7 +752,7 @@ describe("notes on an approved or delivered spec (S8b-7)", () => {
     expect(releaseRun(mapId)).toMatchObject({ hatchMessageId: message.id, state: "running" });
   });
 
-  test("L206 (4): a rewrite_tickets note on a replaced set is refused no_ticket_set and starts nothing", async () => {
+  test("a rewrite_tickets note on a replaced set is refused no_ticket_set and starts nothing", async () => {
     const { mapId } = await reviewedTicketSet(context, project);
     const holder = await reviser("Held");
     passReview(holder);
@@ -762,7 +762,7 @@ describe("notes on an approved or delivered spec (S8b-7)", () => {
   });
 });
 
-describe("L206 (3): a stopped ticket-set run on a replaced set", () => {
+describe("a stopped ticket-set run on a replaced set", () => {
   test.each(["to_tickets", "tickets_review"] as const)(
     "a stopped %s is cancelled replaced by the same map's re-clear; the new revision's review starts",
     async (purpose) => {
@@ -794,7 +794,7 @@ describe("L206 (3): a stopped ticket-set run on a replaced set", () => {
   );
 });
 
-describe("the hatch reads the latest approved revision (S8b-8)", () => {
+describe("the hatch reads the latest approved revision", () => {
   test("with two approved revisions on one map, the hatch request reads the later one and its set", async () => {
     const { mapId, specificationId } = await reviewedTicketSet(context, project);
     insertNextRevision(context, {

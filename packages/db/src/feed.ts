@@ -9,9 +9,9 @@ type Row = "NEW" | "OLD";
 type Expression = (row: Row) => string;
 
 /**
- * How the change feed names one table's row (slice 9 spec D10): its id (a composite key joined
- * with `:`), its project (never null; `change_feed.project_id` is `NOT NULL`) and its map (null
- * when the row belongs to no map).
+ * How the change feed names one table's row: its id (a composite key joined with `:`), its project
+ * (never null; `change_feed.project_id` is `NOT NULL`) and its map (null when the row belongs to no
+ * map).
  *
  * No foreign key in the schema is `ON DELETE CASCADE` (every one is `NO ACTION`, checked at 0020),
  * so no statement deletes a parent along with its children, and a child's `OLD` row can read its
@@ -71,8 +71,8 @@ function onReview(reviews: string): Omit<FeedEntry, "id"> {
 }
 
 /**
- * The feed's table map (slice 9 spec D10): one entry per core table. `installChangeFeed` refuses a
- * database with a table this map does not name, or a named table it lacks.
+ * The feed's table map: one entry per core table. `installChangeFeed` refuses a database with a
+ * table this map does not name, or a named table it lacks.
  */
 export const FEED_TABLES: Readonly<Record<ChangeEntityType, FeedEntry>> = {
   projects: { id: column("id"), project: column("id"), map: null },
@@ -122,8 +122,8 @@ export const FEED_TABLES: Readonly<Record<ChangeEntityType, FeedEntry>> = {
 };
 
 /**
- * The tables the feed does not record (S9-12): the feed itself, the users, the write's Actor and
- * drizzle's migrations; every `sqlite_%` table is skipped too (AUTOINCREMENT creates `sqlite_sequence`).
+ * The tables the feed does not record: the feed itself, the users, the write's Actor and drizzle's
+ * migrations; every `sqlite_%` table is skipped too (AUTOINCREMENT creates `sqlite_sequence`).
  */
 export const FEED_EXCLUDED_TABLES: readonly string[] = [
   "change_feed",
@@ -132,7 +132,7 @@ export const FEED_EXCLUDED_TABLES: readonly string[] = [
   "zenorm_migrations",
 ];
 
-/** The tables whose `user_id` the `user_id_missing` triggers hold to non-null (spec D8, S9-11). */
+/** The tables whose `user_id` the `user_id_missing` triggers hold to non-null. */
 export const USER_ID_TABLES: readonly ChangeEntityType[] = [
   "maps",
   "planning_runs",
@@ -214,12 +214,12 @@ function coreTables(db: ZeNormDatabase): string[] {
 }
 
 /**
- * Installs the change feed on a migrated database (slice 9 spec D10, S9-12): drops and creates, as
- * `TEMP` triggers on this connection, each core table's `AFTER INSERT`, `AFTER UPDATE` and
- * `AFTER DELETE` feed triggers and the `user_id_missing` refusals of D8. A trigger raises
- * `actor_missing` when `write_actor` is empty (a write outside core's `write`). Migrations never
- * fire them: they are installed after migrating, on every open. A core table without a
- * `FEED_TABLES` entry, or an entry without its table, is a programmer error, and throws.
+ * Installs the change feed on a migrated database: drops and creates, as `TEMP` triggers on this
+ * connection, each core table's `AFTER INSERT`, `AFTER UPDATE` and `AFTER DELETE` feed triggers and
+ * the `user_id_missing` refusals. A trigger raises `actor_missing` when `write_actor` is empty (a
+ * write outside core's `write`). Migrations never fire them: they are installed after migrating, on
+ * every open. A core table without a `FEED_TABLES` entry, or an entry without its table, is a
+ * programmer error, and throws.
  */
 export function installChangeFeed(db: ZeNormDatabase): void {
   const tables = coreTables(db);
@@ -249,11 +249,11 @@ export function installChangeFeed(db: ZeNormDatabase): void {
 }
 
 /**
- * The change feed's ends (CR9b-17): `newest` is the highest `seq` ever issued, kept in
- * `sqlite_sequence` (`seq` is AUTOINCREMENT, so a pruned id is never issued again), 0 before the
- * first row; `prunedThrough` is the highest `seq` no longer kept: every row at or below it is gone,
- * every row above it is kept. The feed only ever loses its oldest rows, so it is the kept oldest
- * row's `seq` less one, or `newest` when no row is kept.
+ * The change feed's ends: `newest` is the highest `seq` ever issued, kept in `sqlite_sequence`
+ * (`seq` is AUTOINCREMENT, so a pruned id is never issued again), 0 before the first row;
+ * `prunedThrough` is the highest `seq` no longer kept: every row at or below it is gone, every row
+ * above it is kept. The feed only ever loses its oldest rows, so it is the kept oldest row's `seq`
+ * less one, or `newest` when no row is kept.
  */
 export interface ChangeFeedEnds {
   readonly newest: number;
@@ -286,8 +286,8 @@ export function changeFeedEnds(db: ZeNormDatabase): ChangeFeedEnds {
 }
 
 /**
- * Deletes the feed rows no open stream needs (CR9b-17): every row at or below `through`, or every
- * row when `through` is `"all"`. The feed has no triggers, so this is no write and needs no Actor.
+ * Deletes the feed rows no open stream needs: every row at or below `through`, or every row when
+ * `through` is `"all"`. The feed has no triggers, so this is no write and needs no Actor.
  */
 export function pruneChangeFeed(db: ZeNormDatabase, through: number | "all"): void {
   if (through === "all") {

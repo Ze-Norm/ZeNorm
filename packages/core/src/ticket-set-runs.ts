@@ -29,7 +29,7 @@ import { escalatedTicketsPositions } from "./tickets-escalation.ts";
 import { present } from "./present.ts";
 import { planAndRelease } from "./spec-holds.ts";
 import { write } from "./writes.ts";
-/** The text of the hatch message a run carries (S7b-13), or null. */
+/** The text of the hatch message a run carries, or null. */
 export function runNote(db: Reader, run: PlanningRun): string | null {
   return run.hatchMessageId === null ? null : readNoteText(db, run.hatchMessageId);
 }
@@ -48,10 +48,11 @@ export function approvedRevision(db: Reader, run: PlanningRun): StoredRevision {
 
 /**
  * Records a `to_tickets` run's ticket set against the approved revision and the spec's stored
- * records (S7-13, S8b-12), numbered per spec from `firstTicketNumber` (S7-14): version 1 in `awaiting_review`, or on a rewrite after a rejection (S7-18), a note
- * (S7b-12) or a failed review (S7c-4) version + 1, whose tickets review then starts (S7c-2). Output breaking D2
- * or a broken reference fails the run `ticket_set_content_invalid` and writes nothing. A run
- * cancelled while its port call was out saves nothing (S8b-9).
+ * records, numbered per spec from `firstTicketNumber`: version 1 in `awaiting_review`, or on a
+ * rewrite after a rejection, a note or a failed review version + 1, whose tickets review then
+ * starts. Output breaking the schema or a broken reference fails the run
+ * `ticket_set_content_invalid` and writes nothing. A run cancelled while its port call was out
+ * saves nothing.
  */
 export function recordTicketSet(
   actor: Actor,
@@ -89,7 +90,7 @@ export function recordTicketSet(
   });
 }
 
-/** The first attempt of a run's retry chain (S6a-12): the run itself when it retries none. */
+/** The first attempt of a run's retry chain: the run itself when it retries none. */
 export function firstAttempt(runs: readonly PlanningRun[], run: PlanningRun): PlanningRun {
   let first = run;
   while (first.retryOfRunId !== null) {
@@ -103,7 +104,7 @@ export function firstAttempt(runs: readonly PlanningRun[], run: PlanningRun): Pl
 }
 
 /**
- * The ticket set version a `tickets_review` run reviews, pinned at its start (S7c-2): the latest
+ * The ticket set version a `tickets_review` run reviews, pinned at its start: the latest
  * version of the approved revision's set written by a run started before the review's first
  * attempt. A set or version missing is a programmer error: the review starts only on a written set.
  */
@@ -134,16 +135,17 @@ export function reviewedVersion(
 }
 
 /**
- * Records a `tickets_review` run's outcome pinned to `(ticket_set_id, ticket_set_version)` (S7c-2):
+ * Records a `tickets_review` run's outcome pinned to `(ticket_set_id, ticket_set_version)`:
  * `passed` exactly when it has no finding, each finding with its route and question, marked
- * `escalated` as `escalatedTicketsPositions` computes in this transaction (S7c-5); the set moves to
+ * `escalated` as `escalatedTicketsPositions` computes in this transaction; the set moves to
  * `review_passed` or `review_failed` where it is unapproved and still at that version. A failed
  * review with no escalated finding makes its repair `to_tickets` due, and `planNext` starts it in
- * this transaction (S7c-4); an escalated one holds the set and starts nothing. A finding naming a ticket the version lacks or a criterion the approved revision lacks
- * fails the run `review_reference_unknown` and writes nothing (S7c-3); so does one missing a
- * `disposition_without_reason` finding for a disposition departing with no reason, failing
- * `review_departure_missed` (S8b-13), retried as every planning run. A run whose set was
- * approved or rewritten meanwhile ends completed and saves nothing (S7c-10).
+ * this transaction; an escalated one holds the set and starts nothing. A finding naming a ticket
+ * the version lacks or a criterion the approved revision lacks fails the run
+ * `review_reference_unknown` and writes nothing; so does one missing a `disposition_without_reason`
+ * finding for a disposition departing with no reason, failing `review_departure_missed`, retried as
+ * every planning run. A run whose set was approved or rewritten meanwhile ends completed and saves
+ * nothing.
  */
 export function recordTicketsReview(
   actor: Actor,

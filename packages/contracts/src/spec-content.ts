@@ -14,9 +14,8 @@ import {
   WAYPOINT_TITLE_MAX_LENGTH,
 } from "./wayfinding.ts";
 
-// The documents To Spec, the spec review and To Tickets write (slice 7 spec D2). The shapes follow the
-// demo's records (`prototypes/web-workspace-demo/src/demo/types.ts`: `SpecRevision`, `Clause`,
-// `Criterion`, `Ticket`, `TicketSet`). What needs the stored map (a source resolved on the map, ids
+// The documents To Spec, the spec review and To Tickets write: `SpecRevision`, `Clause`,
+// `Criterion`, `Ticket`, `TicketSet`. What needs the stored map (a source resolved on the map, ids
 // against earlier revisions, ticket references inside a set) is core's, not these schemas'.
 
 export const SPEC_REVISION_TITLE_MAX_LENGTH = 120;
@@ -47,19 +46,19 @@ export const TICKET_SET_SLICING_MAX_LENGTH = 2000;
 export const TICKET_SET_EXECUTION_MAX_LENGTH = 1000;
 
 export const SPEC_REVIEW_SUMMARY_MAX_LENGTH = 2000;
-/** The tickets review's summary bound (slice 7c D2). */
+/** The tickets review's summary bound. */
 export const TICKETS_REVIEW_SUMMARY_MAX_LENGTH = 2000;
 export const SPEC_REVIEW_FINDINGS_MAX_COUNT = 8;
 
-/** A clause's id, `C<n>` (the demo's `C1`, `C2`). */
+/** A clause's id, `C<n>` (`C1`, `C2`). */
 export const ClauseId = z.string().regex(/^C[1-9][0-9]*$/);
 export type ClauseId = z.infer<typeof ClauseId>;
 
-/** A criterion's id, `<n>.<k>` (the demo's `1.1`, `3.1`); stable across revisions (B43). */
+/** A criterion's id, `<n>.<k>` (`1.1`, `3.1`); stable across revisions. */
 export const CriterionId = z.string().regex(/^[1-9][0-9]*\.[1-9][0-9]*$/);
 export type CriterionId = z.infer<typeof CriterionId>;
 
-/** A ticket's id within its set, `T<n>` (the demo's `T1`). */
+/** A ticket's id within its set, `T<n>` (`T1`). */
 export const TicketId = z.string().regex(/^T[1-9][0-9]*$/);
 export type TicketId = z.infer<typeof TicketId>;
 
@@ -75,8 +74,8 @@ export const Criterion = z.strictObject({
 export type Criterion = z.infer<typeof Criterion>;
 
 /**
- * Where a clause comes from: a waypoint resolved on the map, by number, the confirmed destination, or
- * the person's note behind a note-directed revision (S7b-11; valid on that revision or a later one).
+ * Where a clause comes from: a waypoint resolved on the map, by number, the confirmed destination,
+ * or the person's note behind a note-directed revision (valid on that revision or a later one).
  */
 export const ClauseSource = z.discriminatedUnion("kind", [
   z.strictObject({ kind: z.literal("waypoint"), number: z.int().min(1) }),
@@ -86,10 +85,10 @@ export const ClauseSource = z.discriminatedUnion("kind", [
 export type ClauseSource = z.infer<typeof ClauseSource>;
 
 /**
- * Something that exists in the project that a clause's behaviour depends on (RC1): an operation,
- * state, record, procedure, code or file. Core finds `name` among FACTS' names or where the
- * project's source defines it, in the source file at `path` when one is given. Core refuses a name it cannot find, and
- * the review reads the code around each.
+ * Something that exists in the project that a clause's behaviour depends on: an operation, state,
+ * record, procedure, code or file. Core finds `name` among FACTS' names or where the project's
+ * source defines it, in the source file at `path` when one is given. Core refuses a name it cannot
+ * find, and the review reads the code around each.
  */
 export const ClauseReliance = z.strictObject({
   name: z.string().min(1).max(CLAUSE_NAME_MAX_LENGTH),
@@ -105,14 +104,14 @@ const clauseFields = {
   title: z.string().min(1).max(CLAUSE_TITLE_MAX_LENGTH),
   text: z.string().min(1).max(CLAUSE_TEXT_MAX_LENGTH),
   criteria: z.array(Criterion).min(1).max(CLAUSE_CRITERIA_MAX_COUNT),
-  /** A clause new in the revision names at least one (core, spec D2); a kept one may name none. */
+  /** A clause new in the revision names at least one (core); a kept one may name none. */
   sources: z.array(ClauseSource),
 };
 const reliesOn = z.array(ClauseReliance).max(CLAUSE_RELIES_ON_MAX_COUNT);
 const adds = z.array(ClauseAddition).max(CLAUSE_ADDS_MAX_COUNT);
 
 /**
- * A clause as stored. `reliesOn` and `adds` (RC1) are absent on a revision written before clauses
+ * A clause as stored. `reliesOn` and `adds` are absent on a revision written before clauses
  * declared them; To Spec writes both on every clause, and core requires one of them non-empty.
  */
 export const Clause = z.strictObject({
@@ -122,7 +121,7 @@ export const Clause = z.strictObject({
 });
 export type Clause = z.infer<typeof Clause>;
 
-/** One spec revision's document (spec D2; the demo's `SpecRevision` content plus its spec's title). */
+/** One spec revision's document: its content plus its spec's title. */
 export const SpecRevisionContent = z.strictObject({
   title: z.string().min(1).max(SPEC_REVISION_TITLE_MAX_LENGTH),
   problem: z.string().min(1).max(SPEC_REVISION_PROSE_MAX_LENGTH),
@@ -194,11 +193,11 @@ export const TicketContent = z.strictObject({
   blockedBy: z.array(TicketBlocker).max(TICKET_BLOCKERS_MAX_COUNT),
   /**
    * The revision's criteria the ticket carries, by id; empty only on a ticket that takes a removed
-   * criterion out (core, slice 8b S8b-12).
+   * criterion out (core).
    */
   criteria: z.array(CriterionId),
   testing: z.array(ContentLine).min(1).max(TICKET_TESTING_MAX_COUNT),
-  /** The delivered ticket this one changes (a follow-up, slice 8b S8b-14); null otherwise. */
+  /** The delivered ticket this one changes (a follow-up); null otherwise. */
   followUp: TicketId.nullable(),
   outOfScope: z.array(ContentLine).max(TICKET_OUT_OF_SCOPE_MAX_COUNT),
   /**
@@ -211,9 +210,8 @@ export const TicketContent = z.strictObject({
 export type TicketContent = z.infer<typeof TicketContent>;
 
 /**
- * The writer's judgment on one criterion of the revision, or on one it removes (slice 8b D2; the
- * demo's `Disposition`). What needs stored records (a delivered or deliverable ticket, a removed
- * criterion) is core's.
+ * The writer's judgment on one criterion of the revision, or on one it removes. What needs stored
+ * records (a delivered or deliverable ticket, a removed criterion) is core's.
  */
 /** The dispositions, each reason or evidence within `textMax`: the stored cap, or a run's model's limit. */
 function dispositionSchema(textMax: number) {
@@ -222,7 +220,7 @@ function dispositionSchema(textMax: number) {
       criterion: CriterionId,
       kind: z.literal("work"),
       ticket: TicketId,
-      /** Null in slice 7, as the demo's first sets. */
+      /** Why it departs from the criterion's expectation, if it does; else null. */
       reason: z.string().min(1).max(textMax).nullable(),
     }),
     z.strictObject({
@@ -261,8 +259,7 @@ export const Disposition = dispositionSchema(DISPOSITION_TEXT_MAX_LENGTH);
 export type Disposition = z.infer<typeof Disposition>;
 
 /**
- * One ticket set version's document (spec D2; the demo's `TicketSet` content). Zero tickets is a
- * revision with nothing to deliver (slice 8b S8b-15).
+ * One ticket set version's document. Zero tickets is a revision with nothing to deliver.
  */
 export const TicketSetContent = z.strictObject({
   tickets: z.array(TicketContent).max(TICKET_SET_TICKETS_MAX_COUNT),
@@ -310,7 +307,7 @@ export function ticketSetDraft(limits: ModelLimits) {
   });
 }
 
-/** The spec review's finding kinds: the planning-review skill's six (domain model 3.4). */
+/** The spec review's finding kinds: the planning-review skill's six. */
 export const SpecReviewFindingKind = z.enum([
   "contradiction",
   "invented_scope",
@@ -321,7 +318,7 @@ export const SpecReviewFindingKind = z.enum([
 ]);
 export type SpecReviewFindingKind = z.infer<typeof SpecReviewFindingKind>;
 
-/** `revise` when the sources settle the point; `decision` when the person must decide (spec D5). */
+/** `revise` when the sources settle the point; `decision` when the person must decide. */
 export const FindingRoute = z.enum(["revise", "decision"]);
 export type FindingRoute = z.infer<typeof FindingRoute>;
 
@@ -332,8 +329,8 @@ export type SpecElementId = z.infer<typeof SpecElementId>;
 export const SPEC_REMOVAL_REASON_MAX_LENGTH = 300;
 
 /**
- * The clause and criterion ids a repair drops from the revision before, each with why (RC4): the
- * id of every clause and every criterion the revision before had and this one does not, a dropped
+ * The clause and criterion ids a repair drops from the revision before, each with why: the id of
+ * every clause and every criterion the revision before had and this one does not, a dropped
  * clause's criteria and a moved criterion's old id (`was`) included. Core refuses a repair whose
  * actual drops differ from it, either way; the review reads it.
  */
@@ -378,9 +375,9 @@ function specReviewFindingDraft(limits: ModelLimits) {
 export const SpecReviewSummary = z.string().min(1).max(SPEC_REVIEW_SUMMARY_MAX_LENGTH);
 
 /**
- * An item of the map's code survey's `unverifiable` list a spec review settled from the code (RC2):
- * the item by its 1-based position (`U1` is 1), the answer, and the file and line that show it.
- * Core refuses an item the survey does not have or a line its file does not have.
+ * An item of the map's code survey's `unverifiable` list a spec review settled from the code: the
+ * item by its 1-based position (`U1` is 1), the answer, and the file and line that show it. Core
+ * refuses an item the survey does not have or a line its file does not have.
  */
 export const SurveyItemCheck = z.strictObject({
   item: z.int().min(1),
@@ -409,7 +406,7 @@ export function specReviewOutcome(limits: ModelLimits) {
 }
 export type SpecReviewOutcome = z.infer<ReturnType<typeof specReviewOutcome>>;
 
-/** A ticket set's state (domain model 3.5, L127 (2)); rejection is a row, the hold is derived. */
+/** A ticket set's state; rejection is a row, the hold is derived. */
 export const TicketSetState = z.enum([
   "awaiting_review",
   "review_passed",
@@ -419,8 +416,8 @@ export const TicketSetState = z.enum([
 export type TicketSetState = z.infer<typeof TicketSetState>;
 
 /**
- * The tickets review's finding kinds (spec D1); slice 7c writes them. `disposition_without_reason`
- * is a departure with no reason or one the review does not accept (slice 8b S8b-13).
+ * The tickets review's finding kinds. `disposition_without_reason` is a departure with no reason or
+ * one the review does not accept.
  */
 export const TicketsReviewFindingKind = z.enum([
   "untraced_criterion",
@@ -436,10 +433,10 @@ export const TICKETS_REVIEW_FINDING_TITLE_MAX_LENGTH = 120;
 export const TICKETS_REVIEW_FINDING_EXPLANATION_MAX_LENGTH = 1000;
 export const TICKETS_REVIEW_FINDING_QUESTION_MAX_LENGTH = 500;
 
-/** One finding of a tickets review (slice 7c D2, D3). */
+/** One finding of a tickets review. */
 export const TicketsReviewFinding = z.strictObject({
   kind: TicketsReviewFindingKind,
-  /** `revise` when the approved revision settles the point; `decision` when only the person can (D3). */
+  /** `revise` when the approved revision settles the point; `decision` when only the person can. */
   route: FindingRoute,
   title: z.string().min(1).max(TICKETS_REVIEW_FINDING_TITLE_MAX_LENGTH),
   explanation: z.string().min(1).max(TICKETS_REVIEW_FINDING_EXPLANATION_MAX_LENGTH),
@@ -462,8 +459,8 @@ export function ticketsReviewFindingDraft(limits: ModelLimits) {
 }
 
 /**
- * One closed waypoint of the map a spec review read (spec D1): resolved or ruled out of scope, with
- * its closing time (6b D5's form plus the out-of-scope rulings).
+ * One closed waypoint of the map a spec review read: resolved or ruled out of scope, with its
+ * closing time.
  */
 export const SpecReviewSource = z.strictObject({
   waypointId: EntityId,

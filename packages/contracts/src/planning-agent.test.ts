@@ -191,7 +191,7 @@ describe("ChartConfirmation", () => {
     expect(ChartConfirmation.safeParse(empty).success).toBe(true);
   });
 
-  test("requires the map's title and summary beside the destination (DR-5, L253)", () => {
+  test("requires the map's title and summary beside the destination", () => {
     const { title, summary, ...withoutReading } = empty;
     expect(ChartConfirmation.safeParse({ ...withoutReading, summary }).success).toBe(false);
     expect(ChartConfirmation.safeParse({ ...withoutReading, title }).success).toBe(false);
@@ -240,7 +240,7 @@ describe("ChartConfirmation", () => {
     expect(ChartConfirmation.safeParse({ ...empty, waypoints: twelve }).success).toBe(true);
   });
 
-  test("a waypoint names 0 to 3 touches, each with 1 to 12 criteria (slice 8b D2, S8b-2)", () => {
+  test("a waypoint names 0 to 3 touches, each with 1 to 12 criteria", () => {
     expect(WAYPOINT_TOUCHES_MAX_COUNT).toBe(3);
     expect(TOUCH_CRITERIA_MAX_COUNT).toBe(12);
     const criteria = (count: number) =>
@@ -275,7 +275,7 @@ describe("ChartConfirmation", () => {
     expect(ChartConfirmation.safeParse({ ...empty, waypoints: thirteen }).success).toBe(false);
   });
 
-  test("refuses a waypoint without a kind, or of an unknown kind (S6b-2)", () => {
+  test("refuses a waypoint without a kind, or of an unknown kind", () => {
     expect(ChartConfirmation.safeParse({ ...empty, waypoints: [waypoint(1)] }).success).toBe(false);
     expect(
       ChartConfirmation.safeParse({ ...empty, waypoints: [{ ...waypoint(1), kind: "prototype" }] })
@@ -283,7 +283,7 @@ describe("ChartConfirmation", () => {
     ).toBe(false);
   });
 
-  test("accepts eight fog items and eight Out of scope lines, and refuses nine of either (S6b-2)", () => {
+  test("accepts eight fog items and eight Out of scope lines, and refuses nine of either", () => {
     expect(CHART_MAP_LINES_MAX_COUNT).toBe(8);
     const lines = (count: number) => Array.from({ length: count }, (_, i) => `Line ${String(i)}`);
     expect(
@@ -299,7 +299,7 @@ describe("ChartConfirmation", () => {
     expect(ChartConfirmation.safeParse({ ...empty, fog: ["f".repeat(501)] }).success).toBe(false);
   });
 
-  test("keeps two to four options on the map-level questions it reads (S6b-9)", () => {
+  test("keeps two to four options on the map-level questions it reads", () => {
     const one = { ...round.questions[0], options: [round.questions[0]?.options[0]] };
     expect(
       ChartProposal.safeParse({ ...proposal, round: { ...round, questions: [one] } }).success,
@@ -345,7 +345,7 @@ describe("GrillOutcome", () => {
     expect(GrillOutcome.safeParse({ ...outcome, resolution }).success).toBe(false);
   });
 
-  test("refuses a round question with no options or one (S6b-9)", () => {
+  test("refuses a round question with no options or one", () => {
     const outcome = { round: null, resolution: null, outOfScope: null, mapChanges: null };
     for (const options of [[], [round.questions[0]?.options[0]]]) {
       const question = { ...round.questions[0], options };
@@ -481,7 +481,7 @@ describe("the seven output schemas' JSON Schemas", () => {
     expect(rootProperties(ConsistencyOutcome)).toEqual(["findings", "proposals"]);
   });
 
-  test("the research, task and consistency keys (L107) are each a root of exactly one schema", () => {
+  test("the research, task and consistency keys are each a root of exactly one schema", () => {
     const schemas = [
       ChartProposal,
       ChartConfirmation,
@@ -755,7 +755,7 @@ const NO_FOG = {
   newFog: [],
 };
 
-/** One change of each of D3's eight kinds (slice 7b). */
+/** One change of each of the eight kinds. */
 const HATCH_CHANGES = [
   { kind: "reopen", waypoint: 2 },
   {
@@ -792,7 +792,7 @@ const HATCH_CHANGES = [
   },
 ] as const;
 
-describe("HatchOutcome (slice 7b D2, D3, S7b-4)", () => {
+describe("HatchOutcome", () => {
   test("accepts a reply with no change and with each of the nine kinds of change", () => {
     expect(HatchOutcome.safeParse({ reply: "Any depth.", change: null }).success).toBe(true);
     expect(HATCH_CHANGES.map((change) => change.kind)).toHaveLength(9);
@@ -855,7 +855,7 @@ describe("HatchOutcome (slice 7b D2, D3, S7b-4)", () => {
     ).toBe(false);
   });
 
-  test("its root `reply` is a root of no other planning call's output schema (L107)", () => {
+  test("its root `reply` is a root of no other planning call's output schema", () => {
     expect(rootProperties(HatchOutcome)).toEqual(["change", "reply"]);
     const others = [
       ChartProposal,
@@ -878,7 +878,7 @@ describe("HatchOutcome (slice 7b D2, D3, S7b-4)", () => {
   });
 });
 
-describe("notes and problems on the planning requests (S7b-8, S7b-10, S7b-11, S7b-15)", () => {
+describe("notes and problems on the planning requests", () => {
   test("the grilling, research and task requests take a nullable note with text and time", () => {
     const note = { text: "Use --lines.", sentAt: "2026-10-08T09:30:00.000Z" };
     for (const schema of [
@@ -897,7 +897,7 @@ describe("notes and problems on the planning requests (S7b-8, S7b-10, S7b-11, S7
     }
   });
 
-  test("the grilling request's waypoint marks a reopen and its superseded rounds; a refused attempt carries its problem (L156 (1))", () => {
+  test("the grilling request's waypoint marks a reopen and its superseded rounds; a refused attempt carries its problem", () => {
     const waypoint = GrillWaypointRequest.shape.waypoint;
     const base = {
       number: 1,
@@ -979,7 +979,7 @@ describe("notes and problems on the planning requests (S7b-8, S7b-10, S7b-11, S7
     expect(DraftSpecsOutcome.safeParse({ specs: [], waits: [] }).success).toBe(true);
   });
 
-  test("DraftSpecsOutcome names 0 to 12 waits, each a spec number and a note (slice 8b D2, S8b-5)", () => {
+  test("DraftSpecsOutcome names 0 to 12 waits, each a spec number and a note", () => {
     const wait = (specNumber: number, note: string) => ({ specNumber, note });
     const parses = (waits: unknown[]) => DraftSpecsOutcome.safeParse({ specs: [], waits }).success;
     const twelve = Array.from({ length: 12 }, (_, i) => wait(i + 1, "Trim the ends."));
@@ -993,7 +993,7 @@ describe("notes and problems on the planning requests (S7b-8, S7b-10, S7b-11, S7
   });
 });
 
-describe("the tickets review (slice 7c D2, D4, D8)", () => {
+describe("the tickets review", () => {
   const finding = {
     kind: "untraced_criterion",
     route: "revise",
@@ -1005,7 +1005,7 @@ describe("the tickets review (slice 7c D2, D4, D8)", () => {
   };
   const parses = (outcome: unknown) => TicketsReviewOutcome.safeParse(outcome).success;
 
-  test("S7c-2: the outcome accepts zero findings and eight, each kind and route", () => {
+  test("the outcome accepts zero findings and eight, each kind and route", () => {
     expect(parses({ summary: "Every criterion traces.", findings: [] })).toBe(true);
     expect(parses({ summary: "Eight.", findings: Array.from({ length: 8 }, () => finding) })).toBe(
       true,
@@ -1022,7 +1022,7 @@ describe("the tickets review (slice 7c D2, D4, D8)", () => {
     }
   });
 
-  test("S7c-2: the outcome refuses each bound exceeded, an unknown kind and an unknown route", () => {
+  test("the outcome refuses each bound exceeded, an unknown kind and an unknown route", () => {
     const one = (patch: object) => ({ summary: "One.", findings: [{ ...finding, ...patch }] });
     expect(parses({ summary: "x".repeat(1001), findings: [] })).toBe(false);
     expect(parses({ summary: "x".repeat(1000), findings: [] })).toBe(true);
@@ -1042,7 +1042,7 @@ describe("the tickets review (slice 7c D2, D4, D8)", () => {
     expect(parses(one({ ticketNumbers: [1] }))).toBe(false);
   });
 
-  test("D4: a rewrite carries a null reason with findings, or a reason with empty findings", () => {
+  test("a rewrite carries a null reason with findings, or a reason with empty findings", () => {
     const rewrite = DraftTicketSetRequest.shape.rewrite;
     const content = {
       tickets: [
@@ -1070,13 +1070,13 @@ describe("the tickets review (slice 7c D2, D4, D8)", () => {
     );
     expect(rewrite.safeParse({ ...base, findings: [], reason: null }).success).toBe(false);
     expect(rewrite.safeParse({ ...base, reason: "Split it." }).success).toBe(false);
-    // L180 (2): a rewrite always states the set's directed versions, even when there are none.
+    // A rewrite always states the set's directed versions, even when there are none.
     expect(
       rewrite.safeParse({ version: 1, content, findings: [], reason: "Split it." }).success,
     ).toBe(false);
   });
 
-  test("L180 (2): a directed version is a rejection reason or a note behind version 2 or later", () => {
+  test("a directed version is a rejection reason or a note behind version 2 or later", () => {
     const parses = (value: unknown) => DirectedVersion.safeParse(value).success;
     expect(parses({ kind: "rejection", version: 2, reason: "Name it toCsv." })).toBe(true);
     expect(parses({ kind: "note", version: 3, text: "Use stock.csv." })).toBe(true);
@@ -1087,7 +1087,7 @@ describe("the tickets review (slice 7c D2, D4, D8)", () => {
     expect(parses({ kind: "review", version: 2, text: "Use stock.csv." })).toBe(false);
   });
 
-  test("D8: a hatch spec's ticket set carries its review, and held findings exactly when held", () => {
+  test("a hatch spec's ticket set carries its review, and held findings exactly when held", () => {
     const set = ReplyThroughHatchRequest.shape.specs.element.shape.ticketSet;
     const base = { version: 3, state: "review_failed" };
     const held = [{ title: finding.title, question: finding.question }];
@@ -1101,7 +1101,7 @@ describe("the tickets review (slice 7c D2, D4, D8)", () => {
     expect(set.safeParse({ ...base, review: "pending", heldFindings: null }).success).toBe(false);
   });
 
-  test("S7c-13, S7c-14: the hatch reads tickets_review as spec work and a stopped waypoint", () => {
+  test("the hatch reads tickets_review as spec work and a stopped waypoint", () => {
     const spec = ReplyThroughHatchRequest.shape.specs.element.shape;
     expect(spec.inFlight.safeParse(["tickets_review", "to_tickets"]).success).toBe(true);
     const waypoint = ReplyThroughHatchRequest.shape.waypoints.element;
@@ -1226,7 +1226,7 @@ describe("the drafting bounds: tight on the agent's output, wide on stored recor
         ReviseSpecOutcome.safeParse({ revision: { ...content, ...changed }, removed: [] }).success,
       ).toBe(false);
     }
-    // A repair declares its removals (RC4): required, each an element id with a reason.
+    // A repair declares its removals: required, each an element id with a reason.
     expect(ReviseSpecOutcome.safeParse({ revision: content }).success).toBe(false);
     expect(
       ReviseSpecOutcome.safeParse({
@@ -1448,7 +1448,7 @@ describe("the drafting bounds follow the run's model's limits (agent.models)", (
   });
 });
 
-describe("MapRound (DR-1)", () => {
+describe("MapRound", () => {
   const answered = {
     questions: round.questions,
     answers: [{ optionIndex: 0, note: "", accepted: true }],
@@ -1466,7 +1466,7 @@ describe("MapRound (DR-1)", () => {
   });
 });
 
-describe("requests that do not carry the destination's rounds (DR-15)", () => {
+describe("requests that do not carry the destination's rounds", () => {
   /** The keys a schema refused as unrecognized when parsing `value`. */
   function refusedKeys(schema: z.ZodType, value: unknown): string[] {
     const parsed = schema.safeParse(value);
@@ -1500,12 +1500,12 @@ describe("requests that do not carry the destination's rounds (DR-15)", () => {
     ["ReviseSpecRequest", ReviseSpecRequest],
     ["ReviewSpecRequest", ReviewSpecRequest],
     ["ReplyThroughHatchRequest", ReplyThroughHatchRequest],
-  ])("%s takes a mapRounds key (DR-14)", (_name, schema) => {
+  ])("%s takes a mapRounds key", (_name, schema) => {
     expect(refusedKeys(schema, { mapRounds: [] })).toEqual([]);
   });
 });
 
-describe("chartStep (DR-2)", () => {
+describe("chartStep", () => {
   const answered = (final: boolean) => ({
     questions: round.questions,
     answers: [{ optionIndex: 0, note: "", accepted: true }],
@@ -1537,7 +1537,7 @@ describe("chartStep (DR-2)", () => {
   });
 });
 
-describe("isLastMapRound (DR-18)", () => {
+describe("isLastMapRound", () => {
   test.each([
     [1, false, false],
     [2, false, false],
@@ -1549,7 +1549,7 @@ describe("isLastMapRound (DR-18)", () => {
   });
 });
 
-describe("ChartMapRequest's proposed (DR-3)", () => {
+describe("ChartMapRequest's proposed", () => {
   const request = {
     projectName: "wordcount",
     projectFolder: "/repo/wordcount",
@@ -1587,7 +1587,7 @@ describe("ChartMapRequest's proposed (DR-3)", () => {
       false,
     );
   });
-  test("refusedAttempt carries the refused attempt's problem or null (DR-8, L253)", () => {
+  test("refusedAttempt carries the refused attempt's problem or null", () => {
     const refused = ChartMapRequest.shape.refusedAttempt;
     expect(refused.safeParse({ problem: "Set title and summary." }).success).toBe(true);
     expect(refused.safeParse(null).success).toBe(true);
@@ -1599,7 +1599,7 @@ describe("ChartMapRequest's proposed (DR-3)", () => {
   });
 });
 
-describe("chartFollowUp (DR-5's port shape)", () => {
+describe("chartFollowUp", () => {
   const ChartFollowUp = chartFollowUp(LIMITS);
   const followUp = (count: number) => ({
     title: "Counting modes",

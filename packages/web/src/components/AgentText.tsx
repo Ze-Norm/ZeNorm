@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 
 /**
- * Agent text as inline markdown (L126 (a)): code spans, emphasis and strong, never raw backticks,
+ * Agent text as inline markdown: code spans, emphasis and strong, never raw backticks,
  * and bullet and numbered lists as lists, so a run of decided details reads as one. Every other
  * markdown construct shows its text only (headings, quotes and links are unwrapped, but for a
  * spec page link where the caller allows one), and raw HTML shows as text.

@@ -12,13 +12,13 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { formatMoment } from "@/lib/map";
 
-/** The card's tail after a hold's first sentence (spec D16). */
+/** The card's tail after a hold's first sentence. */
 const TAIL =
   "When that ends, this map's change is written as the next revision, with the note below as it stands. Nothing to do here meanwhile.";
 
 /**
- * The wait card's sentence by its hold (spec D16, deviations 3 and 8): page copy keyed on
- * `hold.kind`, as the demo's `WaitCard` writes it in JSX; tests assert the kind, never the words.
+ * The wait card's sentence by its hold: page copy keyed on `hold.kind`; tests assert the kind,
+ * never the words.
  */
 export function holdSentence(hold: SpecHold): string {
   const holder = `“${hold.mapTitle}”`;
@@ -35,15 +35,15 @@ export function holdSentence(hold: SpecHold): string {
   }
 }
 
-/** An open wait nothing holds while the map's own planning comes first (tickets review B4). */
+/** An open wait nothing holds while the map's own planning comes first. */
 const UNHELD =
   "Nothing holds it now. This map's change is written as the next revision once this map's own planning is settled, with the note below as it stands.";
 
-/** A released wait while its run writes the revision (spec D11). */
+/** A released wait while its run writes the revision. */
 const RELEASED = "The agent is writing the next revision.";
 
 /**
- * The changes this map waits with (the demo's `Waits`): each names a spec another map holds, the
+ * The changes this map waits with: each names a spec another map holds, the
  * way a waypoint names what blocks it; a released one until the map's revision lands.
  */
 export function Waits({
@@ -159,9 +159,9 @@ function WaitCard({
 }
 
 /**
- * The map's next action that tries the released wait's stopped run again (tickets review B6): its
- * headline and core's one sentence for why the run stopped (UX audit P1-1). A stopped run with no
- * such action is a status the overview cannot give.
+ * The map's next action that tries the released wait's stopped run again: its headline and core's
+ * one sentence for why the run stopped. A stopped run with no such action is a status the overview
+ * cannot give.
  */
 function stoppedAction(wait: SpecWaitView, runId: string, next: readonly NextAction[]): NextAction {
   const action = next.find((entry) => entry.stopped?.runId === runId);
@@ -175,7 +175,7 @@ function stoppedAction(wait: SpecWaitView, runId: string, next: readonly NextAct
 
 /**
  * What the wait is on: its hold's sentence, an unheld wait's, or, once released, its run writing
- * the next revision (the working tone) or stopped with **Try again** (tickets review B6).
+ * the next revision (the working tone) or stopped with **Try again**.
  */
 function WaitState({ wait, next }: { wait: SpecWaitView; next: readonly NextAction[] }) {
   if (!wait.released) {

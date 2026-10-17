@@ -7,10 +7,10 @@ import { useLiveUpdatesStopped } from "@/lib/live";
 const STOPPED_CLASS = "live-updates-stopped";
 
 /**
- * The recorded demo deviation D14 (S9-16): while the change stream is down, a band under the top
- * bar in the demo's `work` tone for a passing state. It is part of the sticky chrome: it sticks
- * under the bar at `--live-alert` high, which it sets on `html` while shown, so the stage rail and
- * the workspace column, whose offsets count it, move down with it instead of under it.
+ * While the change stream is down, a band under the top bar in the `work` tone for a passing state.
+ * It is part of the sticky chrome: it sticks under the bar at `--live-alert` high, which it sets on
+ * `html` while shown, so the stage rail and the workspace column, whose offsets count it, move down
+ * with it instead of under it.
  */
 export function LiveAlert() {
   const stopped = useLiveUpdatesStopped();

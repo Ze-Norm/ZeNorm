@@ -55,7 +55,7 @@ function holdOn(mapId: string) {
   return specHold(context.db, delivered.specificationId, mapId);
 }
 
-describe("specHold (S8b-4)", () => {
+describe("specHold", () => {
   test("nothing holds a delivered, merged spec", () => {
     expect(holdOn(mine)).toBeNull();
   });
@@ -96,7 +96,7 @@ describe("specHold (S8b-4)", () => {
       mapId: other,
       state: "stopped",
     });
-    // A map-scope run started after the stop supersedes it (L121, S7-26).
+    // A map-scope run started after the stop supersedes it.
     insertRun(context, {
       mapId: other,
       specificationId: null,
@@ -125,7 +125,7 @@ describe("specHold (S8b-4)", () => {
     },
   );
 
-  test("this map's own to_tickets gives no tickets hold (its next revision replaces it, S8b-9)", () => {
+  test("this map's own to_tickets gives no tickets hold (its next revision replaces it)", () => {
     holdByTickets(context, {
       specificationId: delivered.specificationId,
       mapId: other,

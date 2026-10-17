@@ -9,7 +9,7 @@ type DefinedError<E> = Extract<E, ORPCError<any, any>>;
 /**
  * A procedure's refusal: a defined error shows its code and the caller's sentence for that code
  * (plus the server's message when `showMessage`); any other error shows `title` and its message.
- * Styled as the demo's refusal: the code as the title, in the `bad` tone.
+ * Styled with the code as the title, in the `bad` tone.
  */
 export function RefusalAlert<E extends Error>({
   error,

@@ -68,8 +68,8 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-describe("the live layer's coalescer (S9-16, D13)", () => {
-  it("opens one source, is not stopped, and its first open refetches everything (CR9b-7)", async () => {
+describe("the live layer's coalescer", () => {
+  it("opens one source, is not stopped, and its first open refetches everything", async () => {
     expect(sources).toHaveLength(1);
     expect(invalidateQueries).not.toHaveBeenCalled();
     // A commit between the page's first reads and the subscription is not missed: the first
@@ -238,7 +238,7 @@ describe("the live layer's coalescer (S9-16, D13)", () => {
   });
 });
 
-describe("the live layer's silence watch (CR9b-8)", () => {
+describe("the live layer's silence watch", () => {
   it("keeps a source that sends heartbeats or changes, however long it stays open", async () => {
     const source = latest();
     source.fire("open");
@@ -290,7 +290,7 @@ describe("the live layer's silence watch (CR9b-8)", () => {
   });
 });
 
-describe("a stream the route ends with a coded frame (CR9b-16)", () => {
+describe("a stream the route ends with a coded frame", () => {
   it("is closed at once and replaced, live only, after REOPEN_MS, like a refused reconnect", async () => {
     const first = latest();
     first.fire("open");

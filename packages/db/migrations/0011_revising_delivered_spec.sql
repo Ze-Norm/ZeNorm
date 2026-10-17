@@ -1,11 +1,11 @@
--- Slice 8b spec D1 and Existing Records. Rebuilds `hatch_messages` so its refusal check admits
+-- Rebuilds `hatch_messages` so its refusal check admits
 -- `spec_waiting` (keeping `spec_approved`, which stored replies carry) and `tickets_review_findings`
 -- so its kind check admits `disposition_without_reason`. Each rebuild copies every column of every
 -- row unchanged and refuses to finish unless the new table has as many rows as the old one. Then
 -- adds `waypoint_touches` and `spec_waits`, empty: no waypoint gets a touch and no map waits.
 -- `spec_waits` references `hatch_messages`, so it is created after that rebuild. The rebuilds run
 -- with foreign keys off (`migrateDatabase`; `hatch_messages` is a parent of `planning_runs` and
--- `waypoints`) and the migration ends by refusing any foreign key violation (L163).
+-- `waypoints`) and the migration ends by refusing any foreign key violation.
 CREATE TABLE `__new_hatch_messages` (
 	`id` text PRIMARY KEY NOT NULL,
 	`map_id` text NOT NULL,

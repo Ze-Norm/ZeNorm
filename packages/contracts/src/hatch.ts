@@ -4,26 +4,26 @@ import { HatchRefusal } from "./codes.ts";
 import { EntityId } from "./map.ts";
 import { StoppedRun } from "./wayfinding.ts";
 
-/** The most characters a hatch message holds (spec D1). */
+/** The most characters a hatch message holds. */
 export const HATCH_MESSAGE_MAX_LENGTH = 4000;
-/** A message the person sends through the escape hatch (spec D1). */
+/** A message the person sends through the escape hatch. */
 export const HatchMessageText = z.string().min(1).max(HATCH_MESSAGE_MAX_LENGTH);
 
-/** The most characters a hatch reply holds (S7b-4). */
+/** The most characters a hatch reply holds. */
 export const HATCH_REPLY_MAX_LENGTH = 2000;
-/** A hatch reply: the agent's answer in the stream, 1 to 2000 characters (S7b-4). */
+/** A hatch reply: the agent's answer in the stream, 1 to 2000 characters. */
 export const HatchReply = z.string().min(1).max(HATCH_REPLY_MAX_LENGTH);
 
-/** The stage a hatch message was sent from: the four planning stages, never `delivery` (verdict Q10). */
+/** The stage a hatch message was sent from: the four planning stages, never `delivery`. */
 export const HatchStage = z.enum(["idea", "wayfinding", "spec", "tickets"]);
 export type HatchStage = z.infer<typeof HatchStage>;
 
-/** The stages whose messages name no spec (S7b-2; a check constraint keeps the spec null). */
+/** The stages whose messages name no spec (a check constraint keeps the spec null). */
 export const HATCH_STAGES_WITHOUT_SPEC: readonly HatchStage[] = ["idea", "wayfinding"];
 
 /**
- * `hatch.send` (S7b-2): the map, the stage on screen, the spec on screen by number (null when the
- * route names none; always null on Idea and Wayfinding) and the text. Blank text reaches core, which
+ * `hatch.send`: the map, the stage on screen, the spec on screen by number (null when the route
+ * names none; always null on Idea and Wayfinding) and the text. Blank text reaches core, which
  * refuses it `hatch_message_empty`.
  */
 export const SendHatchMessageInput = z
@@ -40,8 +40,8 @@ export const SendHatchMessageInput = z
 export type SendHatchMessageInput = z.infer<typeof SendHatchMessageInput>;
 
 /**
- * A message's state as the stream reads it (spec D6): `queued` until its `hatch` run starts,
- * `working` while that run runs or awaits its retry, `stopped` on a failed retry (Try again acts on
+ * A message's state as the stream reads it: `queued` until its `hatch` run starts, `working` while
+ * that run runs or awaits its retry, `stopped` on a failed retry (Try again acts on
  * `stopped.runId`), `replied` once the reply is stored (a refusal is a reply with its code).
  */
 export const HatchMessageState = z.discriminatedUnion("state", [
@@ -58,7 +58,7 @@ export const HatchMessageState = z.discriminatedUnion("state", [
 ]);
 export type HatchMessageState = z.infer<typeof HatchMessageState>;
 
-/** One message the map was sent through the hatch, with its reply when it has one (spec D6). */
+/** One message the map was sent through the hatch, with its reply when it has one. */
 export const HatchMessageView = z.strictObject({
   id: EntityId,
   stage: HatchStage,

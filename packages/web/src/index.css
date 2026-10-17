@@ -4,11 +4,10 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Round 3 of the aesthetic directions (prototypes/aesthetic-directions-3) as a shadcn theme:
- * square corners, stone neutrals, hairlines, ink on structure, and one signal colour (primary)
- * that means "needs you" and marks the action that answers it. `:root` is the light scheme;
- * `.dark` on `<html>` (set by `lib/theme.ts` from the person's choice or the system) swaps every
- * colour for the dark scheme and leaves the layout tokens alone.
+ * ZeNorm's look as a shadcn theme: square corners, stone neutrals, hairlines, ink on structure,
+ * and one signal colour (primary) that means "needs you" and marks the action that answers it.
+ * `:root` is the light scheme; `.dark` on `<html>` (set by `lib/theme.ts` from the person's choice
+ * or the system) swaps every colour for the dark scheme and leaves the layout tokens alone.
  */
 :root {
   color-scheme: light;
@@ -33,7 +32,7 @@
   --input: #c3c2bd;
   --ring: #185fa5;
 
-  /* Round 3 additions. */
+  /* The theme's own tokens, beyond shadcn's. */
   --ink: #1a1a1a;
   /* Text on an ink fill (the ink button, the hatch's sent message), so it flips with the ink. */
   --ink-foreground: #ffffff;
@@ -43,7 +42,7 @@
    * where a near-white hairline glares.
    */
   --ink-line: #1a1a1a;
-  /* Faint text: 4.5:1 and over on the background, a card and the secondary fill (UX audit A7). */
+  /* Faint text: 4.5:1 and over on the background, a card and the secondary fill. */
   --faint: #70706b;
   --hair-strong: #c3c2bd;
   --primary-soft: #e6f1fb;
@@ -70,12 +69,12 @@
   /* Kept for the annotation widget, which uses the template's names. */
   --warn: #854f0b;
   --warn-soft: #faeeda;
-  /* The planning agent's rule in the activity log (round 3's Pi colour). */
+  /* The planning agent's rule in the activity log (the Pi colour). */
   --agent: #9b6dff;
   --agent-fg: #7a4fe0;
-  /* The delivery executor's rule in a run's activity (round 3's executor colour). */
+  /* The delivery executor's rule in a run's activity. */
   --executor: #2eb8b8;
-  /* Its label text: 5.8:1 on a card, so an 11px semibold actor name passes AA (UX review P2-7). */
+  /* Its label text: 5.8:1 on a card, so an 11px semibold actor name passes AA. */
   --executor-fg: #147070;
 
   /*
@@ -240,7 +239,7 @@
 }
 
 @layer utilities {
-  /* Round 3's mono micro label, at 11px (UX audit A7). */
+  /* The mono micro label, at 11px. */
   .micro {
     font-family: var(--font-mono);
     font-size: 11px;

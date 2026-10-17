@@ -26,14 +26,13 @@ import { HeldTickets, PlanningCard, TicketSetDecision } from "@/pages/stages/pla
 import { NothingWrittenYet } from "@/pages/stages/planning/StageParts";
 
 /**
- * The Tickets stage (spec D10; slice 7c D7; slice 8b D12; UX audit B1–B6): one spec of the
- * map, the route's or core's default, with its latest ticket set's current version. The head names
- * the spec (the map, before it has one), with the set's revision and state in the eyebrow and the
- * tickets and criteria in the lede; then the next-action card, the Tickets review row, the tickets, the reconciliation
- * (Coverage on a first revision), why the agent sliced it so, and the spec's earlier tickets.
- * Tickets are written automatically once the spec is approved, so there is no Write tickets
- * button. `version` from `?version=` must be the current version; any other number is the
- * route's error (D1, L100).
+ * The Tickets stage: one spec of the map, the route's or core's default, with its latest ticket
+ * set's current version. The head names the spec (the map, before it has one), with the set's
+ * revision and state in the eyebrow and the tickets and criteria in the lede; then the next-action
+ * card, the Tickets review row, the tickets, the reconciliation (Coverage on a first revision), why
+ * the agent sliced it so, and the spec's earlier tickets. Tickets are written automatically once
+ * the spec is approved, so there is no Write tickets button. `version` from `?version=` must be the
+ * current version; any other number is the route's error.
  */
 export function TicketsStagePage({
   detail,
@@ -45,10 +44,10 @@ export function TicketsStagePage({
   version: number | undefined;
 }) {
   const mapId = detail.map.id;
-  // A spec the map only waits on has not reached Tickets here (S8b-16, N-4).
+  // A spec the map only waits on has not reached Tickets here.
   const waitedOn = specNumber !== undefined && waitsOnly(detail, specNumber);
   const spec = waitedOn ? undefined : shownSpec(detail, "tickets", specNumber);
-  // The revision this map wrote last (the demo's `latestRevisionOn`) and its set once approved.
+  // The revision this map wrote last and its set once approved.
   const own = spec?.revisions.filter((revision) => revision.mapId === mapId).at(-1);
   if (spec !== undefined && own === undefined) {
     throw new Error(`Spec ${String(spec.number)} has no revision this map wrote`);
@@ -67,7 +66,7 @@ export function TicketsStagePage({
     spec === undefined ? null : (
       <SpecSwitcher mapId={mapId} specs={detail.specs} stage="tickets" current={spec.number} />
     );
-  // Past a first revision (the demo's `before`): the revision's text delta from the one before.
+  // Past a first revision: the revision's text delta from the one before.
   const delta = own === undefined ? null : own.delta;
   const earlier =
     spec === undefined || own === undefined
@@ -75,11 +74,10 @@ export function TicketsStagePage({
       : spec.ticketSets.filter((set) => set.revision < own.revision);
 
   /**
-   * The next-action card (slice 7c D7): Approve and Reject (or Confirm, on a set with no ticket) only
-   * on an undecided set whose review passed (S7c-6), a held set's escalated findings and hatch
-   * button, else the card as core states it. A replaced set has no action (S8b-9); an approved
-   * one hands off to Delivery's action, so what holds delivery back shows where the tickets were
-   * approved.
+   * The next-action card: Approve and Reject (or Confirm, on a set with no ticket) only on an
+   * undecided set whose review passed, a held set's escalated findings and hatch button, else the
+   * card as core states it. A replaced set has no action; an approved one hands off to Delivery's
+   * action, so what holds delivery back shows where the tickets were approved.
    */
   function card(set: TicketSetView | undefined) {
     if (next === undefined) {
@@ -104,7 +102,7 @@ export function TicketsStagePage({
     } else if (held.length > 0) {
       decision = <HeldTickets findings={held} />;
       // Core's detail line is the first escalated finding's title, which the findings list
-      // already shows (L177 (a)): the held card reads headline, findings, button.
+      // already shows: the held card reads headline, findings, button.
       shown = { ...next, detail: null };
     }
     return <PlanningCard mapId={mapId} next={shown} decision={decision} />;
@@ -180,7 +178,7 @@ export function TicketsStagePage({
   }
   const approved = ticketSet.state === "approved";
   const nextCard = card(ticketSet);
-  // The page's sections, for its index (UX audit C4): the same flags decide both.
+  // The page's sections, for its index: the same flags decide both.
   const sections = {
     next: nextCard !== null,
     review: ticketSet.review !== null,

@@ -34,7 +34,7 @@ The prompt lists the project's specs that other maps wrote (`Project spec <n>, l
 
 When a spec repair's reason is a released wait (`Revise because: wait`), write the change its note states as the spec's next revision, from its latest revision (which may be approved and delivered), keeping every other clause, criterion and id. The `Wait from:` line says where that change came from. `a note`: the person sent it through the escape hatch, and a clause it makes or changes cites `{ "kind": "note" }`. `this map's decisions`: the map's own To Spec recorded the wait, so its note is not the person's note; a clause it makes or changes cites the resolved waypoints that decided it, or `{ "kind": "destination" }` when none did, and never a note.
 
-## The document (D2)
+## The document
 
 Each revision has:
 

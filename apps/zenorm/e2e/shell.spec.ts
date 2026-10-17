@@ -199,7 +199,7 @@ test("redirects a map to Idea, moves through the rail, and keeps the route on re
     await expect(activity(page)).toBeVisible();
   }
 
-  // Delivery keeps the Activity stream (UX audit D1) but has no escape hatch (S7b-17).
+  // Delivery keeps the Activity stream but has no escape hatch.
   await rail(page).locator(`a[href="/maps/${mapId}/delivery"]`).click();
   await expect(page).toHaveURL(`/maps/${mapId}/delivery`);
   await expect(rail(page).locator("a[aria-current=page]")).toContainText("Delivery");
@@ -211,7 +211,7 @@ test("redirects a map to Idea, moves through the rail, and keeps the route on re
   await expect(rail(page).locator("a[aria-current=page]")).toContainText("Delivery");
 
   // The map has no spec revision yet, so revision 1 is an unknown number: the route error, kept
-  // on reload (L100). `drafts.spec.ts` opens `?revision=1` on a map that has it.
+  // on reload. `drafts.spec.ts` opens `?revision=1` on a map that has it.
   await page.goto(`/maps/${mapId}/spec?revision=1`);
   await expect(routeError(page)).toBeVisible();
   await page.reload();

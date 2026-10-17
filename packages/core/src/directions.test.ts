@@ -258,7 +258,7 @@ async function taskRequest(runId: string): Promise<WorkTaskRequest> {
   return work.request;
 }
 
-/** The note a request carries for `message` (S7b-10). */
+/** The note a request carries for `message`. */
 function noteOf(message: { text: string; sentAt: string }) {
   return { text: message.text, sentAt: message.sentAt };
 }
@@ -271,7 +271,7 @@ function openWaypoint(
   return { kind: "open_waypoint", waypointKind, ...NEW_QUESTION, blockedBy, fog };
 }
 
-describe("open_waypoint (S7b-9, S7b-10)", () => {
+describe("open_waypoint", () => {
   test("a Grilling, a Research and a Task waypoint are added, blocked by existing ones; each runs its kind with the note once unblocked", async () => {
     const mapId = await chartedMap(context, project);
     const added: { number: number; messageId: string; hatchRun: string }[] = [];
@@ -417,7 +417,7 @@ describe("open_waypoint (S7b-9, S7b-10)", () => {
   });
 });
 
-describe("reword (S7b-9, S7b-10)", () => {
+describe("reword", () => {
   test("a claimed waypoint with a running run: new title and question, run cancelled reopened, a fresh run with the note", async () => {
     const mapId = await chartedMap(context, project);
     const working = grillingRun(context, mapId, 1);
@@ -484,7 +484,7 @@ describe("reword (S7b-9, S7b-10)", () => {
   });
 });
 
-describe("rule_out_of_scope (S7b-9)", () => {
+describe("rule_out_of_scope", () => {
   test("a waypoint with a pending round moves out_of_scope with its line; the round is withdrawn waypoint_out_of_scope", async () => {
     const mapId = await chartedMap(context, project);
     ask(context, mapId, 1, false);
@@ -577,7 +577,7 @@ describe("rule_out_of_scope (S7b-9)", () => {
   });
 });
 
-describe("run_waypoint (S7b-9, S7b-10)", () => {
+describe("run_waypoint", () => {
   test("a waypoint waiting on an unanswered report is claimed with a fresh research run carrying the note", async () => {
     const mapId = await kindsMap();
     researchOn(mapId, 1, UNANSWERED);
@@ -608,7 +608,7 @@ describe("run_waypoint (S7b-9, S7b-10)", () => {
     expect((await taskRequest(fresh.id)).note).toEqual(noteOf(message));
   });
 
-  test("a waypoint stopped after a failed retry is claimed with a fresh run of its kind carrying the note (L46)", async () => {
+  test("a waypoint stopped after a failed retry is claimed with a fresh run of its kind carrying the note", async () => {
     const mapId = await chartedMap(context, project);
     const failure = { code: "agent_timed_out", message: "The agent timed out" } as const;
     const first = grillingRun(context, mapId, 1);
@@ -644,8 +644,8 @@ describe("run_waypoint (S7b-9, S7b-10)", () => {
   });
 });
 
-describe("accept_report (S7b-9)", () => {
-  test("L162 (4): the hatch request carries the unanswered report it waits on, and only for that waypoint", async () => {
+describe("accept_report", () => {
+  test("the hatch request carries the unanswered report it waits on, and only for that waypoint", async () => {
     const mapId = await kindsMap();
     researchOn(mapId, 1, UNANSWERED);
     const sent = await sendHatchMessage(
@@ -718,7 +718,7 @@ describe("accept_report (S7b-9)", () => {
   });
 });
 
-describe("reopened research and task waypoints (S7b-6, S7b-10)", () => {
+describe("reopened research and task waypoints", () => {
   test("a reopened research waypoint's fresh run carries the note and drops its answered report; a reopened task's carries the note", async () => {
     const mapId = await kindsMap();
     researchOn(mapId, 1, ANSWERED);

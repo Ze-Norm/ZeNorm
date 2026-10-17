@@ -14,7 +14,7 @@ import {
 } from "@/lib/route-error";
 
 /**
- * The page shown in place of one that could not open (audit A6, P2-19): a route error (an unknown
+ * The page shown in place of one that could not open: a route error (an unknown
  * stage, a param that is not a UUIDv7, a search value for a record the map does not have), an
  * address no route matches, or a read the server refused (a map or project that does not exist,
  * access denied). One frame for all of them: a card with the title as the page's `h1`, a sentence
@@ -74,7 +74,7 @@ export function RouteError({ error }: ErrorComponentProps) {
 }
 
 /**
- * The page for a read the server refused (CR9b-5): `map.overview`'s `map_not_found` and
+ * The page for a read the server refused: `map.overview`'s `map_not_found` and
  * `project.get`'s `project_not_found`, or `access_denied` on either. The map layout and the project
  * pages render it in place of their content.
  */

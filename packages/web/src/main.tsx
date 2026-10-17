@@ -1,4 +1,4 @@
 import { createWebApp } from "@/app";
 
-// `apps/zenorm` composes no plugin (S9-18).
+// `apps/zenorm` composes no plugin.
 createWebApp({ plugins: [] });

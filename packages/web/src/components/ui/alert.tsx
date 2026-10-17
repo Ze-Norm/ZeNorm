@@ -12,7 +12,7 @@ const alertVariants = cva(
           "bg-card text-destructive *:data-[slot=alert-description]:text-destructive/90 [&>svg]:text-current",
         bad: "border-bad bg-bad-soft text-bad *:data-[slot=alert-description]:text-bad",
         work: "border-work-dot bg-work-soft text-work *:data-[slot=alert-description]:text-work",
-        // Left-ruled notes (the demo's resolved Findings and the Destination): a 2px rule, no box.
+        // Left-ruled notes (resolved Findings and the Destination): a 2px rule, no box.
         ok: "rounded-none border-0 border-l-2 border-ok-dot bg-ok-soft text-ok *:data-[slot=alert-description]:text-foreground",
         note: "rounded-none border-0 border-l-2 border-ink-line bg-secondary text-ink *:data-[slot=alert-description]:text-foreground",
         you: "border-primary-line bg-primary-soft text-primary *:data-[slot=alert-description]:text-foreground",

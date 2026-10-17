@@ -97,8 +97,8 @@ export function readMapRuns(db: Reader, mapId: string): PlanningRun[] {
 }
 
 /**
- * The runs of one waypoint scope (L27): a waypoint's, or the map's own when `waypointId` is null.
- * Spec-scoped runs (slice 7 D1) and `hatch` runs (each message's own scope, 7b D1) are in neither.
+ * The runs of one waypoint scope: a waypoint's, or the map's own when `waypointId` is null.
+ * Spec-scoped runs and `hatch` runs (each message's own scope) are in neither.
  */
 export function scopeRuns(
   runs: readonly PlanningRun[],
@@ -110,7 +110,7 @@ export function scopeRuns(
   );
 }
 
-/** The `hatch` runs answering one message, oldest first: the message's own scope (7b D1). */
+/** The `hatch` runs answering one message, oldest first: the message's own scope. */
 export function hatchRuns(
   runs: readonly PlanningRun[],
   hatchMessageId: string,
@@ -118,7 +118,7 @@ export function hatchRuns(
   return runs.filter((run) => run.purpose === "hatch" && run.hatchMessageId === hatchMessageId);
 }
 
-/** The runs of one spec's scope (slice 7 D1, S7-19), oldest first. */
+/** The runs of one spec's scope, oldest first. */
 export function specRuns(
   runs: readonly PlanningRun[],
   specificationId: string,
@@ -136,12 +136,12 @@ export function runScope(runs: readonly PlanningRun[], run: PlanningRun): readon
     : specRuns(runs, run.specificationId);
 }
 
-/** A run that failed on its retry: its scope is stopped while it is the scope's latest (S6a-12). */
+/** A run that failed on its retry: its scope is stopped while it is the scope's latest. */
 function isFailedRetry(run: PlanningRun): boolean {
   return run.state === "failed" && run.retryOfRunId !== null;
 }
 
-/** A failed first attempt, whose retry the same transaction inserts (S6a-12). */
+/** A failed first attempt, whose retry the same transaction inserts. */
 function awaitsRetry(run: PlanningRun): boolean {
   return run.state === "failed" && run.retryOfRunId === null;
 }
@@ -159,8 +159,8 @@ export function stoppedRun(runs: readonly PlanningRun[]): StoppedRun | null {
 }
 
 /**
- * A waypoint scope's stopped run (S6a-12): a failed retry releases the waypoint to `open`, so the
- * stop stands only while it is `open`. Once the waypoint is resolved or ruled out of scope by other
+ * A waypoint scope's stopped run: a failed retry releases the waypoint to `open`, so the stop
+ * stands only while it is `open`. Once the waypoint is resolved or ruled out of scope by other
  * means (the hatch, a ruling), its old stop is no next action and offers no Try again.
  */
 export function waypointStoppedRun(
@@ -172,7 +172,7 @@ export function waypointStoppedRun(
 
 /**
  * What a scope's runs, oldest first, show: `working` while one runs or awaits its retry, the
- * stopped run, or null when neither (spec D4).
+ * stopped run, or null when neither.
  */
 export function scopeRun(runs: readonly PlanningRun[]): "working" | { stopped: StoppedRun } | null {
   const latest = runs.at(-1);
@@ -191,7 +191,7 @@ export function now(): string {
 }
 
 /**
- * The User a run inserted under `actor` on the map is attributed to (S9-11): a `user` actor's, a run
+ * The User a run inserted under `actor` on the map is attributed to: a `user` actor's, a run
  * actor's (the run whose end started it), and under `system` (the startup sweep) the map's. Never
  * the local user as a fallback.
  */
@@ -204,7 +204,7 @@ export function runUserId(tx: Reader, actor: Actor, mapId: string): UserId {
   return map.userId;
 }
 
-/** Inserts a `running` run, attributed by `actor` (S9-11), and returns it. */
+/** Inserts a `running` run, attributed by `actor`, and returns it. */
 export function insertRun(
   actor: Actor,
   tx: Tx,
@@ -230,8 +230,8 @@ export function insertRun(
 }
 
 /**
- * The actor a planning run's writes are made as (S9-13): the run, with its User. An unknown run is
- * a programmer error, and throws.
+ * The actor a planning run's writes are made as: the run, with its User. An unknown run is a
+ * programmer error, and throws.
  */
 export function planningRunActor(db: Reader, runId: string): Actor {
   const run = db
@@ -266,8 +266,7 @@ export function readMap(db: Reader, mapId: string): MapRecord {
 }
 
 /**
- * A map's map-level rounds, oldest first, each as stored (DR-1, DR-14): a pending one has null
- * answers.
+ * A map's map-level rounds, oldest first, each as stored: a pending one has null answers.
  */
 export function mapRoundsOf(rounds: readonly QuestionRound[]): MapRound[] {
   return rounds
@@ -316,11 +315,11 @@ export function readBlockers(
 const BEFORE_SURVEY_PURPOSES: readonly PlanningRunPurpose[] = ["chart", "survey", "hatch"];
 
 /**
- * Whether the map's work waits on its code survey (harness change #1): no `survey` run completed
- * and no run of any purpose but `chart`, `survey` and `hatch` ever started. Once its destination is
- * confirmed, such a map's only due run is the survey: no waypoint is on the frontier and the map
- * neither clears nor runs a consistency pass. A map whose waypoint or spec work began before
- * surveys existed (migration 0017) is not held back.
+ * Whether the map's work waits on its code survey: no `survey` run completed and no run of any
+ * purpose but `chart`, `survey` and `hatch` ever started. Once its destination is confirmed, such a
+ * map's only due run is the survey: no waypoint is on the frontier and the map neither clears nor
+ * runs a consistency pass. A map whose waypoint or spec work began before surveys existed
+ * (migration 0017) is not held back.
  */
 export function awaitingSurvey(runs: readonly PlanningRun[]): boolean {
   return runs.every(
@@ -330,7 +329,7 @@ export function awaitingSurvey(runs: readonly PlanningRun[]): boolean {
   );
 }
 
-/** What clearing and the consistency pass read (S6b-10, S6b-11). */
+/** What clearing and the consistency pass read. */
 export interface ClearingInput {
   readonly map: Pick<MapRecord, "destinationConfirmedAt">;
   readonly waypoints: readonly Pick<Waypoint, "id" | "status" | "resolvedAt">[];
@@ -356,9 +355,9 @@ function anyWorking(
 }
 
 /**
- * S6b-10's first five conditions but fog: the destination is confirmed, every waypoint is
- * `resolved` or `out_of_scope`, no round is pending, and no `chart`, waypoint or `fog` run runs or
- * awaits its retry; and the map does not wait on its code survey (`awaitingSurvey`).
+ * The map's clearing conditions but fog and consistency: the destination is confirmed, every
+ * waypoint is `resolved` or `out_of_scope`, no round is pending, and no `chart`, waypoint or `fog`
+ * run runs or awaits its retry; and the map does not wait on its code survey (`awaitingSurvey`).
  */
 function quiet(input: ClearingInput): boolean {
   return (
@@ -372,22 +371,22 @@ function quiet(input: ClearingInput): boolean {
   );
 }
 
-/** S6b-10's first five conditions: `quiet`, and no fog remains. */
+/** The clearing conditions but consistency: `quiet`, and no fog remains. */
 function settled(input: ClearingInput): boolean {
   return quiet(input) && input.fogCount === 0;
 }
 
 /**
- * Whether a `fog` run is due (harness change #4): the map is `quiet` and fog remains. No waypoint
- * run settles fog it does not own, so two parallel last runs never race over it; the fog run sees
- * every resolution at once. It comes before the consistency pass, which then compares the
- * resolutions the fog run decided and waits on the waypoints it opened.
+ * Whether a `fog` run is due: the map is `quiet` and fog remains. No waypoint run settles fog it
+ * does not own, so two parallel last runs never race over it; the fog run sees every resolution at
+ * once. It comes before the consistency pass, which then compares the resolutions the fog run
+ * decided and waits on the waypoints it opened.
  */
 export function fogDue(input: ClearingInput): boolean {
   return quiet(input) && input.fogCount > 0;
 }
 
-/** The `resolved` waypoints, by id and `resolved_at` (D5); out-of-scope ones are not counted. */
+/** The `resolved` waypoints, by id and `resolved_at`; out-of-scope ones are not counted. */
 function resolvedSet(
   mapWaypoints: ClearingInput["waypoints"],
 ): { waypointId: string; resolvedAt: string }[] {
@@ -406,7 +405,7 @@ function passKey(pair: { waypointId: string; resolvedAt: string }): string {
   return `${pair.waypointId}@${pair.resolvedAt}`;
 }
 
-/** Whether the latest pass compared exactly the current resolved set (D5). */
+/** Whether the latest pass compared exactly the current resolved set. */
 function latestPassMatches(input: ClearingInput): boolean {
   const latest = input.passes.at(-1);
   if (latest === undefined) {
@@ -450,10 +449,10 @@ export function newSinceLastPass(
 }
 
 /**
- * Whether a `consistency` run is due (S6b-10, D5): S6b-10's first five conditions hold, two or more
- * waypoints are resolved, the latest pass did not compare exactly the current resolved set, and
- * the map has passes left (`passesExhausted`). The caller starts it only when the map's own scope
- * is neither running nor stopped.
+ * Whether a `consistency` run is due: the map is `settled`, two or more waypoints are resolved, the
+ * latest pass did not compare exactly the current resolved set, and the map has passes left
+ * (`passesExhausted`). The caller starts it only when the map's own scope is neither running nor
+ * stopped.
  */
 export function consistencyDue(input: ClearingInput): boolean {
   return (
@@ -465,9 +464,9 @@ export function consistencyDue(input: ClearingInput): boolean {
 }
 
 /**
- * Whether the map is cleared (S6a-11, S6b-11): S6b-10's first five conditions hold, no
- * `consistency` run runs or awaits its retry, and either fewer than two waypoints are resolved (L4)
- * the latest pass compared exactly the current resolved set, or the map has run all its passes.
+ * Whether the map is cleared: the map is `settled`, no `consistency` run runs or awaits its retry,
+ * and either fewer than two waypoints are resolved, the latest pass compared exactly the current
+ * resolved set, or the map has run all its passes.
  */
 export function isCleared(input: ClearingInput): boolean {
   return (
@@ -497,7 +496,7 @@ function isLatestOfScope(run: PlanningRun, runs: readonly PlanningRun[]): boolea
   return runScope(runs, run).at(-1)?.id === run.id;
 }
 
-/** The map-level purpose due now, or null (spec D3), for a map scope that is idle and not stopped. */
+/** The map-level purpose due now, or null, for a map scope that is idle and not stopped. */
 function dueMapPurpose(
   tx: Tx,
   map: MapRecord,
@@ -517,12 +516,12 @@ function dueMapPurpose(
     return null;
   }
   if (awaitingSurvey(runs)) {
-    // The code survey, once, before any waypoint run (harness change #1).
+    // The code survey, once, before any waypoint run.
     return "survey";
   }
   const clearing = readClearing(tx, map, runs);
   if (fogDue(clearing)) {
-    // Fog the last waypoint runs left, settled once they are all resolved (harness change #4).
+    // Fog the last waypoint runs left, settled once they are all resolved.
     return "fog";
   }
   if (consistencyDue(clearing)) {
@@ -531,8 +530,8 @@ function dueMapPurpose(
   if (!isCleared(clearing)) {
     return null;
   }
-  // The first `to_spec` until one completes (a map whose run named only waits wrote no revision,
-  // slice 8b S8b-5), then the re-clear.
+  // The first `to_spec` until one completes (a map whose run named only waits wrote no revision),
+  // then the re-clear.
   return draftedRun(runs) === undefined || reclearDue(tx, map.id, runs) ? "to_spec" : null;
 }
 
@@ -558,13 +557,12 @@ function draftedRun(runs: readonly PlanningRun[]): PlanningRun | undefined {
 }
 
 /**
- * Whether the map's re-clear `to_spec` is due (D6, issue 20 item 2, 7b S7b-8): a map-scope
- * `to_spec` completed (it wrote revisions, or named only waits, slice 8b S8b-5) and, after the
- * latest one ended, a waypoint was created (by
- * a run started after it among the map's runs; a review recorded while that run worked opens none,
- * and no waypoint run works while it does), resolved (its `resolved_at` is later, or its resolving
- * run started after it), or ruled out of scope (by a run started after it). No basis column; the
- * caller checks the map is cleared.
+ * Whether the map's re-clear `to_spec` is due: a map-scope `to_spec` completed (it wrote revisions,
+ * or named only waits) and, after the latest one ended, a waypoint was created (by a run started
+ * after it among the map's runs; a review recorded while that run worked opens none, and no
+ * waypoint run works while it does), resolved (its `resolved_at` is later, or its resolving run
+ * started after it), or ruled out of scope (by a run started after it). No basis column; the caller
+ * checks the map is cleared.
  */
 export function reclearDue(db: Reader, mapId: string, runs: readonly PlanningRun[]): boolean {
   const drafted = draftedRun(runs);
@@ -603,12 +601,12 @@ function rulingRun(ruledBy: ReadonlyMap<string, string>, waypointId: string): st
 }
 
 /**
- * Whether a stopped run is superseded (L121, S7-26): it no longer drives a status or **Try again**,
- * and its scope reads idle. A stopped map-scope `to_spec` (or legacy `to_tickets`) is superseded
- * while the map's fog run or consistency pass is due; a stopped spec-scoped `to_spec` or `spec_review` while
- * the map is un-cleared, or once any map-scope run started after it (a pass or the re-clear). A
- * stopped `to_tickets` on an approved spec never is (L127 (1)), nor is a waypoint's run. False for
- * a run that is not its scope's stopped run.
+ * Whether a stopped run is superseded: it no longer drives a status or **Try again**, and its scope
+ * reads idle. A stopped map-scope `to_spec` (or legacy `to_tickets`) is superseded while the map's
+ * fog run or consistency pass is due; a stopped spec-scoped `to_spec` or `spec_review` while the
+ * map is un-cleared, or once any map-scope run started after it (a pass or the re-clear). A stopped
+ * `to_tickets` on an approved spec never is, nor is a waypoint's run. False for a run that is not
+ * its scope's stopped run.
  */
 export function isSupersededStop(run: PlanningRun, clearing: ClearingInput): boolean {
   if (stoppedRun(runScope(clearing.runs, run))?.runId !== run.id) {
@@ -638,8 +636,8 @@ function isWorking(runs: readonly PlanningRun[], purpose: PlanningRunPurpose): b
 }
 
 /**
- * Ends every running spec-scoped `to_spec` of the map `cancelled`, `replaced` (S7-25, L125 (1)):
- * the transaction starting the re-clear replaces them; a result arriving later saves nothing.
+ * Ends every running spec-scoped `to_spec` of the map `cancelled`, `replaced`: the transaction
+ * starting the re-clear replaces them; a result arriving later saves nothing.
  */
 function replaceRepairs(tx: Tx, mapId: string): void {
   tx.update(planningRuns)
@@ -656,9 +654,9 @@ function replaceRepairs(tx: Tx, mapId: string): void {
 }
 
 /**
- * Whether a map other than `mapId` has a spec-scoped run on the spec that runs or awaits its retry
- * (slice 8b S8b-4): `planning_runs_one_running_per_specification` spans maps, so nothing due on
- * `mapId` starts under it, and a `rewrite_tickets` note is refused `spec_in_flight`.
+ * Whether a map other than `mapId` has a spec-scoped run on the spec that runs or awaits its retry:
+ * `planning_runs_one_running_per_specification` spans maps, so nothing due on `mapId` starts under
+ * it, and a `rewrite_tickets` note is refused `spec_in_flight`.
  */
 export function otherMapWorking(db: Reader, specificationId: string, mapId: string): boolean {
   const runs = db
@@ -679,7 +677,7 @@ function isRunning(runs: readonly PlanningRun[]): boolean {
   return runs.at(-1)?.state === "running";
 }
 
-/** The saved outcomes a waypoint's completed run may leave it waiting on (S6b-6). */
+/** The saved outcomes a waypoint's completed run may leave it waiting on. */
 export interface RunOutcomes {
   readonly reports: readonly Pick<StoredReport, "runId" | "answered" | "gap">[];
   readonly taskOutcomes: readonly Pick<StoredTaskOutcome, "runId" | "outcome" | "facts">[];
@@ -691,9 +689,9 @@ export function readRunOutcomes(db: Reader, mapId: string): RunOutcomes {
 }
 
 /**
- * The run a waypoint waits on (S6b-6, D6), from its scope's runs oldest first: the waypoint is
- * `open` and its latest run `completed` with an unanswered research report or a `failed` task
- * outcome. Null when it is not waiting.
+ * The run a waypoint waits on, from its scope's runs oldest first: the waypoint is `open` and its
+ * latest run `completed` with an unanswered research report or a `failed` task outcome. Null when
+ * it is not waiting.
  */
 export function waitingRun(
   waypoint: Pick<Waypoint, "status">,
@@ -718,12 +716,12 @@ export function waitingRun(
 }
 
 /**
- * What keeps an `open` waypoint off the map's frontier (S6a-7, S6b-6), or null when nothing does:
- * its scope is stopped (a waypoint released by a failed retry stays off until `tryAgain`); it waits
- * on the person (it stays off until `tryAgain`, L115); it has blockers that are not `resolved` or
- * `out_of_scope` (`waitsOn`, ascending); the map's destination is not confirmed; or the map waits on
- * its code survey (`awaitingSurvey`). A failed first attempt awaiting its retry, or a completed run
- * that left no waiting outcome, holds nothing. `frontier` and `waypointState` both read it, so a
+ * What keeps an `open` waypoint off the map's frontier, or null when nothing does: its scope is
+ * stopped (a waypoint released by a failed retry stays off until `tryAgain`); it waits on the
+ * person (it stays off until `tryAgain`); it has blockers that are not `resolved` or `out_of_scope`
+ * (`waitsOn`, ascending); the map's destination is not confirmed; or the map waits on its code
+ * survey (`awaitingSurvey`). A failed first attempt awaiting its retry, or a completed run that
+ * left no waiting outcome, holds nothing. `frontier` and `waypointState` both read it, so a
  * waypoint shows held for exactly the reason the frontier passes it over.
  */
 export type FrontierHold =
@@ -778,7 +776,7 @@ export function frontierHold(input: FrontierInput, waypoint: Waypoint): Frontier
   return null;
 }
 
-/** The map's frontier (S6a-7, S6b-6): every `open` waypoint of any kind nothing holds back. */
+/** The map's frontier: every `open` waypoint of any kind nothing holds back. */
 export function frontier(input: FrontierInput): Waypoint[] {
   return input.waypoints.filter(
     (waypoint) => waypoint.status === "open" && frontierHold(input, waypoint) === null,
@@ -786,8 +784,8 @@ export function frontier(input: FrontierInput): Waypoint[] {
 }
 
 /**
- * A waypoint's one state as Wayfinding shows it (`WaypointState`): resolved or ruled out of scope by
- * its status; else its pending round waits on you; else its run works or awaits its retry; else,
+ * A waypoint's one state as Wayfinding shows it (`WaypointState`): resolved or ruled out of scope
+ * by its status; else its pending round waits on you; else its run works or awaits its retry; else,
  * open, what holds it off the frontier. Every write on a map claims its frontier (`planNext`), and
  * a claimed waypoint always has a pending round or a working run, so anything else is a programmer
  * error, as is a waypoint on a map whose destination is not confirmed (charting confirms it in the
@@ -834,14 +832,14 @@ export function waypointState(
   }
 }
 
-/** The purpose of a waypoint's runs, by its kind (D4). */
+/** The purpose of a waypoint's runs, by its kind. */
 export const KIND_PURPOSE: Record<WaypointKind, PlanningRunPurpose> = {
   grilling: "grilling",
   research: "research",
   task: "task",
 };
 
-/** Sets an open waypoint `claimed` (S6a-7); the guard makes any other status a programmer error. */
+/** Sets an open waypoint `claimed`; the guard makes any other status a programmer error. */
 export function claim(tx: Tx, waypointId: string): void {
   const updated = tx
     .update(waypoints)
@@ -854,8 +852,9 @@ export function claim(tx: Tx, waypointId: string): void {
 }
 
 /**
- * Whether a claimed waypoint is due a fresh run of its kind (a Grilling or Task waypoint): its latest round is submitted and no
- * run started since (the latest run of its scope is the one that asked that round).
+ * Whether a claimed waypoint is due a fresh run of its kind (a Grilling or Task waypoint): its
+ * latest round is submitted and no run started since (the latest run of its scope is the one that
+ * asked that round).
  */
 function answeredSinceLastRun(
   waypoint: Waypoint,
@@ -875,18 +874,17 @@ function answeredSinceLastRun(
 }
 
 /**
- * Inserts the runs due on the map (spec D3), inside the write transaction that made them due: the
- * retry of each scope's failed first attempt; the release (`claimed → open`) of each waypoint whose
- * retry failed (S6a-12); the claim and run of its kind (`grilling`, `research` or `task`) of each
- * frontier waypoint, and a run of its kind per claimed waypoint answered since its last run (S6a-7,
- * S6b-8; D4); then the map's own due run — the
- * first `chart`, the `chart` after the map-level round, the code `survey` once the destination is
- * confirmed (harness change #1), the due `fog` run (harness change #4), the due `consistency` pass (S6b-10), `to_spec` on clearing or on
- * the re-clear, whose start replaces the map's running repairs (S7-25); and per idle spec its due
- * `spec_review`, repair `to_spec` or `to_tickets` (D6, `dueSpecRuns`). A scope with a running run
- * or a stopped one (unless superseded, L121) is never started (L27, S7-19). Every write on a map
- * calls it, through `planAndRelease` only (CR-3): starting a run can supersede a stopped spec-scoped
- * run and so end a hold, so the release must follow. `plan-next-callers.test.ts` holds this.
+ * Inserts the runs due on the map, inside the write transaction that made them due: the retry of
+ * each scope's failed first attempt; the release (`claimed → open`) of each waypoint whose retry
+ * failed; the claim and run of its kind (`grilling`, `research` or `task`) of each frontier
+ * waypoint, and a run of its kind per claimed waypoint answered since its last run; then the map's
+ * own due run — the first `chart`, the `chart` after the map-level round, the code `survey` once
+ * the destination is confirmed, the due `fog` run, the due `consistency` pass, `to_spec` on
+ * clearing or on the re-clear, whose start replaces the map's running repairs; and per idle spec
+ * its due `spec_review`, repair `to_spec` or `to_tickets` (`dueSpecRuns`). A scope with a running
+ * run or a stopped one (unless superseded) is never started. Every write on a map calls it, through
+ * `planAndRelease` only: starting a run can supersede a stopped spec-scoped run and so end a hold,
+ * so the release must follow. `plan-next-callers.test.ts` holds this.
  */
 export function planNext(actor: Actor, tx: Tx, mapId: string): void {
   const map = readMap(tx, mapId);
@@ -910,7 +908,7 @@ export function planNext(actor: Actor, tx: Tx, mapId: string): void {
         retryOfRunId: latest.id,
         hatchMessageId: latest.hatchMessageId,
       });
-      // A release run's retry keeps its wait released (slice 8b S8b-6).
+      // A release run's retry keeps its wait released.
       followRelease(tx, latest.id, retry.id);
     }
   }
@@ -967,7 +965,7 @@ export function planNext(actor: Actor, tx: Tx, mapId: string): void {
   const cleared = isCleared(clearing);
   const mapScope = scopeRuns(current, null);
   // No review or repair starts on an un-cleared map, nor while the map-scope `to_spec` works or is
-  // due: the re-clear writes the next revision of every draft (S7-10, D6).
+  // due: the re-clear writes the next revision of every draft.
   const writesOpen = cleared && !isWorking(mapScope, "to_spec") && !reclearDue(tx, mapId, current);
   const idle = (specificationId: string): boolean => {
     const scope = specRuns(current, specificationId);
@@ -980,7 +978,7 @@ export function planNext(actor: Actor, tx: Tx, mapId: string): void {
     }
     return stoppedRun(scope) === null || isSupersededStop(latest, clearing);
   };
-  // One running run per spec across the project (S8b-4): another map's run on the spec gates it.
+  // One running run per spec across the project: another map's run on the spec gates it.
   const idleAcrossMaps = (specificationId: string): boolean =>
     idle(specificationId) && !otherMapWorking(tx, specificationId, mapId);
   for (const due of dueSpecRuns(tx, map, { idle: idleAcrossMaps, writesOpen })) {
@@ -994,13 +992,13 @@ export function planNext(actor: Actor, tx: Tx, mapId: string): void {
   }
   startMapRun(actor, tx, map, current, clearing);
   startHatchRun(actor, tx, mapId);
-  // A release run this transaction cancelled or superseded reopens its wait (slice 8b S8b-6).
+  // A release run this transaction cancelled or superseded reopens its wait.
   reopenStaleReleases(tx, mapId);
 }
 
 /**
- * Whether the map's writes are open (S7-10, D6; slice 8b S8b-6): it is cleared, and its map-scope
- * `to_spec` neither works nor is due (the re-clear writes the next revision of every draft).
+ * Whether the map's writes are open: it is cleared, and its map-scope `to_spec` neither works nor
+ * is due (the re-clear writes the next revision of every draft).
  */
 export function writesOpen(db: Reader, mapId: string): boolean {
   const runs = readMapRuns(db, mapId);
@@ -1032,7 +1030,7 @@ export function specIdle(db: Reader, mapId: string, specificationId: string): bo
   );
 }
 
-/** Starts the map scope's due run (S6a-3, S6b-10, slice 7 D6) when the scope is idle. */
+/** Starts the map scope's due run when the scope is idle. */
 function startMapRun(
   actor: Actor,
   tx: Tx,
@@ -1047,7 +1045,7 @@ function startMapRun(
   }
   const latestOfMap = mapScope.at(-1);
   if (latestOfMap !== undefined && stoppedRun(mapScope) !== null) {
-    // A stopped draft run does not block a due fog run or pass; it supersedes it (L121).
+    // A stopped draft run does not block a due fog run or pass; it supersedes it.
     if (isSupersededStop(latestOfMap, clearing)) {
       insertRun(actor, tx, {
         mapId,
@@ -1077,9 +1075,9 @@ function startMapRun(
 }
 
 /**
- * Starts the run answering the map's oldest unreplied message (S7b-3): one `hatch` run at a time
- * per map, none while the map's `chart` runs or awaits its retry. A stopped oldest message holds the
- * queue until Try again answers it, so the messages are answered oldest first.
+ * Starts the run answering the map's oldest unreplied message: one `hatch` run at a time per map,
+ * none while the map's `chart` runs or awaits its retry. A stopped oldest message holds the queue
+ * until Try again answers it, so the messages are answered oldest first.
  */
 function startHatchRun(actor: Actor, tx: Tx, mapId: string): void {
   const runs = readMapRuns(tx, mapId);
@@ -1147,9 +1145,9 @@ export function endRun(
 }
 
 /**
- * Ends a running run `cancelled` with its reason (S7b-6, S7b-9: `reopened`; slice 8b S8b-9:
- * `replaced`, a ticket-set run whose revision a newer one replaced); its result arriving later
- * saves nothing and is not retried. Returns whether the run was running.
+ * Ends a running run `cancelled` with its reason (`reopened`, or `replaced`: a ticket-set run whose
+ * revision a newer one replaced); its result arriving later saves nothing and is not retried.
+ * Returns whether the run was running.
  */
 export function cancelRun(tx: Tx, runId: string, reason: "reopened" | "replaced"): boolean {
   const updated = tx
@@ -1161,8 +1159,8 @@ export function cancelRun(tx: Tx, runId: string, reason: "reopened" | "replaced"
 }
 
 /**
- * Withdraws a pending round with the time and its reason (S7b-6 `superseded`, S7b-9
- * `waypoint_out_of_scope`); a round that is not pending is a programmer error.
+ * Withdraws a pending round with the time and its reason (`superseded` or `waypoint_out_of_scope`);
+ * a round that is not pending is a programmer error.
  */
 export function withdrawRound(tx: Tx, roundId: string, reason: RoundWithdrawnReason): void {
   const withdrawn = tx
@@ -1176,8 +1174,8 @@ export function withdrawRound(tx: Tx, roundId: string, reason: RoundWithdrawnRea
 }
 
 /**
- * Whether the run was ended `cancelled` (`replaced`, S7-25; `reopened`, S7b-6) while its port call
- * was out: its result then saves nothing.
+ * Whether the run was ended `cancelled` (`replaced`, `reopened`) while its port call was out: its
+ * result then saves nothing.
  */
 export function isReplaced(tx: Reader, runId: string): boolean {
   const run = tx.select().from(planningRuns).where(eq(planningRuns.id, runId)).get();
@@ -1189,7 +1187,7 @@ export function isReplaced(tx: Reader, runId: string): boolean {
 
 /**
  * Stores the usage the run's CLI call reported, whatever the run's state: it is written before the
- * run's outcome, and a cancel can end the run meanwhile (S7-25).
+ * run's outcome, and a cancel can end the run meanwhile.
  */
 export function recordRunUsage(
   actor: Actor,
@@ -1209,8 +1207,8 @@ export function recordRunUsage(
 }
 
 /**
- * Ends a running run `failed` with its code and inserts what is due, its retry first (S6a-12); a
- * replaced run's failure is dropped.
+ * Ends a running run `failed` with its code and inserts what is due, its retry first; a replaced
+ * run's failure is dropped.
  */
 export function failRun(
   actor: Actor,
@@ -1220,7 +1218,7 @@ export function failRun(
 ): void {
   write(db, actor, (tx) => {
     if (isReplaced(tx, runId)) {
-      // A replaced repair's failure arriving later saves nothing and is not retried (S7-25).
+      // A replaced repair's failure arriving later saves nothing and is not retried.
       return;
     }
     const run = runningRun(tx, runId);
@@ -1230,9 +1228,9 @@ export function failRun(
 }
 
 /**
- * The first blocker problem of a confirming chart's waypoints (S6a-6): a position naming no
- * waypoint of the list is `waypoint_blocker_unknown`; else blockers forming a cycle (a waypoint
- * blocking itself included) are `waypoint_blocker_cycle`. Null when there is none.
+ * The first blocker problem of a confirming chart's waypoints: a position naming no waypoint of the
+ * list is `waypoint_blocker_unknown`; else blockers forming a cycle (a waypoint blocking itself
+ * included) are `waypoint_blocker_cycle`. Null when there is none.
  */
 export function blockerProblem(charted: readonly ChartedWaypoint[]): RunFailure | null {
   for (const [index, waypoint] of charted.entries()) {
@@ -1271,7 +1269,7 @@ export function blockerProblem(charted: readonly ChartedWaypoint[]): RunFailure 
   return null;
 }
 
-/** A charted waypoint's touch resolved to its stored spec (slice 8b S8b-2). */
+/** A charted waypoint's touch resolved to its stored spec. */
 interface ResolvedTouch {
   readonly specificationId: string;
   readonly revision: number;
@@ -1279,10 +1277,10 @@ interface ResolvedTouch {
 }
 
 /**
- * Resolves each charted waypoint's touches against the map's project (slice 8b S8b-2): a touch names
- * a spec of the project by number, that spec's latest approved revision (an earlier one while
- * another map's draft is latest, L213 D-5), and only criteria of that revision, and a waypoint
- * names a spec once. Any other value is `touch_reference_unknown`.
+ * Resolves each charted waypoint's touches against the map's project: a touch names a spec of the
+ * project by number, that spec's latest approved revision (an earlier one while another map's draft
+ * is latest), and only criteria of that revision, and a waypoint names a spec once. Any other value
+ * is `touch_reference_unknown`.
  */
 function resolveTouches(
   tx: Tx,
@@ -1337,23 +1335,22 @@ function resolveTouches(
 }
 
 /**
- * Saves a chart run's outcome in one transaction and inserts what it makes due (S6a-3, S6a-4).
- * An outcome that does not fit `chartStep` of the map's map-level rounds (a proposal after a
- * round, a follow-up before any round, after a final round or at the cap, a confirmation before any
- * round) is refused `agent_output_invalid`, writing nothing but the failed run (DR-8). A follow-up
- * replaces the map's title, summary and proposed destination and asks the next map-level round
- * with its `final`; the run ends `asked` (DR-7). A proposal saves the map's title, summary and
- * proposed destination, asks the first map-level round, never final (DR-9), and saves the maps it
- * offers to split off the idea, pending (idea-phase split); the run ends `asked`, or fails
- * `agent_output_invalid` on an offer outside its bounds, writing nothing. A confirmation confirms
- * the destination and saves its waypoints with
- * their kinds, numbered one plus the map's highest, with their blockers, its fog items, its Out
- * of scope lines (S6b-2) and its proposals of new maps, pending; the run ends `completed`. Blockers
- * naming an unknown position or forming a cycle are refused with their code (S6a-6), fog with no
- * waypoint `fog_left_unsettled` (S6b-4), a proposal outside its bounds `agent_output_invalid`,
- * a touch naming anything but a spec's latest approved revision and its criteria
- * `touch_reference_unknown` (slice 8b S8b-2): nothing is written and the run fails. Valid touches are
- * saved with their waypoints and never change.
+ * Saves a chart run's outcome in one transaction and inserts what it makes due. An outcome that
+ * does not fit `chartStep` of the map's map-level rounds (a proposal after a round, a follow-up
+ * before any round, after a final round or at the cap, a confirmation before any round) is refused
+ * `agent_output_invalid`, writing nothing but the failed run. A follow-up replaces the map's title,
+ * summary and proposed destination and asks the next map-level round with its `final`; the run ends
+ * `asked`. A proposal saves the map's title, summary and proposed destination, asks the first
+ * map-level round, never final, and saves the maps it offers to split off the idea, pending
+ * (idea-phase split); the run ends `asked`, or fails `agent_output_invalid` on an offer outside its
+ * bounds, writing nothing. A confirmation confirms the destination and saves its waypoints with
+ * their kinds, numbered one plus the map's highest, with their blockers, its fog items, its Out of
+ * scope lines and its proposals of new maps, pending; the run ends `completed`. Blockers naming an
+ * unknown position or forming a cycle are refused with their code, fog with no waypoint
+ * `fog_left_unsettled`, a proposal outside its bounds `agent_output_invalid`, a touch naming
+ * anything but a spec's latest approved revision and its criteria `touch_reference_unknown`:
+ * nothing is written and the run fails. Valid touches are saved with their waypoints and never
+ * change.
  */
 export function recordChart(
   actor: Actor,
@@ -1397,7 +1394,7 @@ export function recordChart(
         return err(splitProblem);
       }
       tx.update(maps).set({ title, summary, destination }).where(eq(maps.id, run.mapId)).run();
-      // The first map-level round is never final (DR-9).
+      // The first map-level round is never final.
       insertMapRound(tx, run, { ...round, final: false }, at);
       for (const offer of split) {
         saveSplitOffer(tx, run, offer);
@@ -1435,7 +1432,7 @@ export function recordChart(
     if (!touches.ok) {
       return refuse(actor, tx, run, touches.error);
     }
-    // A confirmation may refine the map's title and summary as it refines the destination (L253).
+    // A confirmation may refine the map's title and summary as it refines the destination.
     tx.update(maps)
       .set({ title, summary, destination, destinationConfirmedAt: at })
       .where(eq(maps.id, run.mapId))
@@ -1509,7 +1506,7 @@ export function recordChart(
   });
 }
 
-/** Asks the map's next map-level round, numbered one past its highest, pending (S6a-3, DR-7). */
+/** Asks the map's next map-level round, numbered one past its highest, pending. */
 function insertMapRound(
   tx: Tx,
   run: PlanningRun,
@@ -1551,15 +1548,15 @@ export function waypointRounds(
 }
 
 /**
- * The reply time of the latest applied `reopen` message on the map that reopened the waypoint
- * (S7b-6, L156 (1), L162 (1)); else null. A reopen reaches its own waypoint and every waypoint its
- * waypoint blocks, transitively (a waypoint's blockers never change once it exists), so the
- * message's `change.waypoint` must be this waypoint or one of its transitive blockers. It counts
- * only when the waypoint has a round submitted before that reply: one merely `open`, with nothing
- * answered, had nothing for the reopen to undo. Derived from the messages, not the waypoint's
- * `hatch_message_id`, which a later `reword` or `run_waypoint` overwrites (L160). This is how a
- * reopen is found on a waypoint whose earlier resolution left no completed run (a plain choice
- * before S7b-03).
+ * The reply time of the latest applied `reopen` message on the map that reopened the waypoint; else
+ * null. A reopen reaches its own waypoint and every waypoint its waypoint blocks, transitively (a
+ * waypoint's blockers never change once it exists), so the message's `change.waypoint` must be this
+ * waypoint or one of its transitive blockers. It counts only when the waypoint has a round
+ * submitted before that reply: one merely `open`, with nothing answered, had nothing for the reopen
+ * to undo. Derived from the messages, not the waypoint's `hatch_message_id`, which a later `reword`
+ * or `run_waypoint` overwrites. This is how a reopen is found on a waypoint whose earlier
+ * resolution left no completed run (a plain choice in records from when a plain choice resolved the
+ * waypoint itself).
  */
 export function reopenedAt(
   db: Reader,
@@ -1609,11 +1606,11 @@ function askedBeforeReopen(round: QuestionRound, reopenAt: string | null): boole
 }
 
 /**
- * The waypoint's rounds since its work last ended (S7b-6, S7b-7), oldest first: those asked by a
- * run after the latest run of its scope that ended `completed` (it resolved or ruled out the
- * waypoint, which a reopen undid) or `cancelled` (a reopen stopped it), and after its latest
- * reopen (`reopenAt`, from `reopenedAt`). Earlier rounds stay as the record but no
- * longer make a run "after a final round"; withdrawn rounds are left out.
+ * The waypoint's rounds since its work last ended, oldest first: those asked by a run after the
+ * latest run of its scope that ended `completed` (it resolved or ruled out the waypoint, which a
+ * reopen undid) or `cancelled` (a reopen stopped it), and after its latest reopen (`reopenAt`, from
+ * `reopenedAt`). Earlier rounds stay as the record but no longer make a run "after a final round";
+ * withdrawn rounds are left out.
  */
 export function currentRounds(
   waypointRoundList: readonly QuestionRound[],
@@ -1633,14 +1630,14 @@ export function currentRounds(
 }
 
 /**
- * A grilling waypoint's rounds split at its latest reopen (S7b-6, S7b-7, L156 (1)). Only a reopen
- * returns a resolved waypoint to work, and a completed `grilling` run either resolved its waypoint
- * or ruled it out of scope for good, so a waypoint whose scope holds a completed run was reopened:
- * the rounds asked up to that run are `superseded` context, the later ones `live`. A waypoint
- * resolved by a plain choice left no completed run; it was reopened when a reopen message reached
- * it (`reopenAt`, from `reopenedAt`), and the rounds asked before that reply are superseded too.
- * `currentRounds` cuts at the same reopen, so a reopened waypoint is never "after a final round".
- * Withdrawn rounds were never answered and are in neither.
+ * A grilling waypoint's rounds split at its latest reopen. Only a reopen returns a resolved
+ * waypoint to work, and a completed `grilling` run either resolved its waypoint or ruled it out of
+ * scope for good, so a waypoint whose scope holds a completed run was reopened: the rounds asked up
+ * to that run are `superseded` context, the later ones `live`. A waypoint resolved by a plain
+ * choice left no completed run; it was reopened when a reopen message reached it (`reopenAt`, from
+ * `reopenedAt`), and the rounds asked before that reply are superseded too. `currentRounds` cuts at
+ * the same reopen, so a reopened waypoint is never "after a final round". Withdrawn rounds were
+ * never answered and are in neither.
  */
 export function reopenSplit(
   waypointRoundList: readonly QuestionRound[],
@@ -1660,14 +1657,13 @@ export function reopenSplit(
 }
 
 /**
- * Saves a `grilling` run's outcome in one transaction and inserts what it makes due (S6a-8,
- * S6a-10): a round on its waypoint, numbered one plus the waypoint's highest (the run ends
- * `asked`), or, with its map changes (S6b-3), the waypoint's resolution, `resolved_how = run`, or
- * its out-of-scope ruling (S6b-5); the run ends `completed`. A round from a run started after a
- * `final` round is refused `agent_output_invalid`, as is a resolution of a reopened waypoint with
- * no round asked since the reopen (S7b-7, L156 (1)), a resolution or ruling of a `personDecides`
- * waypoint with no answered round (a decision-routed review finding is the person's call), and
- * map changes `mapChangesProblem` refuses
+ * Saves a `grilling` run's outcome in one transaction and inserts what it makes due: a round on its
+ * waypoint, numbered one plus the waypoint's highest (the run ends `asked`), or, with its map
+ * changes, the waypoint's resolution, `resolved_how = run`, or its out-of-scope ruling; the run
+ * ends `completed`. A round from a run started after a `final` round is refused
+ * `agent_output_invalid`, as is a resolution of a reopened waypoint with no round asked since the
+ * reopen, a resolution or ruling of a `personDecides` waypoint with no answered round (a
+ * decision-routed review finding is the person's call), and map changes `mapChangesProblem` refuses
  * with their code: the run fails and nothing else is written.
  */
 export function recordGrill(
@@ -1678,7 +1674,7 @@ export function recordGrill(
 ): Result<null, RunFailure> {
   return write(db, actor, (tx): Result<null, RunFailure> => {
     if (isReplaced(tx, runId)) {
-      // A run cancelled while its call was out saves nothing and is not retried (S7b-6).
+      // A run cancelled while its call was out saves nothing and is not retried.
       return ok(null);
     }
     const run = runningRun(tx, runId);
@@ -1773,8 +1769,8 @@ export function recordGrill(
         reopenedAt(tx, waypoint, rounds),
       );
       if (split.reopened && split.live.length === 0) {
-        // A reopened waypoint is decided again with the person, never re-settled from the superseded
-        // rounds (S7b-7, L156 (1)): its resolution needs a round asked since the reopen.
+        // A reopened waypoint is decided again with the person, never re-settled from the
+        // superseded rounds: its resolution needs a round asked since the reopen.
         return refuse(actor, tx, run, {
           code: "agent_output_invalid",
           message:
@@ -1810,9 +1806,9 @@ function rulingProblem(ruling: OutOfScopeRuling | null): RunFailure | null {
 }
 
 /**
- * Rules a claimed waypoint out of scope (S6b-5): `claimed → out_of_scope`, and the run's reason
- * saved as the waypoint's Out of scope line. A proposal the ruling carries is saved pending,
- * attached to the waypoint, whose line is its line (map proposals).
+ * Rules a claimed waypoint out of scope: `claimed → out_of_scope`, and the run's reason saved as
+ * the waypoint's Out of scope line. A proposal the ruling carries is saved pending, attached to the
+ * waypoint, whose line is its line (map proposals).
  */
 export function ruleOutOfScope(
   tx: Tx,
@@ -1856,7 +1852,7 @@ function claimedRun(
   return { run, waypoint };
 }
 
-/** Ends a refused run `failed` with its code and inserts what is due, its retry first (S6a-12). */
+/** Ends a refused run `failed` with its code and inserts what is due, its retry first. */
 export function refuse(
   actor: Actor,
   tx: Tx,
@@ -1893,7 +1889,7 @@ export function resolveByRun(
   }
 }
 
-/** Returns a claimed waypoint to `open` after an unanswered report or a failed task (S6b-7, S6b-8). */
+/** Returns a claimed waypoint to `open` after an unanswered report or a failed task. */
 function release(tx: Tx, waypointId: string): void {
   const updated = tx
     .update(waypoints)
@@ -1906,13 +1902,13 @@ function release(tx: Tx, waypointId: string): void {
 }
 
 /**
- * Saves a `research` run's outcome in one transaction and inserts what it makes due (S6b-7): a
- * report, its row keyed by the run and its sources by position, which resolves the waypoint when
- * answered (`resolution` = summary, `resolved_how = run`) and returns it `claimed → open` when not;
- * or an out-of-scope ruling (S6b-5). Its map changes apply in the same transaction (S6b-3) and the
- * run ends `completed`. A report breaking S6b-7's rules is refused `agent_output_invalid`, and map
- * changes `mapChangesProblem` refuses with their code (an unanswered report's waypoint counting as
- * open, S6b-4): the run fails and nothing else is written.
+ * Saves a `research` run's outcome in one transaction and inserts what it makes due: a report, its
+ * row keyed by the run and its sources by position, which resolves the waypoint when answered
+ * (`resolution` = summary, `resolved_how = run`) and returns it `claimed → open` when not; or an
+ * out-of-scope ruling. Its map changes apply in the same transaction and the run ends `completed`.
+ * A report breaking `ResearchReport`'s rules is refused `agent_output_invalid`, and map changes
+ * `mapChangesProblem` refuses with their code (an unanswered report's waypoint counting as open):
+ * the run fails and nothing else is written.
  */
 export function recordResearch(
   actor: Actor,
@@ -1922,7 +1918,7 @@ export function recordResearch(
 ): Result<null, RunFailure> {
   return write(db, actor, (tx): Result<null, RunFailure> => {
     if (isReplaced(tx, runId)) {
-      // A run cancelled while its call was out saves nothing and is not retried (S7b-6).
+      // A run cancelled while its call was out saves nothing and is not retried.
       return ok(null);
     }
     const { run, waypoint } = claimedRun(tx, runId, "research");
@@ -1988,14 +1984,13 @@ export function recordResearch(
 }
 
 /**
- * Saves a `task` run's outcome in one transaction and inserts what it makes due (S6b-8): a
- * round on its waypoint, `final` false (the run ends `asked`; its
- * submission makes a fresh `task` run due on the still-claimed waypoint), or, with its map changes
- * (S6b-3), `done` (a `task_outcomes` row, and the waypoint resolved with `resolution` = the facts),
- * `failed` (the row, and the waypoint returned `claimed → open` with no automatic retry) or an
- * out-of-scope ruling (S6b-5); the run ends `completed`. Map changes `mapChangesProblem` refuses
- * fail the run with their code (a failed task's waypoint counting as open, S6b-4), writing nothing
- * else.
+ * Saves a `task` run's outcome in one transaction and inserts what it makes due: a round on its
+ * waypoint, `final` false (the run ends `asked`; its submission makes a fresh `task` run due on the
+ * still-claimed waypoint), or, with its map changes, `done` (a `task_outcomes` row, and the
+ * waypoint resolved with `resolution` = the facts), `failed` (the row, and the waypoint returned
+ * `claimed → open` with no automatic retry) or an out-of-scope ruling; the run ends `completed`.
+ * Map changes `mapChangesProblem` refuses fail the run with their code (a failed task's waypoint
+ * counting as open), writing nothing else.
  */
 export function recordTask(
   actor: Actor,
@@ -2005,7 +2000,7 @@ export function recordTask(
 ): Result<null, RunFailure> {
   return write(db, actor, (tx): Result<null, RunFailure> => {
     if (isReplaced(tx, runId)) {
-      // A run cancelled while its call was out saves nothing and is not retried (S7b-6).
+      // A run cancelled while its call was out saves nothing and is not retried.
       return ok(null);
     }
     const { run, waypoint } = claimedRun(tx, runId, "task");
@@ -2081,13 +2076,13 @@ export function recordTask(
 }
 
 /**
- * Saves a `consistency` run's pass in one transaction and inserts what it makes due (S6b-10, D5):
- * one `consistency_passes` row comparing each resolved waypoint's id and `resolved_at`, and each
+ * Saves a `consistency` run's pass in one transaction and inserts what it makes due: one
+ * `consistency_passes` row comparing each resolved waypoint's id and `resolved_at`, and each
  * finding as a new unblocked Grilling waypoint, numbered on from the map's highest, with its
  * `consistency_findings` row; the run ends `completed`. A finding naming a waypoint that is not
  * `resolved` is refused `consistency_waypoint_unknown`: the run fails and nothing else is written.
- * After the first pass, a finding naming no waypoint resolved since the latest pass is dropped
- * (not refused): it opens nothing and is not stored. The value is how many were dropped.
+ * After the first pass, a finding naming no waypoint resolved since the latest pass is dropped (not
+ * refused): it opens nothing and is not stored. The value is how many were dropped.
  */
 export function recordConsistency(
   actor: Actor,
@@ -2097,7 +2092,7 @@ export function recordConsistency(
 ): Result<{ dropped: number }, RunFailure> {
   return write(db, actor, (tx): Result<{ dropped: number }, RunFailure> => {
     if (isReplaced(tx, runId)) {
-      // A run cancelled while its call was out saves nothing and is not retried (S7b-6).
+      // A run cancelled while its call was out saves nothing and is not retried.
       return ok({ dropped: 0 });
     }
     const run = runningRun(tx, runId);
@@ -2218,13 +2213,12 @@ export function completeRun(
 }
 
 /**
- * Starts a fresh run in the scope stopped on `runId` (S6a-12), or of the same kind on the waypoint
- * waiting on `runId` (S6b-12, L115), itself retried once on failure, and inserts what is due.
- * Either way a waypoint is claimed again (`open → claimed`). Refuses an unknown run
- * `planning_run_not_found`, and any run that is neither a failed retry nor a waiting run (S6b-6)
- * that is its scope's latest, a superseded stop (L121, S7-26), or a stopped `to_tickets` whose set
- * was approved since (S7-18), `planning_run_not_stopped`.
- * Returns the run's map id.
+ * Starts a fresh run in the scope stopped on `runId`, or of the same kind on the waypoint waiting
+ * on `runId`, itself retried once on failure, and inserts what is due. Either way a waypoint is
+ * claimed again (`open → claimed`). Refuses an unknown run `planning_run_not_found`, and any run
+ * that is neither a failed retry nor a waiting run that is its scope's latest, a superseded stop,
+ * or a stopped `to_tickets` whose set was approved since, `planning_run_not_stopped`. Returns the
+ * run's map id.
  */
 export function tryAgain(
   actor: Actor,
@@ -2253,7 +2247,7 @@ export function tryAgain(
       (scopeWaypoint === null ? stoppedRun(scope) : waypointStoppedRun(scopeWaypoint, scope))
         ?.runId === runId &&
       !isSupersededStop(run, readClearing(tx, readMap(tx, run.mapId), runs)) &&
-      // A stopped rewrite whose set was approved since has nothing left to write (S7-18).
+      // A stopped rewrite whose set was approved since has nothing left to write.
       !(
         run.purpose === "to_tickets" &&
         run.specificationId !== null &&
@@ -2267,8 +2261,8 @@ export function tryAgain(
       });
     }
     if (run.purpose === "hatch" && isWorking(scopeRuns(runs, null), "chart")) {
-      // No hatch run starts while the chart runs or awaits its retry (S7b-3, L162 (7)): Try
-      // again on a stopped message waits for the chart, as a queued message does.
+      // No hatch run starts while the chart runs or awaits its retry: Try again on a stopped
+      // message waits for the chart, as a queued message does.
       return err({
         code: "planning_run_not_stopped",
         message: `Hatch run ${runId} cannot start again while the map's chart runs`,
@@ -2276,8 +2270,8 @@ export function tryAgain(
       });
     }
     if (run.waypointId !== null) {
-      // The failed retry released the claim (S6a-12), as did the waiting outcome (S6b-7, S6b-8);
-      // trying again claims the waypoint again.
+      // The failed retry released the claim, as did the waiting outcome; trying again claims the
+      // waypoint again.
       claim(tx, run.waypointId);
     }
     const fresh = insertRun(actor, tx, {
@@ -2288,14 +2282,14 @@ export function tryAgain(
       retryOfRunId: null,
       hatchMessageId: run.hatchMessageId,
     });
-    // Try again on a stopped release run keeps its wait released, by the new run (B6).
+    // Try again on a stopped release run keeps its wait released, by the new run.
     followRelease(tx, run.id, fresh.id);
     planAndRelease(actor, tx, run.mapId);
     return ok(run.mapId);
   });
 }
 
-/** Whether `run` is the run its scope's waypoint waits on (S6b-6). */
+/** Whether `run` is the run its scope's waypoint waits on. */
 function isWaitingOn(tx: Tx, run: PlanningRun, scope: readonly PlanningRun[]): boolean {
   if (run.waypointId === null) {
     return false;
@@ -2308,13 +2302,11 @@ function isWaitingOn(tx: Tx, run: PlanningRun, scope: readonly PlanningRun[]): b
 }
 
 /**
- * The startup sweep (S6a-13): ends every run left `running` `failed` with
- * `planning_run_interrupted`, then inserts what is due on every map (each interrupted first attempt
- * gets its retry, S6a-12).
+ * The startup sweep: ends every run left `running` `failed` with `planning_run_interrupted`, then
+ * inserts what is due on every map (each interrupted first attempt gets its retry).
  */
 export function sweepInterruptedRuns(db: ZeNormDatabase): void {
-  // ZeNorm acting with no person behind the action (domain model §3.8, S9-13); each retry it
-  // inserts takes its map's User (S9-11).
+  // ZeNorm acting with no person behind the action; each retry it inserts takes its map's User.
   const actor: Actor = { kind: "system" };
   write(db, actor, (tx) => {
     tx.update(planningRuns)

@@ -15,7 +15,7 @@ import { orpc } from "@/orpc";
 import { MapRows } from "@/pages/inbox/MapRows";
 import { shownQueryError } from "@/lib/query-errors";
 
-/** The greeting's opening, by the local hour; no person's name (L97). */
+/** The greeting's opening, by the local hour; no person's name. */
 function greeting(hour: number): string {
   if (hour < 12) {
     return "Good morning.";
@@ -58,7 +58,7 @@ function LoadFailed({ what, error }: { what: string; error: Error }) {
   );
 }
 
-/** With no projects, the Inbox offers Add project in place of the composer (spec S5-9). */
+/** With no projects, the Inbox offers Add project in place of the composer. */
 function NoProjects() {
   const [adding, setAdding] = useState(false);
   return (
@@ -113,9 +113,8 @@ const QUIET_INLINE = 3;
 const ROWS_INLINE = 8;
 
 /**
- * Whether the quiet group is shown in full (UX audit G2, P2-12): when it is small, or when the
- * whole inbox fits a screen without the fold; a long quiet tail behind the active groups folds to
- * one line, as spec C11.3 has it.
+ * Whether the quiet group is shown in full: when it is small, or when the whole inbox fits a
+ * screen without the fold; a long quiet tail behind the active groups folds to one line.
  */
 export function quietInline(active: number, quiet: number): boolean {
   return quiet <= QUIET_INLINE || active + quiet <= ROWS_INLINE;
@@ -157,7 +156,7 @@ function QuietMaps({ overviews, active }: { overviews: readonly MapOverview[]; a
   );
 }
 
-/** Where the rows will be while the overviews load (UX audit P2-20): two rows' shapes. */
+/** Where the rows will be while the overviews load: two rows' shapes. */
 function LoadingRows() {
   return (
     <div role="status" aria-label="Loading the maps" className="grid gap-2">
@@ -181,13 +180,13 @@ function LoadingRows() {
   );
 }
 
-/** Home: the greeting, the composer, and every map grouped by who it waits on (spec D4, D6). */
+/** Home: the greeting, the composer, and every map grouped by who it waits on. */
 export function InboxPage() {
   useDocumentTitle(pageTitle(["Inbox"]));
   const projects = useQuery(orpc.project.list.queryOptions());
   const overviews = useMapOverviews();
   const groups = overviews.data === undefined ? null : groupMaps(overviews.data);
-  // A fetch failure shows nothing beyond the live Alert; the cached reads stay (QA-3).
+  // A fetch failure shows nothing beyond the live Alert; the cached reads stay.
   const projectsError = shownQueryError(projects.error);
   const overviewsError = shownQueryError(overviews.error);
 

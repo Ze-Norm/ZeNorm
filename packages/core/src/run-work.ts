@@ -65,7 +65,7 @@ import {
 } from "./wayfinding-records.ts";
 import { present } from "./present.ts";
 
-/** What a running planning run asks its port for, by purpose (spec D3). */
+/** What a running planning run asks its port for, by purpose. */
 type PurposeWork =
   | { readonly purpose: "chart"; readonly run: PlanningRun; readonly request: ChartMapRequest }
   | { readonly purpose: "survey"; readonly run: PlanningRun; readonly request: SurveyCodeRequest }
@@ -95,7 +95,7 @@ type PurposeWork =
     }
   | {
       readonly purpose: "to_spec";
-      /** A spec-scoped run repairs one spec (`ReviseSpec`, S7-7, S7-12). */
+      /** A spec-scoped run repairs one spec (`ReviseSpec`). */
       readonly scope: "spec";
       readonly run: PlanningRun;
       readonly request: ReviseSpecRequest;
@@ -122,9 +122,9 @@ type PurposeWork =
     };
 
 /**
- * What a running planning run asks its port for, and the CLI session it resumes: the session of
- * the run it retries when that run ran out of turns (`error_max_turns`), else null. A retry is
- * never retried (S6a-12), so a run resumes at most once.
+ * What a running planning run asks its port for, and the CLI session it resumes: the session of the
+ * run it retries when that run ran out of turns (`error_max_turns`), else null. A retry is never
+ * retried, so a run resumes at most once.
  */
 export type RunWork = PurposeWork & { readonly resumeSessionId: string | null };
 
@@ -174,7 +174,7 @@ async function prepareWork(
   if (project === undefined) {
     throw new Error(`Map ${map.id} references missing project ${map.projectId}`);
   }
-  // The checkout seam gives the folder the run works in (S9-17, D15).
+  // The checkout seam gives the folder the run works in.
   const checkedOut = await seamsOf(db).checkout(project);
   if (!checkedOut.ok) {
     return err({ code: "project_folder_missing", message: checkedOut.error.message });
@@ -187,7 +187,7 @@ async function prepareWork(
     idea: map.idea,
   };
   const rounds = readRounds(db, map.id);
-  // Read once per run, for every run that decides or checks scope (DR-14).
+  // Read once per run, for every run that decides or checks scope.
   const mapRounds = mapRoundsOf(rounds);
 
   switch (run.purpose) {
@@ -199,7 +199,7 @@ async function prepareWork(
           ...base,
           ...projectSuggestionContext(db, map.projectId),
           mapRounds,
-          // What the last round was asked about (DR-3); the first chart proposes it.
+          // What the last round was asked about; the first chart proposes it.
           proposed:
             mapRounds.length === 0
               ? null
@@ -248,16 +248,16 @@ async function prepareWork(
       if (waypoint === undefined) {
         throw new Error(`Grilling run ${run.id}'s waypoint ${waypointId} is not on map ${map.id}`);
       }
-      // A round withdrawn by a reopen (S7b-6) was never answered; it is left out of the record.
+      // A round withdrawn by a reopen was never answered; it is left out of the record.
       const kept = waypointRounds(rounds, waypointId).filter(
         (round) => round.status !== "withdrawn",
       );
       const scope = scopeRuns(readMapRuns(db, map.id), waypointId);
-      // Only a final round since the waypoint's work last ended makes this run "after final".
-      // The waypoint's latest reopen cuts both the same way (L156 (1), L162 (1)).
+      // Only a final round since the waypoint's work last ended makes this run "after final". The
+      // waypoint's latest reopen cuts both the same way.
       const reopenAt = reopenedAt(db, waypoint, kept);
       const current = currentRounds(kept, scope, reopenAt);
-      // Rounds answered before a reopen are superseded context, not live answers (L156 (1)).
+      // Rounds answered before a reopen are superseded context, not live answers.
       const split = reopenSplit(kept, scope, reopenAt);
       const answeredOf = (round: (typeof kept)[number]) => {
         if (round.status !== "submitted" || round.answers === null) {
@@ -269,8 +269,8 @@ async function prepareWork(
       const finding = readFindings(db, map.id).find(
         (candidate) => candidate.waypointId === waypointId,
       );
-      // A waypoint the finding names that a reopen (S7b-6) undid has no resolution to show: the
-      // finding carries the ones still resolved, and none when every one was reopened.
+      // A waypoint the finding names that a reopen undid has no resolution to show: the finding
+      // carries the ones still resolved, and none when every one was reopened.
       const numbered = (number: number) => {
         const named = mapWaypoints.find((candidate) => candidate.number === number);
         if (named === undefined) {
@@ -348,7 +348,7 @@ async function prepareWork(
           note: waypointNote(db, waypoint),
           afterFinal: current.at(-1)?.final === true,
           // The scope's run just before this one (a retry, or a fresh run after Try again), when
-          // core refused its output (L142, L156 (1)).
+          // core refused its output.
           refusedAttempt:
             previous?.errorCode === "agent_output_invalid"
               ? { problem: present(previous.errorMessage, `Failed run ${previous.id}'s message`) }
@@ -359,8 +359,8 @@ async function prepareWork(
     case "research": {
       const { waypoint, context } = waypointRunContext(db, run, map, base, mapRounds);
       const earlierReports = readReports(db, map.id)
-        // An answered report resolved the waypoint before a reopen (S7b-6) undid that resolution;
-        // the request carries the unanswered ones (an answered one would resolve it).
+        // An answered report resolved the waypoint before a reopen undid that resolution; the
+        // request carries the unanswered ones (an answered one would resolve it).
         .filter((report) => report.waypointId === waypoint.id && !report.answered)
         .map((report) => {
           return {
@@ -386,7 +386,7 @@ async function prepareWork(
     }
     case "task": {
       const { waypoint, context } = waypointRunContext(db, run, map, base, mapRounds);
-      // A round withdrawn by a reopen (S7b-6) was never answered; it is left out of the record.
+      // A round withdrawn by a reopen was never answered; it is left out of the record.
       const answered = waypointRounds(rounds, waypoint.id)
         .filter((round) => round.status !== "withdrawn")
         .map((round) => {
@@ -461,9 +461,9 @@ async function prepareWork(
 }
 
 /**
- * The problem core refused a chart's previous attempt with (DR-8, L253, as `mapRefusedAttempt` for
- * To Spec): the map scope's run just before `run` (a retry, or a fresh run after Try again) when it
- * is a `chart` that failed `agent_output_invalid`; null otherwise. The map scope also holds survey and
+ * The problem core refused a chart's previous attempt with (as `mapRefusedAttempt` is for To Spec):
+ * the map scope's run just before `run` (a retry, or a fresh run after Try again) when it is a
+ * `chart` that failed `agent_output_invalid`; null otherwise. The map scope also holds survey and
  * fog runs, so the purpose is checked.
  */
 function chartRefusedAttempt(
@@ -484,8 +484,8 @@ export function readMapRounds(db: ZeNormDatabase, mapId: string): MapRound[] {
 }
 
 /**
- * The note a waypoint's run carries (S7b-10): the hatch message that last opened, reopened,
- * reworded or directed it, with when it was sent; null when no message did.
+ * The note a waypoint's run carries: the hatch message that last opened, reopened, reworded or
+ * directed it, with when it was sent; null when no message did.
  */
 function waypointNote(db: ZeNormDatabase, waypoint: Waypoint): WaypointNote | null {
   if (waypoint.hatchMessageId === null) {
@@ -512,7 +512,7 @@ function runWaypoint(waypoint: Waypoint): Omit<ResearchWaypointRequest["waypoint
   };
 }
 
-/** The run's waypoint and the map context every Research and Task request carries (spec D2). */
+/** The run's waypoint and the map context every Research and Task request carries. */
 function waypointRunContext(
   db: ZeNormDatabase,
   run: PlanningRun,

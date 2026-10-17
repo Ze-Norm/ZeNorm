@@ -29,18 +29,17 @@ export const CheckCommand = z
 export type CheckCommand = z.infer<typeof CheckCommand>;
 
 /**
- * Whether a check command needs a shell (L197 item 9): a quote, a backtick, `$`, `;`, `&`, `|`,
- * `<`, `>` or `\\`. Checks run without one, so such a command can never pass; Project settings
- * refuses it with `project_check_invalid`. `CheckCommand` stays as it is: stored runs' checks
- * parse through it.
+ * Whether a check command needs a shell: a quote, a backtick, `$`, `;`, `&`, `|`, `<`, `>` or `\\`.
+ * Checks run without one, so such a command can never pass; Project settings refuses it with
+ * `project_check_invalid`. `CheckCommand` stays as it is: stored runs' checks parse through it.
  */
 export function checkNeedsShell(command: string): boolean {
   return /['"`$;&|<>\\]/.test(command);
 }
 
 /**
- * A project's required checks (slice 8 S8-2), in the order they run: 0–10 unique commands. Empty
- * until saved; Start delivery is blocked while it is empty.
+ * A project's required checks, in the order they run: 0–10 unique commands. Empty until saved;
+ * Start delivery is blocked while it is empty.
  */
 export const ProjectChecks = z
   .array(CheckCommand)
@@ -76,7 +75,7 @@ export const InspectProjectInput = z.strictObject({
 });
 export type InspectProjectInput = z.infer<typeof InspectProjectInput>;
 
-/** What `project.inspect` found in a folder that may be added (spec D3). */
+/** What `project.inspect` found in a folder that may be added. */
 export const ProjectInspection = z.strictObject({
   /** The folder's realpath, its repository's top level. */
   folderPath: AbsolutePath,
@@ -100,7 +99,7 @@ export type ProjectFolder = z.infer<typeof ProjectFolder>;
 
 /**
  * What keeps `delivery.start` from starting a run in this project, derived on every read, in
- * `delivery.start`'s refusal order (the demo's `deliveryBlockers`).
+ * `delivery.start`'s refusal order.
  */
 export const StartDeliveryBlocker = z.enum([
   "project_folder_missing",
@@ -112,9 +111,8 @@ export const StartDeliveryBlocker = z.enum([
 export type StartDeliveryBlocker = z.infer<typeof StartDeliveryBlocker>;
 
 /**
- * The project's one run with no end (`interrupted` included; slice 8 D2): `mapId` is the map that
- * wrote the revision the run's ticket set was cut from, `specTitle` the spec's latest revision's
- * title.
+ * The project's one run with no end (`interrupted` included): `mapId` is the map that wrote the
+ * revision the run's ticket set was cut from, `specTitle` the spec's latest revision's title.
  */
 export const ActiveRun = z.strictObject({
   runId: z.uuid({ version: "v7" }),
@@ -130,7 +128,7 @@ export const Project = z.strictObject({
   /** The repository's top level as `realpath` resolved it when the project was added. */
   folderPath: AbsolutePath,
   baseBranch: BaseBranch,
-  /** The checks every run pins at its start, in order; empty until saved (S8-2). */
+  /** The checks every run pins at its start, in order; empty until saved. */
   requiredChecks: ProjectChecks,
   /** The repair limit every run pins at its start; null until saved, which blocks delivery. */
   repairLimit: RepairLimit.nullable(),
@@ -145,14 +143,14 @@ export const Project = z.strictObject({
    * when a run may start.
    */
   startDeliveryBlockers: z.array(StartDeliveryBlocker),
-  /** The project's active run, or null when none (one per project, L98). */
+  /** The project's active run, or null when none (one per project). */
   activeRun: ActiveRun.nullable(),
 });
 export type Project = z.infer<typeof Project>;
 
 /**
- * `project.saveSettings` (S8-2): the base branch, the required checks (empty allowed), the repair
- * limit (required) and the fix commands (empty allowed).
+ * `project.saveSettings`: the base branch, the required checks (empty allowed), the repair limit
+ * (required) and the fix commands (empty allowed).
  */
 export const SaveProjectSettingsInput = z.strictObject({
   projectId: z.uuid({ version: "v7" }),

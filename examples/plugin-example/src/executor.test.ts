@@ -73,8 +73,8 @@ function request(): ImplementRequest {
   };
 }
 
-describe("the example executor (S9-22, D17)", () => {
-  test("given a repair attempt, it merges no ticket and commits the attempt's file on the run branch (C2)", async () => {
+describe("the example executor", () => {
+  test("given a repair attempt, it merges no ticket and commits the attempt's file on the run branch", async () => {
     const calls: ExecutorCalls = { implement: 0, review: 0 };
     const executor = exampleExecutor(calls);
     const events: ImplementEvent[] = [];
@@ -143,7 +143,7 @@ describe("the example executor (S9-22, D17)", () => {
       (event) => {
         events.push(event);
         if (event.kind === "ticket_merged") {
-          // The runner reads the ticket branch when the event arrives (D18).
+          // The runner reads the ticket branch when the event arrives.
           mergedAtEvent.push(isAncestor(ticketBranchName(RUN_BRANCH, event.ticket), RUN_BRANCH));
         }
       },
@@ -249,7 +249,7 @@ describe("the example executor (S9-22, D17)", () => {
     expect(calls).toEqual({ implement: 0, review: 1 });
   });
 
-  test("its pull request writer returns the fixed body, at the Summary heading (C3)", async () => {
+  test("its pull request writer returns the fixed body, at the Summary heading", async () => {
     const calls: ExecutorCalls = { implement: 0, review: 0 };
     const finalCommit = git(worktree, ["rev-parse", "HEAD"]);
 

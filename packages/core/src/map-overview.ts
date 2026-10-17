@@ -78,7 +78,7 @@ import {
 import { ticketSetReview } from "./tickets-reviews.ts";
 import { present } from "./present.ts";
 
-/** The in-memory runner state the server holds and `mapStatus` reads (spec D4). */
+/** The in-memory runner state the server holds and `mapStatus` reads. */
 export interface RunnerStates {
   /** Whether the delivery runner holds a run: an active run it does not hold is `interrupted`. */
   readonly deliveryHeld: (runId: string) => boolean;
@@ -90,7 +90,7 @@ function byNumber<T extends { number: number }>(items: readonly T[]): T[] {
 }
 
 /**
- * The stored rows a map's status reads (D10), once: `overviewOf` builds its overview from them, and
+ * The stored rows a map's status reads, once: `overviewOf` builds its overview from them, and
  * another map's overview reads that map's first next action from them (`revisedLater`) without
  * building a second overview.
  */
@@ -137,7 +137,7 @@ function statusInputOf(db: Reader, map: MapRecord, project: Project, runners: Ru
   return { ...common, specs, runsOf, reports, outcomes, fog, derived };
 }
 
-/** The headline of a map's first next action, from its status alone (the demo's `RevisedLater`). */
+/** The headline of a map's first next action, from its status alone. */
 function firstHeadline(db: Reader, mapId: string, project: Project, runners: RunnerStates): string {
   const [first] = statusInputOf(db, readMap(db, mapId), project, runners).derived.status.next;
   if (first === undefined) {
@@ -317,9 +317,8 @@ function specTone(spec: MapSpec, stage: keyof MapOverviewDetail["defaultSpecs"])
 }
 
 /**
- * The number of the spec a stage shows without a spec number (slice 7 D11, slice 7c D9), the demo's
- * `aboutSpec`: the first that needs you there, else the first being worked, else the first; null
- * while the map has none.
+ * The number of the spec a stage shows without a spec number: the first that needs you there, else
+ * the first being worked, else the first; null while the map has none.
  */
 export function defaultSpec(
   specs: readonly MapSpec[],
@@ -338,7 +337,7 @@ export function defaultSpec(
   return first.number;
 }
 
-/** The planning review finding that sent a waypoint on, as its page shows it (L136 (a)). */
+/** The planning review finding that sent a waypoint on, as its page shows it. */
 function reviewFindingView(finding: EscalatedFinding | undefined): WaypointReviewFinding | null {
   if (finding === undefined) {
     return null;
@@ -351,7 +350,7 @@ function reviewFindingView(finding: EscalatedFinding | undefined): WaypointRevie
   };
 }
 
-/** A revision's review as the status reads it (D8): an escalated finding sends it on. */
+/** A revision's review as the status reads it: an escalated finding sends it on. */
 function statusReview(db: Reader, revision: StoredRevision): StatusReview {
   const stored = readReview(db, revision);
   if (stored === null) {
@@ -364,8 +363,8 @@ function statusReview(db: Reader, revision: StoredRevision): StatusReview {
 }
 
 /**
- * A spec's stored rows the status reads (D7): every revision, those on this map as the status reads
- * them, the map's latest approved revision (S8b-8), its ticket set and that set's current content.
+ * A spec's stored rows the status reads: every revision, those on this map as the status reads
+ * them, the map's latest approved revision, its ticket set and that set's current content.
  */
 function specStatusRows(db: Reader, mapId: string, spec: StoredSpec) {
   const all = readSpecRevisions(db, spec.id);
@@ -387,13 +386,13 @@ function specStatusRows(db: Reader, mapId: string, spec: StoredSpec) {
           approved,
           set,
           current,
-          // As the Tickets page reads it (`spec-views.ts`, S8b-9).
+          // As the Tickets page reads it (`spec-views.ts`).
           replaced: set.state !== "approved" && approved.revision !== latestOf(all).revision,
         };
   return { all, revisions, set, written };
 }
 
-/** One spec as `deriveStatus` reads it (D7): its revisions on this map, its set and its runs. */
+/** One spec as `deriveStatus` reads it: its revisions on this map, its set and its runs. */
 function statusSpec(db: Reader, mapId: string, spec: StoredSpec, runs: SpecRun[]): StatusSpec {
   const { all, revisions, set, written } = specStatusRows(db, mapId, spec);
   return {
@@ -422,7 +421,7 @@ function statusSpec(db: Reader, mapId: string, spec: StoredSpec, runs: SpecRun[]
             ),
           },
     ticketsDue: toTicketsDue(db, mapId, spec.id),
-    // Only the runs of this map's approved revision's set (D9, the demo's `runsOn`).
+    // Only the runs of this map's approved revision's set.
     runs: set === undefined ? [] : runs.filter((run) => run.ticketSetId === set.id),
   };
 }
@@ -502,8 +501,8 @@ function endedAt(runs: readonly PlanningRun[], runId: string): string {
 }
 
 /**
- * A revision's review outcomes for the activity (D13), oldest first, each at its run's end: the
- * reviews of content a rewrite in place replaced (L241), then the review of its current content.
+ * A revision's review outcomes for the activity, oldest first, each at its run's end: the
+ * reviews of content a rewrite in place replaced, then the review of its current content.
  */
 function activityReviews(
   db: Reader,
@@ -536,7 +535,7 @@ function activityReviews(
   );
 }
 
-/** A ticket set version's recorded tickets review for the activity (slice 7c D10), at its run's end. */
+/** A ticket set version's recorded tickets review for the activity, at its run's end. */
 function activityTicketsReview(
   db: Reader,
   ticketSetId: string,
@@ -560,8 +559,8 @@ function activityTicketsReview(
 }
 
 /**
- * One spec as the activity reads it (D13): its revisions on this map, each marked when it revises
- * a spec an earlier map delivered (slice 8b D14), and the ticket set of each revision it approved.
+ * One spec as the activity reads it: its revisions on this map, each marked when it revises
+ * a spec an earlier map delivered, and the ticket set of each revision it approved.
  */
 function activitySpec(
   db: Reader,
@@ -642,8 +641,8 @@ function activitySpec(
 }
 
 /**
- * Every wait the map recorded, open, released or landed (slice 8b D14), with the hold it was
- * recorded under (its stored kind, map and revision; tickets review B3), never the live one.
+ * Every wait the map recorded, open, released or landed, with the hold it was
+ * recorded under (its stored kind, map and revision), never the live one.
  */
 function activityWaits(db: Reader, mapId: string): ActivityWait[] {
   return db
@@ -691,7 +690,7 @@ async function deriveProjects(db: ZeNormDatabase): Promise<Map<string, Project>>
 }
 
 /**
- * Every map with its project and status (spec D4), newest first. The projects are derived
+ * Every map with its project and status, newest first. The projects are derived
  * first (awaiting the filesystem and git); every database read then runs in one synchronous
  * transaction, so the maps, rounds, waypoints and runs are one snapshot. A map whose project
  * was added after the derivation sends the read round again with that project derived.
@@ -728,9 +727,8 @@ export async function listMapOverviews(
 }
 
 /**
- * The map's one snapshot (slice 6a spec D4): project, status, activity and Wayfinding. The
- * project is derived first; the map and everything else are then read in one synchronous
- * transaction.
+ * The map's one snapshot: project, status, activity and Wayfinding. The project is derived first;
+ * the map and everything else are then read in one synchronous transaction.
  */
 export async function getMapOverview(
   db: ZeNormDatabase,

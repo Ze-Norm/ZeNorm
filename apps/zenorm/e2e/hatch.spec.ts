@@ -32,13 +32,12 @@ import {
 import { expect, test } from "./worker-server.ts";
 
 /**
- * Slice 7b's escape hatch flows on the stand-in (spec Testing Decisions): a question answered with
- * nothing changed, the clause footer's Ask, a reload, a stopped reply and Try again, a note on a
- * draft and on a ticket set, a note refused while a review runs, a reopen through to the next
- * revision, a waiting report accepted and a waypoint ruled out of scope, a failed task run again
- * and a waypoint added. Each scenario starts a new map in its own project (`hatchRepo()`); the
- * stand-in's change markers ride in the message. Tests assert presence and links (L100), with the
- * demo's fixed labels.
+ * The escape hatch flows on the stand-in: a question answered with nothing changed, the clause
+ * footer's Ask, a reload, a stopped reply and Try again, a note on a draft and on a ticket set, a
+ * note refused while a review runs, a reopen through to the next revision, a waiting report
+ * accepted and a waypoint ruled out of scope, a failed task run again and a waypoint added. Each
+ * scenario starts a new map in its own project (`hatchRepo()`); the stand-in's change markers ride
+ * in the message. Tests assert presence and links, with fixed labels.
  */
 
 const QUESTION = "Does nested mean any depth?";
@@ -82,8 +81,8 @@ test("a question gets a reply and changes nothing; Ask prefills and sends nothin
   const mapId = await chartAndClearMap(page, hatchRepo(), "Export records, then ask about them");
   const before = await railText(page);
 
-  // Opening the hatch shortens the stream, which scrolls to its end (demo `ActivityLog.tsx`,
-  // L162 (2)); a short window makes the stream overflow.
+  // Opening the hatch shortens the stream, which scrolls to its end; a short window makes the
+  // stream overflow.
   await page.setViewportSize({ width: 1280, height: 560 });
   await page.reload();
   const newest = activity(page).getByRole("listitem").last();
@@ -94,7 +93,7 @@ test("a question gets a reply and changes nothing; Ask prefills and sends nothin
   await expect(composerField(page)).toBeHidden();
   await page.setViewportSize({ width: 1280, height: 720 });
 
-  // Ask prefills "About C1: " and focuses the composer; nothing is sent until Send (D7, L145).
+  // Ask prefills "About C1: " and focuses the composer; nothing is sent until Send.
   await clause(page, "C1").getByRole("button", { name: "Ask", exact: true }).click();
   await expect(composerField(page)).toBeFocused();
   await expect(composerField(page)).toHaveValue("About C1: ");
@@ -107,7 +106,7 @@ test("a question gets a reply and changes nothing; Ask prefills and sends nothin
   await sendAndAwaitReply(page, QUESTION);
   await expect(messages(page)).toContainText(QUESTION);
   await expect(page.getByText("Sent to the activity log →")).toBeVisible();
-  // A reply changes no stage (S7b-4, D5): no revision, the same rail, the same decision.
+  // A reply changes no stage: no revision, the same rail, the same decision.
   await expect(revisionLink(page, 2)).toHaveCount(0);
   await expect(nextCard(page).getByRole("button", { name: "Approve the spec" })).toBeVisible();
   expect(await railText(page)).toBe(before);
@@ -142,7 +141,7 @@ test("[fake:hatch-revise]: a note on a draft lands as the next revision, which l
   await sendAndAwaitReply(page, "[fake:hatch-revise] Name which records count.");
   await expect(eyebrow(page, 2, "draft")).toBeVisible();
   await expect(nextCard(page).getByRole("button", { name: "Approve the revision" })).toBeVisible();
-  // The note is C1's source ("your note", S7b-11) and the stream links the revision (L159 (a)).
+  // The note is C1's source ("your note") and the stream links the revision.
   await clause(page, "C1")
     .getByRole("button", { name: /^Details of C1: / })
     .click();
@@ -167,7 +166,7 @@ test("[fake:review-held]: a note while the review runs is refused; after it ends
 
   const note = "[fake:hatch-revise] Name which records count.";
   await sendAndAwaitReply(page, note);
-  // Refused spec_in_flight (S7b-5): the refusal is the reply and the draft is unchanged.
+  // Refused spec_in_flight: the refusal is the reply and the draft is unchanged.
   await expect(revisionLink(page, 2)).toHaveCount(0);
   await expect(revisionLink(page, 1)).toContainText("review running");
 
@@ -187,7 +186,7 @@ test("[fake:hatch-tickets]: a ticket note rewrites the set to the next version",
   await approveSpec(page);
   await page.goto(`/maps/${mapId}/tickets`);
   await expect(ticketHeading(page, `T1 ${FIRST_TICKET}`)).toBeVisible();
-  // A note while the tickets review runs is refused spec_in_flight (S7c-8): wait for its pass.
+  // A note while the tickets review runs is refused spec_in_flight: wait for its pass.
   await expect(nextCard(page).getByRole("heading", { name: "Approve the tickets." })).toBeVisible();
 
   await sendAndAwaitReply(page, "[fake:hatch-tickets] Split the exporter from the button.");
@@ -206,17 +205,17 @@ test("[fake:hatch-reopen:2]: a reopen un-clears the map; the new round answered,
   const opensTwo = activity(page).locator(`a[href="/maps/${mapId}/wayfinding/2"]`);
   const linked = await opensTwo.count();
   await sendAndAwaitReply(page, "[fake:hatch-reopen:2] The encoding decision was wrong.");
-  // Un-cleared (S7b-7): the draft asks no approval; the stream links the reopened waypoint.
+  // Un-cleared: the draft asks no approval; the stream links the reopened waypoint.
   await expect(nextCard(page).getByRole("button", { name: APPROVE_SPEC })).toHaveCount(0);
   await expect.poll(() => opensTwo.count()).toBeGreaterThan(linked);
 
-  // The reopened waypoint asks a new round (L155 (d)), answered with the recommendations.
+  // The reopened waypoint asks a new round, answered with the recommendations.
   await openWaypoint(page, mapId, 2);
   await expect(questionRound(page)).toBeVisible();
   await acceptAndSend(page);
   await expect(questionRound(page)).toHaveCount(0);
 
-  // The re-clear rewrites the draft no one acted on in place (S7b-8, L241): still revision 1.
+  // The re-clear rewrites the draft no one acted on in place: still revision 1.
   await page.goto(`/maps/${mapId}/spec`);
   await expect(eyebrow(page, 1, "draft")).toBeVisible();
   await expect(revisionList(page).getByRole("link")).toHaveCount(1);

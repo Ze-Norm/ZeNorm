@@ -3,7 +3,7 @@ import { expect } from "vitest";
 
 import { DESTINATION_ANSWERS_RULE } from "./prompt-parts.ts";
 
-/** A map's destination rounds for the prompt tests (DR-14): round 1, submitted. */
+/** A map's destination rounds for the prompt tests: round 1, submitted. */
 export const MAP_ROUNDS: MapRound[] = [
   {
     questions: [
@@ -22,7 +22,7 @@ export const MAP_ROUNDS: MapRound[] = [
 ];
 
 /**
- * Asserts `prompt` renders the destination's rounds right after its destination block (DR-16):
+ * Asserts `prompt` renders the destination's rounds right after its destination block:
  * `DESTINATION_ANSWERS_RULE` once, then the `MAP-ROUND-1-QUESTION-1` block.
  */
 export function expectRoundsAfterDestination(prompt: string): void {

@@ -7,7 +7,7 @@ import { scopeRun } from "./planning-runs.ts";
 import type { Reader } from "./planning-runs.ts";
 
 /**
- * A message's state (D6) from its row and its `hatch` runs, oldest first: replied once the reply
+ * A message's state from its row and its `hatch` runs, oldest first: replied once the reply
  * is stored; else working while a run runs or awaits its retry, stopped on a failed retry, and
  * queued before its first run.
  */
@@ -34,7 +34,7 @@ export function messageState(
   return { state: "queued" };
 }
 
-/** The map's hatch messages, oldest first, each with its spec number and state (D6). */
+/** The map's hatch messages, oldest first, each with its spec number and state. */
 export function readHatchMessages(
   db: Reader,
   mapId: string,
@@ -66,8 +66,8 @@ export function readHatchMessages(
 }
 
 /**
- * The changes the map's hatch messages applied (D7, L147 Q1), oldest first: each with the run that
- * replied and the reply's time, which a stored change always has (L152).
+ * The changes the map's hatch messages applied, oldest first: each with the run that
+ * replied and the reply's time, which a stored change always has.
  */
 export function readHatchChanges(db: Reader, mapId: string): HatchChangeApplied[] {
   const rows = db

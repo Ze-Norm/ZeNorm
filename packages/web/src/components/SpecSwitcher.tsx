@@ -21,7 +21,7 @@ import {
 } from "@/lib/specs";
 import { cn } from "@/lib/utils";
 
-/** A spec's name in the switcher: its title, "· revised" past revision 1 (D11). */
+/** A spec's name in the switcher: its title, "· revised" past revision 1. */
 function specLabel(spec: MapSpec): string {
   const latest = spec.revisions.at(-1);
   if (latest === undefined) {
@@ -31,7 +31,7 @@ function specLabel(spec: MapSpec): string {
 }
 
 /**
- * Switches between a map's specs within a stage (D11): none for one spec; tabs for two or three;
+ * Switches between a map's specs within a stage: none for one spec; tabs for two or three;
  * for more, the tally, a picker of every spec and **Next waiting on you**.
  */
 export function SpecSwitcher({

@@ -71,7 +71,7 @@ afterEach(async () => {
   await closeTestContext(context);
 });
 
-/** A decision finding (S7-9): the person must decide. */
+/** A decision finding: the person must decide. */
 const DECISION: SpecReviewFinding = {
   kind: "undefined_term",
   route: "decision",
@@ -89,7 +89,7 @@ const OTHER_REVISE: SpecReviewFinding = {
   title: "Unverifiable criterion",
 };
 
-/** SPEC with a new title: every id kept, so no clause needs a source (S7-5). */
+/** SPEC with a new title: every id kept, so no clause needs a source. */
 function kept(title: string): DraftContent {
   return {
     ...SPEC,
@@ -200,7 +200,7 @@ async function specsOnMap(count: number): Promise<{ mapId: string; specIds: stri
   return { mapId, specIds: readMapSpecs(context.db, mapId).map((spec) => spec.id) };
 }
 
-/** Fails the running run twice (first attempt and retry) so its scope stops (S6a-12). */
+/** Fails the running run twice (first attempt and retry) so its scope stops. */
 function stop(run: PlanningRun): PlanningRun {
   failRun(context.user, context.db, run.id, { code: "agent_run_failed", message: "first" });
   const retry = runsOf(context, run.mapId).find((other) => other.retryOfRunId === run.id);
@@ -219,7 +219,7 @@ function reclear(mapId: string, specs: { specNumber: number | null; content: Dra
   });
 }
 
-describe("ids across revisions (S7-5, B43)", () => {
+describe("ids across revisions", () => {
   const r1 = SPEC;
   const r2: DraftContent = {
     ...kept("r2"),
@@ -233,7 +233,7 @@ describe("ids across revisions (S7-5, B43)", () => {
     });
   });
 
-  test("the retired ids a run is told are the ids revisionProblem refuses (E-3)", () => {
+  test("the retired ids a run is told are the ids revisionProblem refuses", () => {
     expect(retiredIds([r1, r2])).toEqual(["1.2"]);
     expect(retiredIds([r1])).toEqual([]);
     const wide: DraftContent = {
@@ -336,7 +336,7 @@ describe("ids across revisions (S7-5, B43)", () => {
     expect(revisionProblem(sourced, new Set(), [r1], false)).toBeNull();
   });
 
-  test("a repair's clause citing a note fails spec_content_invalid only while no revision is note-directed (S7b-11)", () => {
+  test("a repair's clause citing a note fails spec_content_invalid only while no revision is note-directed", () => {
     const noted: DraftContent = {
       ...kept("r2"),
       clauses: [
@@ -354,11 +354,11 @@ describe("ids across revisions (S7-5, B43)", () => {
     };
     expect(revisionProblem(noted, new Set(), [r1], false)).toMatchObject({
       code: "spec_content_invalid",
-    }); // Once a revision of the spec is note-directed, it and later ones may cite the note (L151).
+    }); // Once a revision of the spec is note-directed, it and later ones may cite the note.
     expect(revisionProblem(noted, new Set(), [r1], true)).toBeNull();
   });
 
-  test("a repair rewrites the draft in place (L241): an id only a rewritten draft dropped is not retired", async () => {
+  test("a repair rewrites the draft in place: an id only a rewritten draft dropped is not retired", async () => {
     const { mapId, specificationId } = await reviewedSpec(context, project, [REVISE_FINDING]);
     repairRemoving(mapId, specificationId, r2, [{ id: "1.2", reason: "Merged into 1.1." }]);
     review(mapId, specificationId, [REVISE_FINDING]);
@@ -388,7 +388,7 @@ describe("ids across revisions (S7-5, B43)", () => {
     expect(latest(specificationId).content).toEqual(r2);
   });
 
-  test("a rewrite in place keeps was and removed against the revision before the draft (L241)", async () => {
+  test("a rewrite in place keeps was and removed against the revision before the draft", async () => {
     const { mapId, specificationId } = await reviewedSpec(context, project);
     const rejected = rejectSpecRevision(context.user, context.db, {
       specRevisionId: latest(specificationId).id,
@@ -463,7 +463,7 @@ describe("ids across revisions (S7-5, B43)", () => {
     });
   });
 
-  test("removed must be exactly the ids dropped from the revision before (RC4), either way", () => {
+  test("removed must be exactly the ids dropped from the revision before, either way", () => {
     const merged = { id: "1.2", reason: "Merged into 1.1." };
     expect(removalsProblem([merged], r1, r2)).toBeNull();
     expect(removalsProblem([], r1, r1)).toBeNull();
@@ -517,13 +517,13 @@ describe("ids across revisions (S7-5, B43)", () => {
     expect(tryAgain(context.user, context.db, retry.id).ok).toBe(true);
     const removed = [{ id: "1.2", reason: "Merged into 1.1." }];
     repairRemoving(mapId, specificationId, r2, removed);
-    // A repair of revision 1 rewrites it in place (L241): nothing comes before it to remove from.
+    // A repair of revision 1 rewrites it in place: nothing comes before it to remove from.
     expect(latest(specificationId)).toMatchObject({ revision: 1, removed: null, content: r2 });
     const work = await prepareRun(context.db, specRun(mapId, specificationId, "spec_review").id);
     expect(work.ok && work.value.request).toMatchObject({ removed: null });
   });
 
-  test("a repair's retry, and its Try again, carry the problem core refused it for (L141)", async () => {
+  test("a repair's retry, and its Try again, carry the problem core refused it for", async () => {
     const { mapId, specificationId } = await reviewedSpec(context, project, [REVISE_FINDING]);
     repairRemoving(mapId, specificationId, r2, [{ id: "1.2", reason: "Merged into 1.1." }]);
     review(mapId, specificationId, [REVISE_FINDING]);
@@ -539,7 +539,7 @@ describe("ids across revisions (S7-5, B43)", () => {
       if (found?.errorMessage == null) throw new Error("no stored message");
       return found.errorMessage;
     };
-    // A removal of an id the draft never had is refused (RC4).
+    // A removal of an id the draft never had is refused.
     const BOGUS = { id: "C9", reason: "Never there." };
     const first = specRun(mapId, specificationId, "to_spec");
     expect(await refusedFor(first.id)).toBeNull();
@@ -560,8 +560,8 @@ describe("ids across revisions (S7-5, B43)", () => {
   });
 });
 
-describe("repair (S7-7, B16)", () => {
-  test("a revise-only failure starts a ReviseSpec repair; it rewrites r1 in place (L241), and the new content is reviewed", async () => {
+describe("repair", () => {
+  test("a revise-only failure starts a ReviseSpec repair; it rewrites r1 in place, and the new content is reviewed", async () => {
     const { mapId, specificationId, specRevisionId } = await reviewedSpec(context, project, [
       REVISE_FINDING,
     ]);
@@ -618,13 +618,13 @@ describe("repair (S7-7, B16)", () => {
     review(mapId, specificationId, [OTHER_REVISE]);
     expect(await request("to_spec")).toEqual([first]);
     repair(mapId, specificationId, kept("r3"));
-    // Each review of the draft's earlier content, oldest first, under the one revision (L241).
+    // Each review of the draft's earlier content, oldest first, under the one revision.
     expect(await request("spec_review")).toEqual([
       first,
       { revision: 1, findings: [brief(OTHER_REVISE)] },
     ]);
   });
-  test("an approval closes the findings before it: a later revision's review carries only those after it (slice 8b)", async () => {
+  test("an approval closes the findings before it: a later revision's review carries only those after it", async () => {
     const { mapId, specificationId } = await reviewedSpec(context, project, [REVISE_FINDING]);
     repair(mapId, specificationId, kept("r2"));
     review(mapId, specificationId, []);
@@ -673,7 +673,7 @@ describe("repair (S7-7, B16)", () => {
   });
 });
 
-describe("the survey items a review settled (RC2)", () => {
+describe("the survey items a review settled", () => {
   test("are stored; an item the survey lacks or a line its file lacks fails review_reference_unknown", async () => {
     const { mapId, specificationId } = await draftedSpec(context, project);
     const run = specRun(mapId, specificationId, "spec_review");
@@ -714,7 +714,7 @@ describe("the survey items a review settled (RC2)", () => {
   });
 });
 
-describe("escalation (S7-8, RC4)", () => {
+describe("escalation", () => {
   test(`r1 and r2 failing repair; r3 failing past SPEC_REVIEW_FAILED_CAP (${String(SPEC_REVIEW_FAILED_CAP)}) escalates every finding at once, no repair; only decisions go to the person`, async () => {
     expect(SPEC_REVIEW_FAILED_CAP).toBe(2);
     const { mapId, specificationId } = await reviewedSpec(context, project, [REVISE_FINDING]);
@@ -736,7 +736,7 @@ describe("escalation (S7-8, RC4)", () => {
     expect(opened.map((w) => w.personDecides)).toEqual([false, false, true]);
     // All are grilled at once; no repair runs.
     expect(running(mapId).map((run) => run.purpose)).toEqual(["grilling", "grilling", "grilling"]);
-    // Both repairs rewrote the draft in place (L241): still revision 1, its three reviews counted.
+    // Both repairs rewrote the draft in place: still revision 1, its three reviews counted.
     expect(revisions(specificationId)).toMatchObject([{ revision: 1, supersededAt: null }]);
     const overview = await getMapOverview(context.db, mapId, { deliveryHeld: () => false });
     expect(overview.ok).toBe(true);
@@ -796,7 +796,7 @@ describe("escalation (S7-8, RC4)", () => {
     // r1, r2 and r3 failed: past SPEC_REVIEW_PERSON_CAP, a revise finding is the person's too.
     expect(waypointOf(context, mapId, 3).personDecides).toBe(true);
     expect(running(mapId).map((run) => run.purpose)).toEqual(["grilling"]);
-    // The re-clears and the repair rewrote the draft in place (L241).
+    // The re-clears and the repair rewrote the draft in place.
     expect(latest(specificationId).revision).toBe(1);
   });
 
@@ -826,7 +826,7 @@ describe("escalation (S7-8, RC4)", () => {
   });
 });
 
-describe("decision findings (S7-9)", () => {
+describe("decision findings", () => {
   test("a decision on a first review opens a waypoint, starts no repair; its revise finding reaches the re-clear", async () => {
     const { mapId, specificationId } = await reviewedSpec(context, project, [
       DECISION,
@@ -856,7 +856,7 @@ describe("decision findings (S7-9)", () => {
     });
   });
 
-  test("findings of one review never share a waypoint; a later review's finding raising the same problem links it (RC3)", async () => {
+  test("findings of one review never share a waypoint; a later review's finding raising the same problem links it", async () => {
     const { mapId, specIds } = await specsOnMap(2);
     const one = at(specIds, 0);
     const two = at(specIds, 1);
@@ -882,7 +882,7 @@ describe("decision findings (S7-9)", () => {
     expect(sameProblem(numbered, { ...DECISION, waypointNumbers: [1] }, "s1")).toBe(false);
   });
 
-  test("both findings of one review reach their grillings (RC3)", async () => {
+  test("both findings of one review reach their grillings", async () => {
     const { mapId } = await reviewedSpec(context, project, [
       DECISION,
       {
@@ -954,7 +954,7 @@ describe("a decision finding's waypoint is the person's to decide", () => {
   });
 });
 
-describe("un-cleared map and re-clear (S7-10, D6, L125 (3))", () => {
+describe("un-cleared map and re-clear", () => {
   test("on an un-cleared map approve and reject refuse map_uncleared and no review or repair starts", async () => {
     const { mapId, specIds } = await specsOnMap(2);
     const one = at(specIds, 0);
@@ -978,7 +978,7 @@ describe("un-cleared map and re-clear (S7-10, D6, L125 (3))", () => {
     expect(running(mapId).map((run) => run.purpose)).toEqual(["grilling"]);
   });
 
-  test("re-clear rewrites every unapproved draft in place (L241), may add a spec, leaves an approved one", async () => {
+  test("re-clear rewrites every unapproved draft in place, may add a spec, leaves an approved one", async () => {
     const { mapId, specIds } = await specsOnMap(2);
     const one = at(specIds, 0);
     const two = at(specIds, 1);
@@ -999,8 +999,8 @@ describe("un-cleared map and re-clear (S7-10, D6, L125 (3))", () => {
       [2, false],
     ]);
     // Naming a spec twice, or leaving out an unapproved one, is refused: the run's first attempt
-    // and its retry fail, and Try again starts it afresh. (Naming the approved spec revises it,
-    // slice 8b S8b-3, L125 (3): `revising.test.ts`.)
+    // and its retry fail, and Try again starts it afresh. (Naming the approved spec revises it:
+    // `revising.test.ts`.)
     expect(
       reclear(mapId, [
         { specNumber: 2, content: kept("two") },
@@ -1021,7 +1021,7 @@ describe("un-cleared map and re-clear (S7-10, D6, L125 (3))", () => {
       ]).ok,
     ).toBe(true);
     expect(revisions(one).map((r) => [r.revision, r.approvedAt !== null])).toEqual([[1, true]]);
-    // The unapproved draft is rewritten in place (L241).
+    // The unapproved draft is rewritten in place.
     expect(revisions(two)).toMatchObject([
       { revision: 1, supersededAt: null, content: kept("two, r2") },
     ]);
@@ -1051,7 +1051,7 @@ describe("un-cleared map and re-clear (S7-10, D6, L125 (3))", () => {
     expect(latest(one)).toMatchObject({ approvedAt: null, supersededAt: null });
   });
 
-  test("a review running when the re-clear rewrites its draft in place saves nothing (L241); one failing during a re-clear starts no repair", async () => {
+  test("a review running when the re-clear rewrites its draft in place saves nothing; one failing during a re-clear starts no repair", async () => {
     const { mapId, specIds } = await specsOnMap(3);
     const one = at(specIds, 0);
     const two = at(specIds, 1);
@@ -1109,7 +1109,7 @@ describe("un-cleared map and re-clear (S7-10, D6, L125 (3))", () => {
   });
 });
 
-describe("spec.reject (S7-11 as extended by L127 (3), S7-12, B14)", () => {
+describe("spec.reject", () => {
   test("applies the first three refusals in order", async () => {
     const { mapId, specIds } = await specsOnMap(2);
     const one = at(specIds, 0);
@@ -1153,7 +1153,7 @@ describe("spec.reject (S7-11 as extended by L127 (3), S7-12, B14)", () => {
     });
     repair(mapId, specificationId, kept("r2"));
     expect(revisions(specificationId).map((r) => r.revision)).toEqual([1, 2]);
-    // The review of r2 reads the reason, which outranks earlier resolutions (L141).
+    // The review of r2 reads the reason, which outranks earlier resolutions.
     const reviewed = await prepareRun(
       context.db,
       specRun(mapId, specificationId, "spec_review").id,
@@ -1193,7 +1193,7 @@ describe("spec.reject (S7-11 as extended by L127 (3), S7-12, B14)", () => {
   });
 });
 
-describe("concurrency and retries (S7-19)", () => {
+describe("concurrency and retries", () => {
   test("two specs' runs run at once; a second running run for one spec is never inserted", async () => {
     const { mapId, specIds } = await specsOnMap(2);
     expect(running(mapId).map((run) => [run.purpose, run.specificationId])).toEqual(
@@ -1252,7 +1252,7 @@ describe("concurrency and retries (S7-19)", () => {
   );
 });
 
-describe("re-clear replaces a repair (S7-25, L125 (1))", () => {
+describe("re-clear replaces a repair", () => {
   test("re-clear during a running repair ends it cancelled, replaced; its later result writes nothing and is not retried", async () => {
     const { mapId, specIds } = await specsOnMap(2);
     const one = at(specIds, 0);
@@ -1285,7 +1285,7 @@ describe("re-clear replaces a repair (S7-25, L125 (1))", () => {
     expect(overview.ok).toBe(true);
   });
 
-  test("a repair saved just before the re-clear is a draft the re-clear rewrites in place (L241)", async () => {
+  test("a repair saved just before the re-clear is a draft the re-clear rewrites in place", async () => {
     const { mapId, specIds } = await specsOnMap(2);
     const one = at(specIds, 0);
     const two = at(specIds, 1);
@@ -1310,7 +1310,7 @@ describe("re-clear replaces a repair (S7-25, L125 (1))", () => {
   });
 });
 
-describe("L121 for spec runs (S7-26, L127 (1))", () => {
+describe("a stale spec run never blocks the newer state", () => {
   test("a stopped spec_review or to_spec on a map un-cleared by its pass does not block it; Try again refuses it", async () => {
     const { mapId, specIds } = await specsOnMap(3);
     const one = at(specIds, 0);

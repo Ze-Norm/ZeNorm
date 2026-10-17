@@ -120,7 +120,7 @@ const DATABASE_DETAIL = {
 } as const;
 
 /**
- * The checks of the config's contents (5.4): the data folder, the claude executable, its sign-in
+ * The checks of the config's contents: the data folder, the claude executable, its sign-in
  * with the method, and the database opened read-only. One that needs a failed check is skipped.
  */
 async function configChecks(
@@ -152,7 +152,7 @@ async function configChecks(
 }
 
 /**
- * `zenorm doctor`'s checks (C5, 5.4), every one run whatever an earlier one found, writing
+ * `zenorm doctor`'s checks, every one run whatever an earlier one found, writing
  * nothing. Arguments it does not accept were refused (`arguments_invalid`) before it ran.
  */
 export async function runDoctor(context: CommandContext): Promise<readonly DoctorCheck[]> {

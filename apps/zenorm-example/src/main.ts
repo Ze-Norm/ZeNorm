@@ -7,8 +7,8 @@ import { SOURCE_ASSETS } from "@zenorm/zenorm/source-assets";
 /** This app's own web build, composed with the example plugin (`vite build`). */
 const webDistDir = fileURLToPath(new URL("../dist", import.meta.url));
 
-// `apps/zenorm` composed with the example plugin (S9-20); its executor sits beside `"local"`, and
-// the config's `delivery.executor` chooses. It runs from source with the repository's skills and
+// `apps/zenorm` composed with the example plugin; its executor sits beside `"local"`, and the
+// config's `delivery.executor` chooses. It runs from source with the repository's skills and
 // migrations, and requires --config or ZENORM_CONFIG.
 await serveZeNorm({
   args: process.argv.slice(2),

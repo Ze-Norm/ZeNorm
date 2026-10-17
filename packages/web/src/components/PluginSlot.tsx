@@ -15,7 +15,7 @@ function useWebPlugins(): readonly WebPlugin[] {
 }
 
 /**
- * A slot host (S9-18, D16): every plugin's component for `name`, in plugin order, with the slot's
+ * A slot host: every plugin's component for `name`, in plugin order, with the slot's
  * props. It renders no element of its own, so a slot no plugin fills changes nothing on the page.
  */
 export function PluginSlot<S extends SlotName>({ name, props }: { name: S; props: SlotProps[S] }) {
@@ -36,8 +36,8 @@ export function useSlotFilled(name: SlotName): boolean {
 }
 
 /**
- * The `map.workspace.aside` host (S9-18): first in a map page's right column, the Activity column
- * or Run activity, on every stage and on Wayfinding's and Delivery's own pages (L36). It frames its
+ * The `map.workspace.aside` host: first in a map page's right column, the Activity column or Run
+ * activity, on every stage and on Wayfinding's and Delivery's own pages. It frames its
  * plugins only when one fills the slot, so with none the column is as before.
  */
 export function MapAside({

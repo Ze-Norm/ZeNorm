@@ -43,7 +43,7 @@ async function overview(mapId: string): Promise<MapOverviewDetail> {
   return MapOverviewDetailSchema.parse(result.value);
 }
 
-describe("map.overview specs[] (D7)", () => {
+describe("map.overview specs[]", () => {
   test("no spec while To Spec runs", async () => {
     const mapId = await clearedMap(context, project);
     expect((await overview(mapId)).specs).toEqual([]);
@@ -128,7 +128,7 @@ describe("map.overview specs[] (D7)", () => {
   });
 });
 
-describe("project.get specs (D12)", () => {
+describe("project.get specs", () => {
   test("lists each project spec once with its latest state and writing map", async () => {
     const first = await reviewedSpec(context, project);
     expect(

@@ -99,7 +99,7 @@ const finding: SpecReviewFinding = {
 };
 
 describe("SpecRevisionContent", () => {
-  test("accepts the demo's shape, kept clauses naming no source, and `was`", () => {
+  test("accepts a full revision, kept clauses naming no source, and `was`", () => {
     expect(SpecRevisionContentSchema.safeParse(revision).success).toBe(true);
     const moved = {
       ...revision,
@@ -169,7 +169,7 @@ describe("SpecRevisionContent", () => {
     ).toBe(false);
   });
 
-  test("accepts a clause citing the person's note (S7b-11)", () => {
+  test("accepts a clause citing the person's note", () => {
     const content = { ...revision, clauses: [{ ...clause(1, 1), sources: [{ kind: "note" }] }] };
     expect(SpecRevisionContentSchema.safeParse(content).success).toBe(true);
     const withNumber = {
@@ -193,11 +193,11 @@ describe("SpecRevisionContent", () => {
 });
 
 describe("TicketSetContent", () => {
-  test("accepts the demo's shape", () => {
+  test("accepts a full set", () => {
     expect(TicketSetContentSchema.safeParse(set).success).toBe(true);
   });
 
-  test("accepts 0 to 8 tickets and a ticket with 0 criteria, and rejects 9 tickets (slice 8b D2)", () => {
+  test("accepts 0 to 8 tickets and a ticket with 0 criteria, and rejects 9 tickets", () => {
     expect(TICKET_SET_TICKETS_MAX_COUNT).toBe(8);
     const nothingNew = {
       ...set,
@@ -213,7 +213,7 @@ describe("TicketSetContent", () => {
     expect(TicketSetContentSchema.safeParse(nine).success).toBe(false);
   });
 
-  test("accepts the five disposition kinds and a follow-up ticket (slice 8b D2)", () => {
+  test("accepts the five disposition kinds and a follow-up ticket", () => {
     const content = {
       ...set,
       tickets: [{ ...ticket(1), id: "T3", followUp: "T1" }],
@@ -247,7 +247,7 @@ describe("TicketSetContent", () => {
     }
   });
 
-  test("a stored slice 7 set still parses (Existing Records)", () => {
+  test("a stored set still parses", () => {
     const stored: unknown = JSON.parse(JSON.stringify(set));
     expect(TicketSetContentSchema.parse(stored)).toEqual(set);
   });
@@ -415,7 +415,7 @@ describe("SpecReviewOutcome", () => {
     }
   });
 
-  test("verified names a survey item by number, with its answer, path and line (RC2)", () => {
+  test("verified names a survey item by number, with its answer, path and line", () => {
     const check = { item: 1, answer: "It does.", path: "src/a.ts", line: 3 };
     const outcome = (verified: unknown[]) => ({ summary: "s", findings: [], verified });
     expect(SpecReviewOutcome.safeParse(outcome([check])).success).toBe(true);
@@ -427,7 +427,7 @@ describe("SpecReviewOutcome", () => {
   });
 });
 
-describe("a clause's reliesOn and adds (RC1)", () => {
+describe("a clause's reliesOn and adds", () => {
   const clause = {
     id: "C1",
     title: "Export",

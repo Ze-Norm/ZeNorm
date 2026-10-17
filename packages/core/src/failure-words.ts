@@ -1,7 +1,7 @@
 import type { PlanningRunFailureCode, PlanningRunPurpose } from "@zenorm/contracts";
 
 /**
- * The one sentence under a stopped run's headline (UX audit P1-1): why the run stopped, chosen by
+ * The one sentence under a stopped run's headline: why the run stopped, chosen by
  * its failure code, never the code itself. The headline already says what failed ("The planning
  * review failed."), so the sentence says only why, and names the run's output where the code is
  * about the output. Every card, row and activity line about a stopped run reads it from the
@@ -30,7 +30,7 @@ function outputOf(purpose: PlanningRunPurpose): string {
   return OUTPUT[purpose];
 }
 
-/** The sentence for a stopped run's failure code (spec D3), as a next action's `detail`. */
+/** The sentence for a stopped run's failure code, as a next action's `detail`. */
 export function stoppedRunWords(code: PlanningRunFailureCode, purpose: PlanningRunPurpose): string {
   switch (code) {
     case "project_folder_missing":

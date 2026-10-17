@@ -26,8 +26,8 @@ import { plural } from "@/pages/stages/delivery/words";
 
 /**
  * A page with no run shown: the map's Activity stream in the column, as on the other stages, so
- * the page is not the one stage without it (UX audit D1), read-only: Delivery has no hatch
- * (S7b-17, slice 8 D11). A plugin's `map.workspace.aside` sits first in the column (S9-18, L36).
+ * the page is not the one stage without it, read-only: Delivery has no hatch. A plugin's
+ * `map.workspace.aside` sits first in the column.
  */
 function NarrowPage({
   detail,
@@ -51,11 +51,11 @@ function NarrowPage({
 }
 
 /**
- * The Delivery stage (slice 8 D9): the card "Start delivery" while no run has started; the shown
- * run's head, with Cancel run while it is the latest and active; the card for the latest run;
- * "The run, step by step"; and "Runs of this spec from this map", each opened by `?run=`. `run` is the run's number, undefined for the
- * latest; a number the map has no run for is the route's error (D1, L100). `aside` is the
- * `map.workspace.aside` slot, at the top of the right column (L36).
+ * The Delivery stage: the card "Start delivery" while no run has started; the shown run's head,
+ * with Cancel run while it is the latest and active; the card for the latest run; "The run, step
+ * by step"; and "Runs of this spec from this map", each opened by `?run=`. `run` is the run's
+ * number, undefined for the latest; a number the map has no run for is the route's error. `aside`
+ * is the `map.workspace.aside` slot, at the top of the right column.
  */
 export function DeliveryStagePage({
   detail,
@@ -68,7 +68,7 @@ export function DeliveryStagePage({
   run: number | undefined;
   aside: ReactNode;
 }) {
-  // A spec the map only waits on has not reached Delivery here (S8b-16, N-4).
+  // A spec the map only waits on has not reached Delivery here.
   const waitedOn = specNumber !== undefined && waitsOnly(detail, specNumber);
   const spec = waitedOn ? undefined : shownSpec(detail, "delivery", specNumber);
   if (spec === undefined) {
@@ -78,8 +78,8 @@ export function DeliveryStagePage({
 }
 
 /**
- * The head of a page with no run: the thing on the page is the spec, or the map before it has one
- * (UX review P2-4); the state is "not started", with the revision it would deliver when known.
+ * The head of a page with no run: the thing on the page is the spec, or the map before it has
+ * one; the state is "not started", with the revision it would deliver when known.
  */
 function NotStartedHead({
   detail,
@@ -102,7 +102,7 @@ function NotStartedHead({
   );
 }
 
-/** The spec's switcher (D11), or nothing before the map has a spec. */
+/** The spec's switcher, or nothing before the map has a spec. */
 function Switcher({ detail, spec }: { detail: MapOverviewDetail; spec: MapSpec | undefined }) {
   if (spec === undefined) {
     return null;
@@ -172,10 +172,10 @@ function NotStarted({
 }
 
 /**
- * The card for the spec's latest run (slice 8 D9), from core's action for the spec (D7): Start
- * again from clean after a blocked, failed or cancelled run; on a passed one, its pull request's
- * link when it opened one (Merge PR), else Mark merged. A running,
- * interrupted or merged run has none, as in the demo; an interrupted run is cancelled from its head.
+ * The card for the spec's latest run, from core's action for the spec: Start again from clean after
+ * a blocked, failed or cancelled run; on a passed one, its pull request's link when it opened one
+ * (Merge PR), else Mark merged. A running, interrupted or merged run has none; an interrupted run
+ * is cancelled from its head.
  */
 function LatestRunCard({
   detail,
@@ -197,7 +197,7 @@ function LatestRunCard({
     case "interrupted":
       return null;
     case "passed":
-      // A run that opened a pull request is merged on GitHub; one without keeps Mark merged (C5).
+      // A run that opened a pull request is merged on GitHub; one without keeps Mark merged.
       return latest.pullRequest === null ? (
         <MarkMergedCard mapId={detail.map.id} run={latest} action={action} />
       ) : (
@@ -221,10 +221,10 @@ function LatestRunCard({
 }
 
 /**
- * The delivery of one spec of the map (slice 8 D9, the demo's `RunPage`). Its runs, statuses,
- * ticket states and actions come from the one read, `map.overview`, which the live layer refetches
- * on each change (S8-14, S9-16). A blocked run leads with its findings, then the card; any other run
- * shows its card under its head. Then the run step by step, and the spec's runs once it has two.
+ * The delivery of one spec of the map. Its runs, statuses, ticket states and actions come from the
+ * one read, `map.overview`, which the live layer refetches on each change. A blocked run leads
+ * with its findings, then the card; any other run shows its card under its head. Then the run
+ * step by step, and the spec's runs once it has two.
  */
 function SpecDelivery({
   detail,
@@ -238,12 +238,12 @@ function SpecDelivery({
   aside: ReactNode;
 }) {
   const mapId = detail.map.id;
-  // Only the runs of sets of revisions this map wrote (D9, the demo's `runsOn`): another map's
-  // revision of the spec is delivered there.
+  // Only the runs of sets of revisions this map wrote: another map's revision of the spec is
+  // delivered there.
   const own = spec.revisions.filter((revision) => revision.mapId === mapId);
   const ownSets = ownTicketSets(spec, mapId);
   const runs = runsOn(spec, mapId);
-  // The set of this map's latest approved revision, as core's status reads it (S8b-8).
+  // The set of this map's latest approved revision, as core's status reads it.
   const approvedRevision = own.filter((revision) => revision.state === "approved").at(-1);
   const approved =
     approvedRevision === undefined
@@ -286,7 +286,7 @@ function SpecDelivery({
           }
         >
           {action !== null &&
-            // A set with no ticket has nothing to deliver (S8b-15): core's done line, no start card.
+            // A set with no ticket has nothing to deliver: core's done line, no start card.
             (approved.content.tickets.length === 0 ? (
               <NextActionCard mapId={mapId} next={action} />
             ) : (

@@ -66,7 +66,7 @@ function start(ticketSetId: string) {
   });
 }
 
-describe("delivery.start pins the project's checks and base branch (S8-3)", () => {
+describe("delivery.start pins the project's checks and base branch", () => {
   test("a later save changes neither", async () => {
     const set = await deliverableTicketSet(context, project);
     const run = await startedRun(context, set.ticketSetId);
@@ -91,7 +91,7 @@ describe("delivery.start pins the project's checks and base branch (S8-3)", () =
     });
   });
 
-  test("a start inserts one ticket row per pinned ticket, in order, none started (S8-7)", async () => {
+  test("a start inserts one ticket row per pinned ticket, in order, none started", async () => {
     const set = await deliverableTicketSet(context, project);
     const run = await startedRun(context, set.ticketSetId);
     expect(readRunTicketRows(context.db, run.id)).toEqual([
@@ -117,7 +117,7 @@ describe("delivery.start pins the project's checks and base branch (S8-3)", () =
   });
 });
 
-describe("delivery.start refuses in the demo's order, writing nothing (S8-3)", () => {
+describe("delivery.start refuses in order, writing nothing", () => {
   test("project_checks_missing when the project has no checks", async () => {
     const set = await deliverableTicketSet(context, project);
     await saveChecks(context, project, []);
@@ -217,7 +217,7 @@ describe("delivery.start refuses in the demo's order, writing nothing (S8-3)", (
   });
 });
 
-describe("one active run per project (S8-4, L98)", () => {
+describe("one active run per project", () => {
   test("an interrupted run in one spec refuses a start in another until it is cancelled", async () => {
     const first = await deliverableTicketSet(context, project);
     const run = await startedRun(context, first.ticketSetId);
@@ -258,7 +258,7 @@ describe("one active run per project (S8-4, L98)", () => {
   });
 });
 
-describe("the stored phase (S8-10)", () => {
+describe("the stored phase", () => {
   test("a phase write sets an active run's phase and is kept after the end", async () => {
     const set = await deliverableTicketSet(context, project);
     const run = await startedRun(context, set.ticketSetId);
@@ -293,7 +293,7 @@ describe("the stored phase (S8-10)", () => {
   });
 });
 
-// --- Slice 8b: a later revision's set (S8b-14, S8b-15) ---
+// --- A later revision's set ---
 
 /** Another map's r2 of the delivered spec 1 (SPEC's text) with a set of `content` in `state`. */
 async function revisedSet(content: TicketSetContent, state: "approved" | "review_passed") {
@@ -319,7 +319,7 @@ const NOTHING_NEW: TicketSetContent = {
   ],
 };
 
-describe("Nothing to deliver (S8b-15)", () => {
+describe("Nothing to deliver", () => {
   test("an approved zero-ticket set is refused delivery_nothing_to_deliver, writing no run", async () => {
     const { ticketSetId } = await revisedSet(NOTHING_NEW, "approved");
     const before = runCount();
@@ -341,7 +341,7 @@ describe("Nothing to deliver (S8b-15)", () => {
   });
 });
 
-describe("the run's tickets.md says what each ticket changes (S8b-14)", () => {
+describe("the run's tickets.md says what each ticket changes", () => {
   test("a follow-up names the earlier ticket, run and commit; a taking-out ticket names the criterion", async () => {
     const followUp: TicketSetContent = {
       ...TICKETS,

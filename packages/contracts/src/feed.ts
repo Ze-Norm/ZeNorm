@@ -4,9 +4,9 @@ import { Actor } from "./actor.ts";
 import { EntityId } from "./map.ts";
 
 /**
- * Every table the change feed records (slice 9 spec D10, S9-12): each core table, i.e. every
- * table but `change_feed`, `users`, `write_actor`, `zenorm_migrations` and `sqlite_%`. `@zenorm/db`'s
- * feed table map is keyed by it, and `installChangeFeed` refuses a database whose tables differ.
+ * Every table the change feed records: each core table, i.e. every table but `change_feed`,
+ * `users`, `write_actor`, `zenorm_migrations` and `sqlite_%`. `@zenorm/db`'s feed table map is
+ * keyed by it, and `installChangeFeed` refuses a database whose tables differ.
  */
 export const ChangeEntityType = z.enum([
   "code_surveys",
@@ -46,9 +46,9 @@ export const ChangeOp = z.enum(["insert", "update", "delete"]);
 export type ChangeOp = z.infer<typeof ChangeOp>;
 
 /**
- * One committed change feed row on the wire (slice 9 spec D12): the SSE event's `data` and what the
- * after-commit bus hands each subscriber. It carries no row content. `entityId` is the row's key,
- * a composite key joined with `:`.
+ * One committed change feed row on the wire: the SSE event's `data` and what the after-commit bus
+ * hands each subscriber. It carries no row content. `entityId` is the row's key, a composite key
+ * joined with `:`.
  */
 export const ChangeEvent = z.strictObject({
   seq: z.int().min(1),
@@ -62,7 +62,7 @@ export const ChangeEvent = z.strictObject({
 export type ChangeEvent = z.infer<typeof ChangeEvent>;
 
 /**
- * The plain-text codes `GET /events` refuses a connect with (S9-15, CR9b-17); the body is the code.
+ * The plain-text codes `GET /events` refuses a connect with; the body is the code.
  * `last_event_id_invalid` (400): a malformed `Last-Event-ID`. `last_event_id_ahead` (409): an id
  * past the newest the feed has issued. `last_event_id_pruned` (409): rows after the id have been
  * pruned, so a replay from it would miss changes. `streams_closed` (503): the server is shutting

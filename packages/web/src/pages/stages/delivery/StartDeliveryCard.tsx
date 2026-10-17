@@ -10,9 +10,9 @@ import { orpc } from "@/orpc";
 import { startRefusalMessage } from "@/pages/stages/delivery/words";
 
 /**
- * The card's action: the spec's delivery action in the map's `next`, as core writes it (slice 8
- * D7): Start delivery, Start again from clean or Mark merged when the person's, or with a start blocker
- * and no run the quiet `nobody` action "Start delivery is unavailable.". Null while the agent's
+ * The card's action: the spec's delivery action in the map's `next`, as core writes it: Start
+ * delivery, Start again from clean or Mark merged when the person's, or with a start blocker and
+ * no run the quiet `nobody` action "Start delivery is unavailable.". Null while the agent's
  * action is the delivery stage's (a run is working) or the stage has none.
  */
 export function deliveryCardAction(
@@ -37,13 +37,12 @@ function startLabel(action: NextAction): string {
 }
 
 /**
- * The card that starts a run (slice 8 D9): **Start delivery**, or **Start again from clean** after
- * a run ended without passing, both `delivery.start`. The run pins the project's required checks,
- * so the card has no Checks form (L99). The form renders only while the start could succeed (UX
- * audit D1, P2-15): with a start blocker (no required checks, no repair limit, …), the person's
- * card says why, once, and links the way past it (**Set required checks**, **Set a repair limit**,
- * **Open that run**) in the form's place; the quiet `nobody` action is the standard blocker card,
- * which says the same.
+ * The card that starts a run: **Start delivery**, or **Start again from clean** after a run ended
+ * without passing, both `delivery.start`. The run pins the project's required checks, so the card
+ * has no Checks form. The form renders only while the start could succeed: with a start blocker
+ * (no required checks, no repair limit, …), the person's card says why, once, and links the way
+ * past it (**Set required checks**, **Set a repair limit**, **Open that run**) in the form's
+ * place; the quiet `nobody` action is the standard blocker card, which says the same.
  */
 export function StartDeliveryCard({
   mapId,

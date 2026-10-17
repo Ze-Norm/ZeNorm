@@ -1,8 +1,8 @@
 import type { Answer, CodeSurvey, LengthLimit, MapRound, Question } from "@zenorm/contracts";
 
 /**
- * The project's own rules (L40): what a planning run decides alone conforms to the rules the
- * project's instruction files state (Claude Code already loads them as context).
+ * The project's own rules: what a planning run decides alone conforms to the rules the project's
+ * instruction files state (Claude Code already loads them as context).
  */
 export const PROJECT_RULES = [
   "Project rules. Everything you decide or write conforms to the rules the project's instruction files",
@@ -41,7 +41,7 @@ export function limitsLine(fields: readonly string[]): string {
   return `Limits: ${fields.join(", ")}; longer output is refused.`;
 }
 
-/** The lines every planning prompt opens with (slice 3 spec D5). */
+/** The lines every planning prompt opens with. */
 export function preamble(projectName: string, baseBranch: string): string[] {
   return [
     "You are ZeNorm's planning agent. You are planning one map: one piece of work on a project.",
@@ -146,7 +146,7 @@ export const DECISION_PROSE_RULE = [
 
 /**
  * Wraps `text` in a block whose start and end lines carry `name` and the call's nonce, so no text
- * that lacks the nonce can close its own block, and the text stays verbatim (L63).
+ * that lacks the nonce can close its own block, and the text stays verbatim.
  */
 export function block(name: string, nonce: string, text: string): string[] {
   return [`<<<${name} ${nonce}`, text, `${name} ${nonce}>>>`];
@@ -216,8 +216,8 @@ export function renderRound(
 }
 
 /**
- * The one rule over the destination's rounds (DR-16, P9): the person's answers are their own words
- * about scope and bind every run that reads them as the destination does.
+ * The one rule over the destination's rounds: the person's answers are their own words about scope
+ * and bind every run that reads them as the destination does.
  */
 export const DESTINATION_ANSWERS_RULE = [
   "The map-level rounds on the destination, oldest first. A round's answers are the person's own",
@@ -227,7 +227,7 @@ export const DESTINATION_ANSWERS_RULE = [
 
 /**
  * The map-level rounds, oldest first, headed once by `DESTINATION_ANSWERS_RULE`: each question and
- * its answer in a `MAP-ROUND-<n>-QUESTION-<q>` block. Nothing with no round (DR-16).
+ * its answer in a `MAP-ROUND-<n>-QUESTION-<q>` block. Nothing with no round.
  */
 export function mapRoundLines(mapRounds: readonly MapRound[], nonce: string): string[] {
   if (mapRounds.length === 0) {
@@ -248,8 +248,8 @@ export function mapRoundLines(mapRounds: readonly MapRound[], nonce: string): st
 }
 
 /**
- * How a run uses the map's code survey (harness change #1): its facts are verified starting points,
- * so the run cites them instead of re-reading the code behind them.
+ * How a run uses the map's code survey: its facts are verified starting points, so the run cites
+ * them instead of re-reading the code behind them.
  */
 export const FACTS_RULE = [
   "FACTS are verified starting points: cite them, do not re-derive them. Open the code only for what",
@@ -264,11 +264,11 @@ export const NO_SURVEY_LINES = [
 ];
 
 /**
- * The map's code survey as a compact FACTS block under the call's nonce (harness change #1): each
- * area with whether the destination touches it and why, its surface files and its facts as
- * `path:line — claim`, then the identifiers, the lifecycles (each transition and terminal state at
- * its `path:line`) and what could not be verified, numbered `U1`, `U2`; `FACTS_RULE` follows.
- * A null survey renders `NO_SURVEY_LINES`.
+ * The map's code survey as a compact FACTS block under the call's nonce: each area with whether the
+ * destination touches it and why, its surface files and its facts as `path:line — claim`, then the
+ * identifiers, the lifecycles (each transition and terminal state at its `path:line`) and what
+ * could not be verified, numbered `U1`, `U2`; `FACTS_RULE` follows. A null survey renders
+ * `NO_SURVEY_LINES`.
  */
 export function renderCodeSurvey(survey: CodeSurvey | null, nonce: string): string[] {
   if (survey === null) return [...NO_SURVEY_LINES, ""];

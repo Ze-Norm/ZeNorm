@@ -15,7 +15,7 @@ You didn't write the revision, and its writer's own accounting isn't evidence. R
 
 Report every finding in one pass: each failed review costs a repair and another review.
 
-## Trace intent (D5)
+## Trace intent
 
 Tracing is the review, and it is about intent.
 
