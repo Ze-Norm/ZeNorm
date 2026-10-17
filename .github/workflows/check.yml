@@ -21,7 +21,7 @@ concurrency:
 # except on a version tag, where the publish workflow's check runs every task.
 jobs:
   # tsc and type-aware eslint build each package's program: as long as the tests on 4 vCPUs, so
-  # they too are split, core, server and db (about half the work) apart from the rest.
+  # each is split in two package groups of about equal time.
   static:
     name: ${{ matrix.name }}
     runs-on: ubuntu-latest
@@ -29,20 +29,20 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: typecheck (core, server, db)
+          - name: typecheck (core, server, db, web, zenorm)
             key: typecheck-1
-            run: pnpm exec turbo run typecheck --filter=@zenorm/core --filter=@zenorm/server --filter=@zenorm/db
+            run: pnpm exec turbo run typecheck --filter=@zenorm/core --filter=@zenorm/server --filter=@zenorm/db --filter=@zenorm/web --filter=@zenorm/zenorm
           - name: build and typecheck (the rest)
             key: typecheck-2
-            run: pnpm exec turbo run build typecheck --filter=!@zenorm/core --filter=!@zenorm/server --filter=!@zenorm/db
-          - name: lint (core, server, db)
+            run: pnpm exec turbo run build typecheck --filter=!@zenorm/core --filter=!@zenorm/server --filter=!@zenorm/db --filter=!@zenorm/web --filter=!@zenorm/zenorm
+          - name: lint (core, server, db, web)
             key: lint-1
-            run: pnpm exec turbo run lint --filter=@zenorm/core --filter=@zenorm/server --filter=@zenorm/db
+            run: pnpm exec turbo run lint --filter=@zenorm/core --filter=@zenorm/server --filter=@zenorm/db --filter=@zenorm/web
           # prettier's cache keeps each file's content hash, so it checks only files that changed.
           - name: lint (the rest) and format
             key: lint-2
             run: >-
-              pnpm exec turbo run lint --filter=!@zenorm/core --filter=!@zenorm/server --filter=!@zenorm/db
+              pnpm exec turbo run lint --filter=!@zenorm/core --filter=!@zenorm/server --filter=!@zenorm/db --filter=!@zenorm/web
               && pnpm exec prettier --check . --cache --cache-strategy content
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
