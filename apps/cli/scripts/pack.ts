@@ -34,6 +34,7 @@ const PUBLISHED_FIELDS = [
   "name",
   "version",
   "description",
+  "keywords",
   "license",
   "repository",
   "type",

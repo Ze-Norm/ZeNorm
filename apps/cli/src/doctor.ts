@@ -12,8 +12,9 @@ import {
   loadConfig,
 } from "@zenorm/zenorm/startup";
 
-import { cliConfigPath } from "./cli.ts";
+import { cliConfigPath, withInitHint } from "./cli.ts";
 import type { Command, CommandContext, Env } from "./cli.ts";
+import { CLAUDE_COMMAND, claudeMissing, findOnPath } from "./init.ts";
 
 /** How long `git --version` may take. */
 const GIT_TIMEOUT_MS = 10_000;
@@ -95,7 +96,7 @@ async function readConfig(context: CommandContext): Promise<Result<LoadedConfig,
   const path = cliConfigPath(context.config, context.env);
   if (!path.ok) return path;
   const config = await loadConfig(path.value);
-  if (!config.ok) return config;
+  if (!config.ok) return err(withInitHint(config.error));
   return ok({ file: resolve(path.value), config: config.value });
 }
 
@@ -105,14 +106,23 @@ interface ConfigChecks {
   readonly database: DoctorCheck;
 }
 
-const WITHOUT_CONFIG: ConfigChecks = {
-  before: [
-    skipped("data_dir", "needs a valid config"),
-    skipped("claude", "needs a valid config"),
-    skipped("sign_in", "needs a valid config"),
-  ],
-  database: skipped("database", "needs a valid config"),
-};
+/**
+ * The checks without a valid config: the claude `zenorm init` would find on `PATH` (as init,
+ * `agent_cli_missing` without one); the rest need the config.
+ */
+async function withoutConfig(env: Env): Promise<ConfigChecks> {
+  const found = await findOnPath(CLAUDE_COMMAND, env);
+  const onPath = found === null ? err(claudeMissing()) : ok(found);
+  const claude = outcome("claude", onPath, (path) => `${path} on PATH; no config names one yet`);
+  return {
+    before: [
+      skipped("data_dir", "needs a valid config"),
+      claude,
+      skipped("sign_in", "needs a valid config"),
+    ],
+    database: skipped("database", "needs a valid config"),
+  };
+}
 
 const DATABASE_DETAIL = {
   absent: "no database yet; zenorm run creates it",
@@ -157,8 +167,9 @@ async function configChecks(
  */
 export async function runDoctor(context: CommandContext): Promise<readonly DoctorCheck[]> {
   const loaded = await readConfig(context);
-  let ofConfig = WITHOUT_CONFIG;
-  if (loaded.ok) ofConfig = await configChecks(context, loaded.value.config);
+  const ofConfig = loaded.ok
+    ? await configChecks(context, loaded.value.config)
+    : await withoutConfig(context.env);
   const git = await checkGit(context.env);
   const web = await checkWebBuild(context.assets.webDistDir);
   return [

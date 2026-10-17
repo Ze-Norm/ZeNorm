@@ -21,7 +21,17 @@ import { cliConfigPath, standardConfigPath } from "./cli.ts";
 import type { Command, Env } from "./cli.ts";
 
 /** The Claude Code command init looks up on `PATH`. */
-const CLAUDE_COMMAND = "claude";
+export const CLAUDE_COMMAND = "claude";
+
+/** `agent_cli_missing` for no `claude` on `PATH`: init's refusal, and doctor's without a config. */
+export function claudeMissing(): StartupError {
+  return {
+    code: "agent_cli_missing",
+    message:
+      "No `claude` on PATH. Install Claude Code (https://docs.claude.com/en/docs/claude-code), then run `zenorm init`",
+    subject: CLAUDE_COMMAND,
+  };
+}
 
 /** How long one `claude auth status` read may take. */
 const AUTH_STATUS_TIMEOUT_MS = 30_000;
@@ -423,14 +433,7 @@ export function initCommand(terminal: InitTerminal): Command {
       });
     }
     const claudePath = await findOnPath(CLAUDE_COMMAND, context.env);
-    if (claudePath === null) {
-      return err({
-        code: "agent_cli_missing",
-        message:
-          "No `claude` on PATH. Install Claude Code (https://docs.claude.com/en/docs/claude-code), then run `zenorm init` again",
-        subject: CLAUDE_COMMAND,
-      });
-    }
+    if (claudePath === null) return err(claudeMissing());
     terminal.say(`Using Claude Code at ${claudePath}.`);
     const existing = await exists(configFile);
     // No, the suggested answer, keeps the file.

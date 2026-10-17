@@ -1,7 +1,18 @@
 {
   "name": "@ze-norm/cli",
-  "version": "0.17.1",
-  "description": "ZeNorm: plan changes with a planning agent and get them delivered as reviewed branches.",
+  "version": "0.17.2",
+  "description": "Plan anything. Build anything. Turn a rough software idea into a reviewed plan, then a reviewed pull request, with Claude Code.",
+  "keywords": [
+    "claude-code",
+    "claude",
+    "spec-driven-development",
+    "ai-agents",
+    "ai-coding",
+    "planning",
+    "code-review",
+    "cli",
+    "developer-tools"
+  ],
   "license": "MIT",
   "repository": {
     "type": "git",
