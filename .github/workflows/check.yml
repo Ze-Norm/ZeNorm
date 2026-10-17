@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-  # The publish workflow runs these jobs on a version tag and publishes only once all pass (6.3).
+  # The publish workflow runs these jobs on a version tag and publishes only once all pass.
   workflow_call:
 
 permissions:
@@ -16,9 +16,11 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -27,18 +29,20 @@ jobs:
           git config --global user.name "zenorm-ci"
           git config --global user.email "ci@zenorm.invalid"
       # Everything in `pnpm check` but e2e, whose flows don't pass on Linux yet: run `pnpm check`
-      # locally for them. The sweep and `ps` parsing C6 needs are unit tests.
+      # locally for them. The sweep and its `ps` parsing are unit tests.
       - run: pnpm exec turbo run build typecheck lint test
       - run: pnpm exec prettier --check .
 
   smoke:
-    # The install smoke test (1.1, 1.2): the packed @ze-norm/cli installed with npm into an empty
+    # The install smoke test: the packed @ze-norm/cli installed with npm into an empty
     # folder outside the repository, with better-sqlite3's prebuild.
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: .nvmrc
           cache: pnpm

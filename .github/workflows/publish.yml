@@ -1,6 +1,6 @@
 name: publish
 
-# Releases go only through here, on a version tag (6.3): never on a branch push or pull request.
+# Releases go only through here, on a version tag: never on a branch push or pull request.
 on:
   push:
     tags: ["v*"]
@@ -13,22 +13,24 @@ jobs:
   check:
     uses: ./.github/workflows/check.yml
 
-  publish:
+  # Packs the tarball. This job installs and runs the workspace's dependencies, so it gets no
+  # publishing identity.
+  pack:
     needs: [check]
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      # npm trusted publishing: npm takes this run's OIDC identity in place of a token,
-      # and signs the package's provenance with it.
-      id-token: write
+    outputs:
+      node-version: ${{ steps.node.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
-          registry-url: https://registry.npmjs.org
+      - id: node
+        run: echo "version=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
       - run: pnpm install --frozen-lockfile
       # The tag names the version it publishes: v<version> of apps/cli/package.json.
       - name: Check the tag against the package version
@@ -40,5 +42,26 @@ jobs:
           fi
       # Packs again here, from the same commit the check and smoke jobs tested.
       - run: pnpm exec turbo run pack --filter=@ze-norm/cli
-      # The tarball that pack just wrote.
-      - run: npm publish apps/cli/pack/*.tgz --provenance --access public
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: cli-tarball
+          path: apps/cli/pack/*.tgz
+          if-no-files-found: error
+
+  # Publishes the packed tarball and nothing else: no checkout, no install, no workspace code.
+  publish:
+    needs: [pack]
+    runs-on: ubuntu-latest
+    permissions:
+      # npm trusted publishing: npm takes this run's OIDC identity in place of a token,
+      # and signs the package's provenance with it.
+      id-token: write
+    steps:
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: ${{ needs.pack.outputs.node-version }}
+          registry-url: https://registry.npmjs.org
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: cli-tarball
+      - run: npm publish ./*.tgz --provenance --access public
