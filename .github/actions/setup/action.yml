@@ -23,10 +23,13 @@ runs:
         git config --global user.email "ci@zenorm.invalid"
       shell: bash
     # Each run saves its own entry; a pull request restores its branch's latest, else main's. A
-    # task whose inputs (and its dependencies') are unchanged replays its logs instead of running.
+    # task whose inputs (and its dependencies') are unchanged replays its logs instead of running;
+    # prettier's cache (only the lint job writes one) holds the hashes of files it checked.
     - if: inputs.turbo-cache != ''
       uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
       with:
-        path: .turbo/cache
+        path: |
+          .turbo/cache
+          node_modules/.cache/prettier
         key: turbo-${{ runner.os }}-${{ inputs.turbo-cache }}-${{ github.sha }}
         restore-keys: turbo-${{ runner.os }}-${{ inputs.turbo-cache }}-

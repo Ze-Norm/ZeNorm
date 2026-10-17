@@ -20,32 +20,38 @@ concurrency:
 # The jobs restore turbo's cache, so a task whose inputs are unchanged since main replays its logs,
 # except on a version tag, where the publish workflow's check runs every task.
 jobs:
-  # The static checks, in two jobs: each package's tsc and type-aware eslint build its program,
-  # which keeps 4 vCPUs busy for about as long as the tests.
-  typecheck:
+  # tsc and type-aware eslint build each package's program: as long as the tests on 4 vCPUs, so
+  # they too are split, core, server and db (about half the work) apart from the rest.
+  static:
+    name: ${{ matrix.name }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: typecheck (core, server, db)
+            key: typecheck-1
+            run: pnpm exec turbo run typecheck --filter=@zenorm/core --filter=@zenorm/server --filter=@zenorm/db
+          - name: build and typecheck (the rest)
+            key: typecheck-2
+            run: pnpm exec turbo run build typecheck --filter=!@zenorm/core --filter=!@zenorm/server --filter=!@zenorm/db
+          - name: lint (core, server, db)
+            key: lint-1
+            run: pnpm exec turbo run lint --filter=@zenorm/core --filter=@zenorm/server --filter=@zenorm/db
+          # prettier's cache keeps each file's content hash, so it checks only files that changed.
+          - name: lint (the rest) and format
+            key: lint-2
+            run: >-
+              pnpm exec turbo run lint --filter=!@zenorm/core --filter=!@zenorm/server --filter=!@zenorm/db
+              && pnpm exec prettier --check . --cache --cache-strategy content
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup
         with:
-          turbo-cache: ${{ !startsWith(github.ref, 'refs/tags/') && 'typecheck' || '' }}
-      - run: pnpm exec turbo run build typecheck
-      - name: Prune turbo cache entries older than a week
-        run: find .turbo/cache -type f -mtime +7 -delete 2>/dev/null || true
-
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-        with:
-          persist-credentials: false
-      - uses: ./.github/actions/setup
-        with:
-          turbo-cache: ${{ !startsWith(github.ref, 'refs/tags/') && 'lint' || '' }}
-      - run: pnpm exec turbo run lint
-      - run: pnpm exec prettier --check .
+          turbo-cache: ${{ !startsWith(github.ref, 'refs/tags/') && matrix.key || '' }}
+      - run: ${{ matrix.run }}
       - name: Prune turbo cache entries older than a week
         run: find .turbo/cache -type f -mtime +7 -delete 2>/dev/null || true
 
@@ -86,13 +92,13 @@ jobs:
 
   # The required status check: passes only when every job above passed.
   check:
-    needs: [typecheck, lint, test]
+    needs: [static, test]
     if: always()
     runs-on: ubuntu-latest
     steps:
       - if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped')
         run: |
-          echo "typecheck: ${{ needs.typecheck.result }}, lint: ${{ needs.lint.result }}, test: ${{ needs.test.result }}" >&2
+          echo "static: ${{ needs.static.result }}, test: ${{ needs.test.result }}" >&2
           exit 1
 
   smoke:
