@@ -18,7 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      # npm provenance signs the package with this run's OIDC identity.
+      # npm trusted publishing: npm takes this run's OIDC identity in place of a token,
+      # and signs the package's provenance with it.
       id-token: write
     steps:
       - uses: actions/checkout@v4
@@ -41,5 +42,3 @@ jobs:
       - run: pnpm exec turbo run pack --filter=@ze-norm/cli
       # The tarball that pack just wrote.
       - run: npm publish apps/cli/pack/*.tgz --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
