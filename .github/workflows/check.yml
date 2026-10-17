@@ -29,7 +29,7 @@ jobs:
           git config --global user.name "zenorm-ci"
           git config --global user.email "ci@zenorm.invalid"
       # Everything in `pnpm check` but e2e, whose flows don't pass on Linux yet: run `pnpm check`
-      # locally for them. The sweep and `ps` parsing C6 needs are unit tests.
+      # locally for them. The sweep and its `ps` parsing are unit tests.
       - run: pnpm exec turbo run build typecheck lint test
       - run: pnpm exec prettier --check .
 
