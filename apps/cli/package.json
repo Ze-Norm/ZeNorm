@@ -1,6 +1,6 @@
 {
   "name": "@ze-norm/cli",
-  "version": "0.17.0",
+  "version": "0.17.1",
   "description": "ZeNorm: plan changes with a planning agent and get them delivered as reviewed branches.",
   "license": "MIT",
   "repository": {
