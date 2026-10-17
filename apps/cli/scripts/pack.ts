@@ -12,6 +12,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { PACK_DIR, PACKAGE_DIR, packedTarball } from "./packed.ts";
+import { publishedReadme } from "./readme.ts";
 
 /**
  * Packs the built `@ze-norm/cli` into `pack/` (the `pack` turbo task, after `build`), the tarball
@@ -22,7 +23,8 @@ import { PACK_DIR, PACKAGE_DIR, packedTarball } from "./packed.ts";
  * bundled into `dist/` anyway. So the tarball's `package.json` carries the package's own fields,
  * no scripts and no development dependencies, and each `catalog:` dependency pinned to the
  * version the workspace installed (the catalog's exact pin). The repository's README and LICENSE
- * go in beside `dist/`.
+ * go in beside `dist/`, the README with its relative links made absolute at the release's tag,
+ * `v<version>` (`readme.ts`).
  */
 
 const repoDir = join(PACKAGE_DIR, "..", "..");
@@ -40,9 +42,6 @@ const PUBLISHED_FIELDS = [
   "engines",
   "publishConfig",
 ] as const;
-
-/** The root files every published package carries beside `dist/`. */
-const ROOT_FILES = ["README.md", "LICENSE"] as const;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -102,13 +101,17 @@ if (!existsSync(bundle)) {
   throw new Error(`No build at ${bundle}; run the @ze-norm/cli build first`);
 }
 
-const manifestJson = `${JSON.stringify(publishedManifest(), null, 2)}\n`;
+const manifest = publishedManifest();
+if (typeof manifest.version !== "string") {
+  throw new Error("@ze-norm/cli's package.json version is not a string");
+}
+const manifestJson = `${JSON.stringify(manifest, null, 2)}\n`;
 const stagingDir = mkdtempSync(join(tmpdir(), "zenorm-pack-"));
 writeFileSync(join(stagingDir, "package.json"), manifestJson);
 cpSync(distDir, join(stagingDir, "dist"), { recursive: true });
-for (const file of ROOT_FILES) {
-  cpSync(join(repoDir, file), join(stagingDir, file));
-}
+const readme = readFileSync(join(repoDir, "README.md"), "utf8");
+writeFileSync(join(stagingDir, "README.md"), publishedReadme(readme, `v${manifest.version}`));
+cpSync(join(repoDir, "LICENSE"), join(stagingDir, "LICENSE"));
 
 rmSync(PACK_DIR, { recursive: true, force: true });
 mkdirSync(PACK_DIR, { recursive: true });
