@@ -1,0 +1,261 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Round 3 of the aesthetic directions (prototypes/aesthetic-directions-3) as a shadcn theme:
+ * square corners, stone neutrals, hairlines, ink on structure, and one signal colour (primary)
+ * that means "needs you" and marks the action that answers it. `:root` is the light scheme;
+ * `.dark` on `<html>` (set by `lib/theme.ts` from the person's choice or the system) swaps every
+ * colour for the dark scheme and leaves the layout tokens alone.
+ */
+:root {
+  color-scheme: light;
+  --radius: 0rem;
+  --background: #fafaf9;
+  --foreground: #1a1a1a;
+  --card: #ffffff;
+  --card-foreground: #1a1a1a;
+  --popover: #ffffff;
+  --popover-foreground: #1a1a1a;
+  --primary: #185fa5;
+  --primary-foreground: #ffffff;
+  --secondary: #f4f4f2;
+  --secondary-foreground: #1a1a1a;
+  --muted: #f4f4f2;
+  --muted-foreground: #555550;
+  --accent: #f4f4f2;
+  --accent-foreground: #1a1a1a;
+  --destructive: #b42318;
+  --destructive-foreground: #ffffff;
+  --border: #e4e3e0;
+  --input: #c3c2bd;
+  --ring: #185fa5;
+
+  /* Round 3 additions. */
+  --ink: #1a1a1a;
+  /* Text on an ink fill (the ink button, the hatch's sent message), so it flips with the ink. */
+  --ink-foreground: #ffffff;
+  /*
+   * Ink as a line: the hairline that marks structure (the top bar, the activity column, the card
+   * that needs you, a quote's rule). The same ink in the light scheme; a mid grey in the dark one,
+   * where a near-white hairline glares.
+   */
+  --ink-line: #1a1a1a;
+  /* Faint text: 4.5:1 and over on the background, a card and the secondary fill (UX audit A7). */
+  --faint: #70706b;
+  --hair-strong: #c3c2bd;
+  --primary-soft: #e6f1fb;
+  --primary-line: #b5d4f4;
+  /*
+   * The signal as a fill (the stage that needs you, the next-action band, the default button and
+   * badge) and the text on it. `primary` itself is the signal as text and lines; the two are one
+   * colour in the light scheme and part in the dark one, where no single blue is both 4.5:1 text
+   * on the background and a fill that carries white text.
+   */
+  --primary-fill: #185fa5;
+  --primary-fill-foreground: #ffffff;
+  --ok: #3b6d11;
+  --ok-dot: #639922;
+  --ok-soft: #eaf3de;
+  --work: #854f0b;
+  --work-dot: #ba7517;
+  --work-soft: #faeeda;
+  --bad: #b42318;
+  /* Text on a bad fill (the destructive button and badge), so it flips with the fill. */
+  --bad-foreground: #ffffff;
+  --bad-dot: #e5484d;
+  --bad-soft: #fdecea;
+  /* Kept for the annotation widget, which uses the template's names. */
+  --warn: #854f0b;
+  --warn-soft: #faeeda;
+  /* The planning agent's rule in the activity log (round 3's Pi colour). */
+  --agent: #9b6dff;
+  --agent-fg: #7a4fe0;
+  /* The delivery executor's rule in a run's activity (round 3's executor colour). */
+  --executor: #2eb8b8;
+  /* Its label text: 5.8:1 on a card, so an 11px semibold actor name passes AA (UX review P2-7). */
+  --executor-fg: #147070;
+
+  /*
+   * The sticky chrome above a map's workspace: the top bar, then the stage rail. A workspace
+   * column (`WorkspaceColumns`) sits under it for the viewport's remaining height.
+   */
+  --top-bar: 52px;
+  --stage-rail: 61px;
+  /* The "Live updates stopped" band between the two, only while the stream is down (`LiveAlert`). */
+  --live-alert: 0px;
+  --workspace-chrome: calc(var(--top-bar) + var(--live-alert) + var(--stage-rail));
+
+  /*
+   * A map page's measure (`WorkspacePage`): the centred container's widest, the index's track at
+   * its left on a page that has one, the gap between the index and the content, and the content's
+   * width beside the index, which is also a page without an index's widest.
+   */
+  --page-measure: 1160px;
+  --page-side: 220px;
+  --page-gap: 40px;
+  --page-content: calc(var(--page-measure) - var(--page-side) - var(--page-gap));
+}
+
+/*
+ * The dark scheme: the same stone neutrals inverted, ink as the light text with its lines dimmed
+ * to a mid grey, the signal colours lifted so they read as text on the dark surfaces (every text
+ * colour here is 4.5:1 and over on the background, a card and the secondary fill), the signal fill
+ * kept deep so white text reads on it, and the dot colours kept, as the white on a done or stopped
+ * mark stays.
+ */
+.dark {
+  color-scheme: dark;
+  --background: #161615;
+  --foreground: #ececea;
+  --card: #1e1e1c;
+  --card-foreground: #ececea;
+  --popover: #1e1e1c;
+  --popover-foreground: #ececea;
+  --primary: #6ea9e6;
+  --primary-foreground: #0b1a2b;
+  --secondary: #262624;
+  --secondary-foreground: #ececea;
+  --muted: #262624;
+  --muted-foreground: #a3a39d;
+  --accent: #262624;
+  --accent-foreground: #ececea;
+  --destructive: #f07a76;
+  --destructive-foreground: #2a0d0c;
+  --border: #2e2e2b;
+  --input: #4a4a46;
+  --ring: #6ea9e6;
+
+  --ink: #ececea;
+  --ink-foreground: #161615;
+  /* 4.2:1 on the background: above `hair-strong` (2:1), well under the foreground (15:1). */
+  --ink-line: #7a7a75;
+  --faint: #9a9a94;
+  --hair-strong: #4a4a46;
+  --primary-soft: #14263a;
+  --primary-line: #2a4d75;
+  /* A deeper blue than `primary`, so white on it is 5:1. */
+  --primary-fill: #2b6fc2;
+  --primary-fill-foreground: #ffffff;
+  --ok: #8fcf5a;
+  --ok-dot: #639922;
+  --ok-soft: #1a2a12;
+  --work: #e2a24a;
+  --work-dot: #ba7517;
+  --work-soft: #2e2214;
+  --bad: #f07a76;
+  --bad-foreground: #2a0d0c;
+  --bad-dot: #e5484d;
+  --bad-soft: #341b1a;
+  --warn: #e2a24a;
+  --warn-soft: #2e2214;
+  --agent: #9b6dff;
+  --agent-fg: #b79aff;
+  --executor: #2eb8b8;
+  --executor-fg: #5fd0d0;
+}
+
+/* A phone's stage rail is flat and shorter (`StageRail`). */
+@media (width < 40rem) {
+  :root {
+    --stage-rail: 46px;
+  }
+}
+
+:root.live-updates-stopped {
+  --live-alert: 36px;
+}
+
+@theme inline {
+  --font-sans: "Instrument Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, monospace;
+  --color-ink: var(--ink);
+  --color-ink-foreground: var(--ink-foreground);
+  --color-ink-line: var(--ink-line);
+  --color-faint: var(--faint);
+  --color-hair-strong: var(--hair-strong);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-line: var(--primary-line);
+  --color-primary-fill: var(--primary-fill);
+  --color-primary-fill-foreground: var(--primary-fill-foreground);
+  --color-ok: var(--ok);
+  --color-ok-dot: var(--ok-dot);
+  --color-ok-soft: var(--ok-soft);
+  --color-work: var(--work);
+  --color-work-dot: var(--work-dot);
+  --color-work-soft: var(--work-soft);
+  --color-bad: var(--bad);
+  --color-bad-foreground: var(--bad-foreground);
+  --color-bad-dot: var(--bad-dot);
+  --color-bad-soft: var(--bad-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-agent: var(--agent);
+  --color-agent-fg: var(--agent-fg);
+  --color-executor: var(--executor);
+  --color-executor-fg: var(--executor-fg);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: var(--radius);
+  --radius-md: var(--radius);
+  --radius-lg: var(--radius);
+  --radius-xl: var(--radius);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    /* A section scrolled to by its id or hash lands under the sticky chrome without this. */
+    scroll-padding-top: calc(var(--workspace-chrome) + 1rem);
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-size: 14px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@layer utilities {
+  /* Round 3's mono micro label, at 11px (UX audit A7). */
+  .micro {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1.2;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .pulse-soft {
+    animation: pulse-soft 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse-soft {
+    50% {
+      opacity: 0.35;
+    }
+  }
+}

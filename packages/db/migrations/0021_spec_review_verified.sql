@@ -1,0 +1,1 @@
+ALTER TABLE `spec_reviews` ADD `verified` text;

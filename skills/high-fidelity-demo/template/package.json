@@ -1,0 +1,43 @@
+{
+  "name": "high-fidelity-demo",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "DEMO (throwaway): simulated functionality only. Copied from the high-fidelity-demo skill template.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fontsource-variable/instrument-sans": "^5.3.0",
+    "@fontsource-variable/jetbrains-mono": "^5.3.0",
+    "@fontsource-variable/newsreader": "^5.3.0",
+    "@radix-ui/react-label": "^2.1.15",
+    "@radix-ui/react-slot": "^1.3.3",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.544.0",
+    "radix-ui": "^1.6.7",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "tailwind-merge": "^3.5.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^4.4.1",
+    "tailwindcss": "^4.3.3",
+    "tw-animate-css": "^1.4.0",
+    "typescript": "^5.9.3",
+    "vite": "^6.3.5"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}

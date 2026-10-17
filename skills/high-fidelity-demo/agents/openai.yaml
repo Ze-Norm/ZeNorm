@@ -1,0 +1,5 @@
+interface:
+  display_name: "High-Fidelity Demo"
+  short_description: "Simulated React demo before the spec"
+policy:
+  allow_implicit_invocation: true

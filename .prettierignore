@@ -1,0 +1,12 @@
+# Outside the workspace and every check (ledger L40)
+.scratch/
+docs/
+skills/
+prototypes/
+.serena/
+CONTEXT.md
+
+# Generated
+dist/
+pnpm-lock.yaml
+packages/db/migrations/

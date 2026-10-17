@@ -1,0 +1,1054 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "8c8ae44c-549b-4de7-b80a-9d7acbedf944",
+  "prevId": "3ed30d73-78b9-419b-a864-98d589e3ecfc",
+  "tables": {
+    "delivery_runs": {
+      "name": "delivery_runs",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ticket_set_id": {
+          "name": "ticket_set_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "number": {
+          "name": "number",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "branch": {
+          "name": "branch",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "worktree_path": {
+          "name": "worktree_path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "base_commit": {
+          "name": "base_commit",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "checks": {
+          "name": "checks",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "started_at": {
+          "name": "started_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ended_at": {
+          "name": "ended_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "final_commit": {
+          "name": "final_commit",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "check_results": {
+          "name": "check_results",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "verdict": {
+          "name": "verdict",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "failure": {
+          "name": "failure",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "delivery_runs_one_active_per_ticket_set": {
+          "name": "delivery_runs_one_active_per_ticket_set",
+          "columns": ["ticket_set_id"],
+          "isUnique": true,
+          "where": "\"delivery_runs\".\"ended_at\" IS NULL"
+        },
+        "delivery_runs_ticket_set_number_uq": {
+          "name": "delivery_runs_ticket_set_number_uq",
+          "columns": ["ticket_set_id", "number"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "delivery_runs_ticket_set_id_ticket_sets_id_fk": {
+          "name": "delivery_runs_ticket_set_id_ticket_sets_id_fk",
+          "tableFrom": "delivery_runs",
+          "tableTo": "ticket_sets",
+          "columnsFrom": ["ticket_set_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "delivery_runs_single_outcome_ck": {
+          "name": "delivery_runs_single_outcome_ck",
+          "value": "\"delivery_runs\".\"verdict\" IS NULL OR \"delivery_runs\".\"failure\" IS NULL"
+        },
+        "delivery_runs_outcome_ended_ck": {
+          "name": "delivery_runs_outcome_ended_ck",
+          "value": "\"delivery_runs\".\"ended_at\" IS NOT NULL OR (\"delivery_runs\".\"verdict\" IS NULL AND \"delivery_runs\".\"failure\" IS NULL)"
+        }
+      }
+    },
+    "maps": {
+      "name": "maps",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "project_id": {
+          "name": "project_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "idea": {
+          "name": "idea",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "summary": {
+          "name": "summary",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "destination": {
+          "name": "destination",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "destination_confirmed_at": {
+          "name": "destination_confirmed_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "maps_project_id_projects_id_fk": {
+          "name": "maps_project_id_projects_id_fk",
+          "tableFrom": "maps",
+          "tableTo": "projects",
+          "columnsFrom": ["project_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "maps_destination_confirmed_ck": {
+          "name": "maps_destination_confirmed_ck",
+          "value": "\"maps\".\"destination_confirmed_at\" IS NULL OR \"maps\".\"destination\" IS NOT NULL"
+        }
+      }
+    },
+    "planning_runs": {
+      "name": "planning_runs",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "map_id": {
+          "name": "map_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "waypoint_id": {
+          "name": "waypoint_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "purpose": {
+          "name": "purpose",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "state": {
+          "name": "state",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "retry_of_run_id": {
+          "name": "retry_of_run_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "error_code": {
+          "name": "error_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "error_message": {
+          "name": "error_message",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "started_at": {
+          "name": "started_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ended_at": {
+          "name": "ended_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "planning_runs_retry_of_run_id_unique": {
+          "name": "planning_runs_retry_of_run_id_unique",
+          "columns": ["retry_of_run_id"],
+          "isUnique": true
+        },
+        "planning_runs_one_running_per_map": {
+          "name": "planning_runs_one_running_per_map",
+          "columns": ["map_id"],
+          "isUnique": true,
+          "where": "\"planning_runs\".\"state\" = 'running' AND \"planning_runs\".\"waypoint_id\" IS NULL"
+        },
+        "planning_runs_one_running_per_waypoint": {
+          "name": "planning_runs_one_running_per_waypoint",
+          "columns": ["waypoint_id"],
+          "isUnique": true,
+          "where": "\"planning_runs\".\"state\" = 'running' AND \"planning_runs\".\"waypoint_id\" IS NOT NULL"
+        },
+        "planning_runs_map_id_uq": {
+          "name": "planning_runs_map_id_uq",
+          "columns": ["map_id", "id"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "planning_runs_map_id_maps_id_fk": {
+          "name": "planning_runs_map_id_maps_id_fk",
+          "tableFrom": "planning_runs",
+          "tableTo": "maps",
+          "columnsFrom": ["map_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "planning_runs_retry_of_run_id_planning_runs_id_fk": {
+          "name": "planning_runs_retry_of_run_id_planning_runs_id_fk",
+          "tableFrom": "planning_runs",
+          "tableTo": "planning_runs",
+          "columnsFrom": ["retry_of_run_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "planning_runs_waypoint_fk": {
+          "name": "planning_runs_waypoint_fk",
+          "tableFrom": "planning_runs",
+          "tableTo": "waypoints",
+          "columnsFrom": ["map_id", "waypoint_id"],
+          "columnsTo": ["map_id", "id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "planning_runs_purpose_ck": {
+          "name": "planning_runs_purpose_ck",
+          "value": "\"planning_runs\".\"purpose\" IN ('chart', 'grilling', 'research', 'task', 'consistency', 'to_spec', 'spec_review', 'to_tickets', 'tickets_review', 'hatch')"
+        },
+        "planning_runs_state_ck": {
+          "name": "planning_runs_state_ck",
+          "value": "\"planning_runs\".\"state\" IN ('running', 'asked', 'completed', 'failed', 'cancelled')"
+        },
+        "planning_runs_waypoint_purpose_ck": {
+          "name": "planning_runs_waypoint_purpose_ck",
+          "value": "(\"planning_runs\".\"waypoint_id\" IS NOT NULL) = (\"planning_runs\".\"purpose\" IN ('grilling', 'research', 'task'))"
+        },
+        "planning_runs_ended_ck": {
+          "name": "planning_runs_ended_ck",
+          "value": "(\"planning_runs\".\"state\" = 'running') = (\"planning_runs\".\"ended_at\" IS NULL)"
+        },
+        "planning_runs_error_ck": {
+          "name": "planning_runs_error_ck",
+          "value": "(\"planning_runs\".\"state\" = 'failed') = (\"planning_runs\".\"error_code\" IS NOT NULL) AND (\"planning_runs\".\"error_code\" IS NULL) = (\"planning_runs\".\"error_message\" IS NULL)"
+        }
+      }
+    },
+    "projects": {
+      "name": "projects",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "folder_path": {
+          "name": "folder_path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "base_branch": {
+          "name": "base_branch",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "projects_folder_path_unique": {
+          "name": "projects_folder_path_unique",
+          "columns": ["folder_path"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "question_rounds": {
+      "name": "question_rounds",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "map_id": {
+          "name": "map_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "waypoint_id": {
+          "name": "waypoint_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "number": {
+          "name": "number",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "final": {
+          "name": "final",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "asked_by_run": {
+          "name": "asked_by_run",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "intro": {
+          "name": "intro",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "questions": {
+          "name": "questions",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "answers": {
+          "name": "answers",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "asked_at": {
+          "name": "asked_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "submitted_at": {
+          "name": "submitted_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "question_rounds_waypoint_number_uq": {
+          "name": "question_rounds_waypoint_number_uq",
+          "columns": ["waypoint_id", "number"],
+          "isUnique": true,
+          "where": "\"question_rounds\".\"waypoint_id\" IS NOT NULL"
+        },
+        "question_rounds_map_number_uq": {
+          "name": "question_rounds_map_number_uq",
+          "columns": ["map_id", "number"],
+          "isUnique": true,
+          "where": "\"question_rounds\".\"waypoint_id\" IS NULL"
+        },
+        "question_rounds_one_pending_per_waypoint": {
+          "name": "question_rounds_one_pending_per_waypoint",
+          "columns": ["waypoint_id"],
+          "isUnique": true,
+          "where": "\"question_rounds\".\"status\" = 'pending' AND \"question_rounds\".\"waypoint_id\" IS NOT NULL"
+        },
+        "question_rounds_one_pending_per_map": {
+          "name": "question_rounds_one_pending_per_map",
+          "columns": ["map_id"],
+          "isUnique": true,
+          "where": "\"question_rounds\".\"status\" = 'pending' AND \"question_rounds\".\"waypoint_id\" IS NULL"
+        }
+      },
+      "foreignKeys": {
+        "question_rounds_map_id_maps_id_fk": {
+          "name": "question_rounds_map_id_maps_id_fk",
+          "tableFrom": "question_rounds",
+          "tableTo": "maps",
+          "columnsFrom": ["map_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "question_rounds_asked_by_run_planning_runs_id_fk": {
+          "name": "question_rounds_asked_by_run_planning_runs_id_fk",
+          "tableFrom": "question_rounds",
+          "tableTo": "planning_runs",
+          "columnsFrom": ["asked_by_run"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "question_rounds_waypoint_fk": {
+          "name": "question_rounds_waypoint_fk",
+          "tableFrom": "question_rounds",
+          "tableTo": "waypoints",
+          "columnsFrom": ["map_id", "waypoint_id"],
+          "columnsTo": ["map_id", "id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "question_rounds_status_ck": {
+          "name": "question_rounds_status_ck",
+          "value": "\"question_rounds\".\"status\" IN ('pending', 'submitted', 'withdrawn')"
+        },
+        "question_rounds_answers_submitted_ck": {
+          "name": "question_rounds_answers_submitted_ck",
+          "value": "(\"question_rounds\".\"answers\" IS NULL) = (\"question_rounds\".\"submitted_at\" IS NULL)"
+        },
+        "question_rounds_submitted_status_ck": {
+          "name": "question_rounds_submitted_status_ck",
+          "value": "(\"question_rounds\".\"status\" = 'submitted') = (\"question_rounds\".\"submitted_at\" IS NOT NULL)"
+        },
+        "question_rounds_map_level_not_final_ck": {
+          "name": "question_rounds_map_level_not_final_ck",
+          "value": "\"question_rounds\".\"waypoint_id\" IS NOT NULL OR \"question_rounds\".\"final\" = 0"
+        }
+      }
+    },
+    "spec_revisions": {
+      "name": "spec_revisions",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "map_id": {
+          "name": "map_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "revision": {
+          "name": "revision",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "content": {
+          "name": "content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "drafted_at": {
+          "name": "drafted_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "approved_at": {
+          "name": "approved_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "rejected_at": {
+          "name": "rejected_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "rejection_reason": {
+          "name": "rejection_reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "spec_revisions_one_undecided_per_map": {
+          "name": "spec_revisions_one_undecided_per_map",
+          "columns": ["map_id"],
+          "isUnique": true,
+          "where": "\"spec_revisions\".\"approved_at\" IS NULL AND \"spec_revisions\".\"rejected_at\" IS NULL"
+        },
+        "spec_revisions_one_approved_per_map": {
+          "name": "spec_revisions_one_approved_per_map",
+          "columns": ["map_id"],
+          "isUnique": true,
+          "where": "\"spec_revisions\".\"approved_at\" IS NOT NULL"
+        },
+        "spec_revisions_map_revision_uq": {
+          "name": "spec_revisions_map_revision_uq",
+          "columns": ["map_id", "revision"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "spec_revisions_map_id_maps_id_fk": {
+          "name": "spec_revisions_map_id_maps_id_fk",
+          "tableFrom": "spec_revisions",
+          "tableTo": "maps",
+          "columnsFrom": ["map_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "spec_revisions_rejection_reason_ck": {
+          "name": "spec_revisions_rejection_reason_ck",
+          "value": "(\"spec_revisions\".\"rejected_at\" IS NULL) = (\"spec_revisions\".\"rejection_reason\" IS NULL)"
+        },
+        "spec_revisions_single_decision_ck": {
+          "name": "spec_revisions_single_decision_ck",
+          "value": "\"spec_revisions\".\"approved_at\" IS NULL OR \"spec_revisions\".\"rejected_at\" IS NULL"
+        }
+      }
+    },
+    "ticket_sets": {
+      "name": "ticket_sets",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "map_id": {
+          "name": "map_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "spec_revision_id": {
+          "name": "spec_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "content": {
+          "name": "content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "drafted_at": {
+          "name": "drafted_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "approved_at": {
+          "name": "approved_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "rejected_at": {
+          "name": "rejected_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "rejection_reason": {
+          "name": "rejection_reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "ticket_sets_one_undecided_per_map": {
+          "name": "ticket_sets_one_undecided_per_map",
+          "columns": ["map_id"],
+          "isUnique": true,
+          "where": "\"ticket_sets\".\"approved_at\" IS NULL AND \"ticket_sets\".\"rejected_at\" IS NULL"
+        },
+        "ticket_sets_one_approved_per_map": {
+          "name": "ticket_sets_one_approved_per_map",
+          "columns": ["map_id"],
+          "isUnique": true,
+          "where": "\"ticket_sets\".\"approved_at\" IS NOT NULL"
+        },
+        "ticket_sets_map_version_uq": {
+          "name": "ticket_sets_map_version_uq",
+          "columns": ["map_id", "version"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "ticket_sets_map_id_maps_id_fk": {
+          "name": "ticket_sets_map_id_maps_id_fk",
+          "tableFrom": "ticket_sets",
+          "tableTo": "maps",
+          "columnsFrom": ["map_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "ticket_sets_spec_revision_id_spec_revisions_id_fk": {
+          "name": "ticket_sets_spec_revision_id_spec_revisions_id_fk",
+          "tableFrom": "ticket_sets",
+          "tableTo": "spec_revisions",
+          "columnsFrom": ["spec_revision_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "ticket_sets_rejection_reason_ck": {
+          "name": "ticket_sets_rejection_reason_ck",
+          "value": "(\"ticket_sets\".\"rejected_at\" IS NULL) = (\"ticket_sets\".\"rejection_reason\" IS NULL)"
+        },
+        "ticket_sets_single_decision_ck": {
+          "name": "ticket_sets_single_decision_ck",
+          "value": "\"ticket_sets\".\"approved_at\" IS NULL OR \"ticket_sets\".\"rejected_at\" IS NULL"
+        }
+      }
+    },
+    "waypoint_blockers": {
+      "name": "waypoint_blockers",
+      "columns": {
+        "map_id": {
+          "name": "map_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "waypoint_number": {
+          "name": "waypoint_number",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "blocker_number": {
+          "name": "blocker_number",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "waypoint_blockers_map_id_maps_id_fk": {
+          "name": "waypoint_blockers_map_id_maps_id_fk",
+          "tableFrom": "waypoint_blockers",
+          "tableTo": "maps",
+          "columnsFrom": ["map_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "waypoint_blockers_waypoint_fk": {
+          "name": "waypoint_blockers_waypoint_fk",
+          "tableFrom": "waypoint_blockers",
+          "tableTo": "waypoints",
+          "columnsFrom": ["map_id", "waypoint_number"],
+          "columnsTo": ["map_id", "number"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "waypoint_blockers_blocker_fk": {
+          "name": "waypoint_blockers_blocker_fk",
+          "tableFrom": "waypoint_blockers",
+          "tableTo": "waypoints",
+          "columnsFrom": ["map_id", "blocker_number"],
+          "columnsTo": ["map_id", "number"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "waypoint_blockers_pk": {
+          "columns": ["map_id", "waypoint_number", "blocker_number"],
+          "name": "waypoint_blockers_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "waypoint_blockers_not_self_ck": {
+          "name": "waypoint_blockers_not_self_ck",
+          "value": "\"waypoint_blockers\".\"waypoint_number\" <> \"waypoint_blockers\".\"blocker_number\""
+        }
+      }
+    },
+    "waypoints": {
+      "name": "waypoints",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "map_id": {
+          "name": "map_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "number": {
+          "name": "number",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "kind": {
+          "name": "kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "question": {
+          "name": "question",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "claimed_at": {
+          "name": "claimed_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "resolution": {
+          "name": "resolution",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "gist": {
+          "name": "gist",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "resolved_at": {
+          "name": "resolved_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "resolved_how": {
+          "name": "resolved_how",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "resolved_by_run": {
+          "name": "resolved_by_run",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_by_run": {
+          "name": "created_by_run",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "waypoints_map_number_uq": {
+          "name": "waypoints_map_number_uq",
+          "columns": ["map_id", "number"],
+          "isUnique": true
+        },
+        "waypoints_map_id_uq": {
+          "name": "waypoints_map_id_uq",
+          "columns": ["map_id", "id"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "waypoints_map_id_maps_id_fk": {
+          "name": "waypoints_map_id_maps_id_fk",
+          "tableFrom": "waypoints",
+          "tableTo": "maps",
+          "columnsFrom": ["map_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "waypoints_resolved_by_run_planning_runs_id_fk": {
+          "name": "waypoints_resolved_by_run_planning_runs_id_fk",
+          "tableFrom": "waypoints",
+          "tableTo": "planning_runs",
+          "columnsFrom": ["resolved_by_run"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "waypoints_created_by_run_planning_runs_id_fk": {
+          "name": "waypoints_created_by_run_planning_runs_id_fk",
+          "tableFrom": "waypoints",
+          "tableTo": "planning_runs",
+          "columnsFrom": ["created_by_run"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "waypoints_kind_ck": {
+          "name": "waypoints_kind_ck",
+          "value": "\"waypoints\".\"kind\" IN ('grilling', 'research', 'task')"
+        },
+        "waypoints_status_ck": {
+          "name": "waypoints_status_ck",
+          "value": "\"waypoints\".\"status\" IN ('open', 'claimed', 'resolved', 'out_of_scope')"
+        },
+        "waypoints_resolved_how_ck": {
+          "name": "waypoints_resolved_how_ck",
+          "value": "\"waypoints\".\"resolved_how\" IS NULL OR \"waypoints\".\"resolved_how\" IN ('run', 'plain_choice')"
+        },
+        "waypoints_resolution_ck": {
+          "name": "waypoints_resolution_ck",
+          "value": "(\"waypoints\".\"status\" = 'resolved') = (\"waypoints\".\"resolution\" IS NOT NULL) AND (\"waypoints\".\"status\" = 'resolved') = (\"waypoints\".\"gist\" IS NOT NULL) AND (\"waypoints\".\"status\" = 'resolved') = (\"waypoints\".\"resolved_at\" IS NOT NULL) AND (\"waypoints\".\"status\" = 'resolved') = (\"waypoints\".\"resolved_how\" IS NOT NULL)"
+        },
+        "waypoints_gist_length_ck": {
+          "name": "waypoints_gist_length_ck",
+          "value": "\"gist\" IS NULL OR length(\"gist\") <= 200"
+        },
+        "waypoints_resolved_by_run_ck": {
+          "name": "waypoints_resolved_by_run_ck",
+          "value": "(\"waypoints\".\"resolved_by_run\" IS NOT NULL) = (\"waypoints\".\"resolved_how\" IS NOT NULL AND \"waypoints\".\"resolved_how\" = 'run')"
+        }
+      }
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {}
+  }
+}

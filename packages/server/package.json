@@ -1,0 +1,31 @@
+{
+  "name": "@zenorm/server",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p .",
+    "lint": "eslint .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@hono/node-server": "catalog:",
+    "@orpc/server": "catalog:",
+    "@zenorm/contracts": "workspace:*",
+    "@zenorm/core": "workspace:*",
+    "@zenorm/db": "workspace:*",
+    "@zenorm/plugin-sdk": "workspace:*",
+    "drizzle-orm": "catalog:",
+    "hono": "catalog:"
+  },
+  "devDependencies": {
+    "@orpc/client": "catalog:",
+    "@orpc/contract": "catalog:",
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

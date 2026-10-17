@@ -1,0 +1,5 @@
+export function nameOf(name: string | undefined): string {
+  // Fails `@eslint-community/eslint-comments/no-unlimited-disable`: it names no rule (CR-6).
+  // eslint-disable-next-line -- a reason, but no rule
+  return name ?? "unnamed";
+}

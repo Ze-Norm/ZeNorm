@@ -1,0 +1,37 @@
+{
+  "name": "@zenorm/zenorm-example",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "typecheck": "tsc -p .",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "e2e": "playwright test -c e2e/playwright.config.ts",
+    "dev:example": "vite build && node --watch src/main.ts"
+  },
+  "dependencies": {
+    "@zenorm/contracts": "workspace:*",
+    "@zenorm/plugin-example": "workspace:*",
+    "@zenorm/plugin-sdk": "workspace:*",
+    "@zenorm/server": "workspace:*",
+    "@zenorm/web": "workspace:*",
+    "@zenorm/zenorm": "workspace:*"
+  },
+  "devDependencies": {
+    "@playwright/test": "catalog:",
+    "@tailwindcss/vite": "catalog:",
+    "@types/jsdom": "catalog:",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "@zenorm/bad-plugins": "workspace:*",
+    "eslint": "catalog:",
+    "jsdom": "catalog:",
+    "tailwindcss": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  }
+}

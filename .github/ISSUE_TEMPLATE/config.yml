@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/Ze-Norm/ZeNorm/security/policy
+    about: Report vulnerabilities privately, as the security policy describes, not in a public issue.

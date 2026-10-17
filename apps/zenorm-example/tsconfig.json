@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "types": ["node", "vite/client"],
+    // The web's sources, which the web entry composes, import through web's own alias.
+    "paths": { "@/*": ["../../packages/web/src/*"] }
+  },
+  "include": ["src", "e2e", "*.config.ts"]
+}

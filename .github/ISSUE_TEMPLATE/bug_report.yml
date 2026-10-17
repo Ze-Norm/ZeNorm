@@ -1,0 +1,64 @@
+name: Bug report
+description: Something in ZeNorm doesn't work as it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. To report a security vulnerability, don't use this form: see the [security policy](https://github.com/Ze-Norm/ZeNorm/security/policy).
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What went wrong, and any error code ZeNorm showed.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Start a map in a project...
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: doctor
+    attributes:
+      label: zenorm doctor output
+      description: Run `zenorm doctor` and paste what it prints. If you run ZeNorm from a checkout instead, say so here.
+      render: shell
+  - type: input
+    id: zenorm-version
+    attributes:
+      label: ZeNorm version or commit
+      description: "`zenorm --version`, or `git rev-parse --short HEAD` in a checkout."
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: macOS 26.1, Ubuntu 24.04, WSL 2...
+    validations:
+      required: true
+  - type: input
+    id: node-version
+    attributes:
+      label: Node.js version
+      description: "`node --version`"
+    validations:
+      required: true
+  - type: input
+    id: claude-code-version
+    attributes:
+      label: Claude Code version
+      description: "`claude --version`"
+    validations:
+      required: true

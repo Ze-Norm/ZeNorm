@@ -1,0 +1,49 @@
+{
+  "name": "@ze-norm/cli",
+  "version": "0.17.0",
+  "description": "ZeNorm: plan changes with a planning agent and get them delivered as reviewed branches.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ze-Norm/ZeNorm.git",
+    "directory": "apps/cli"
+  },
+  "type": "module",
+  "bin": {
+    "zenorm": "dist/zenorm.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=26.11.1"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "node scripts/build.ts",
+    "pack": "node scripts/pack.ts",
+    "smoke": "node scripts/smoke.ts",
+    "typecheck": "tsc -p .",
+    "lint": "eslint .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "better-sqlite3": "catalog:"
+  },
+  "devDependencies": {
+    "@clack/prompts": "catalog:",
+    "@commander-js/extra-typings": "catalog:",
+    "@types/node": "catalog:",
+    "@zenorm/agent": "workspace:*",
+    "@zenorm/contracts": "workspace:*",
+    "@zenorm/web": "workspace:*",
+    "@zenorm/zenorm": "workspace:*",
+    "commander": "catalog:",
+    "esbuild": "catalog:",
+    "eslint": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

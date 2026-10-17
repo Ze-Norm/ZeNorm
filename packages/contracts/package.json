@@ -1,0 +1,22 @@
+{
+  "name": "@zenorm/contracts",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p .",
+    "lint": "eslint .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@orpc/contract": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "eslint": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

@@ -1,0 +1,5 @@
+interface:
+  display_name: "Planning Review"
+  short_description: "Independently check a spec or ticket breakdown"
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,45 @@
+name: publish
+
+# Releases go only through here, on a version tag (6.3): never on a branch push or pull request.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  # The check and the install smoke test, on Linux; publishing needs both.
+  check:
+    uses: ./.github/workflows/check.yml
+
+  publish:
+    needs: [check]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # npm provenance signs the package with this run's OIDC identity.
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      - run: pnpm install --frozen-lockfile
+      # The tag names the version it publishes: v<version> of apps/cli/package.json.
+      - name: Check the tag against the package version
+        run: |
+          version="$(node -p 'require("./apps/cli/package.json").version')"
+          if [ "$GITHUB_REF_NAME" != "v$version" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match @ze-norm/cli version $version (expected v$version)" >&2
+            exit 1
+          fi
+      # Packs again here, from the same commit the check and smoke jobs tested.
+      - run: pnpm exec turbo run pack --filter=@ze-norm/cli
+      # The tarball that pack just wrote.
+      - run: npm publish apps/cli/pack/*.tgz --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

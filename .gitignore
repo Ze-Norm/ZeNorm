@@ -1,0 +1,34 @@
+# dependencies and build output
+node_modules/
+dist/
+/apps/cli/pack/
+.vite/
+.turbo/
+coverage/
+*.tsbuildinfo
+
+# runtime data (SQLite, instance configuration with credentials, run worktrees)
+.zenorm-data/
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+
+# test artifacts
+test-results/
+playwright-report/
+blob-report/
+
+# tooling
+.serena/cache/
+.serena/project.local.yml
+*.local
+.DS_Store
+.env
+.env.*
+.serena/
+
+# private planning records, not in this repository
+/.scratch/
+/prototypes/
+/docs/

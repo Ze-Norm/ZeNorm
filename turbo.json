@@ -1,0 +1,62 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "ui": "stream",
+  "agentGuidance": false,
+  "globalDependencies": ["tsconfig.base.json", "eslint.config.js"],
+  "globalPassThroughEnv": ["TMPDIR"],
+  "tasks": {
+    "transit": {
+      "dependsOn": ["^transit"]
+    },
+    "build": {
+      "dependsOn": ["^build", "transit"],
+      "outputs": ["dist/**"]
+    },
+    "@ze-norm/cli#build": {
+      "dependsOn": ["^build", "transit"],
+      "outputs": ["dist/**"],
+      "cache": false
+    },
+    "@ze-norm/cli#pack": {
+      "dependsOn": ["build"],
+      "outputs": ["pack/**"],
+      "cache": false,
+      "passThroughEnv": ["HOME"]
+    },
+    "typecheck": {
+      "dependsOn": ["transit"]
+    },
+    "lint": {
+      "dependsOn": ["transit"]
+    },
+    "test": {
+      "dependsOn": ["transit"]
+    },
+    "e2e": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "passThroughEnv": ["HOME", "PLAYWRIGHT_BROWSERS_PATH", "CI"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true,
+      "passThroughEnv": ["ZENORM_CONFIG", "HOME", "USER", "LOGNAME", "TMPDIR", "SHELL"]
+    },
+    "@zenorm/web#dev": {
+      "dependsOn": ["@zenorm/web#build"],
+      "cache": false,
+      "persistent": true
+    },
+    "@zenorm/zenorm#dev": {
+      "dependsOn": ["@zenorm/web#build"],
+      "cache": false,
+      "persistent": true,
+      "passThroughEnv": ["ZENORM_CONFIG", "HOME", "USER", "LOGNAME", "TMPDIR", "SHELL"]
+    },
+    "@zenorm/zenorm-example#e2e": {
+      "dependsOn": ["^build", "build", "@zenorm/zenorm#e2e"],
+      "cache": false,
+      "passThroughEnv": ["HOME", "PLAYWRIGHT_BROWSERS_PATH", "CI"]
+    }
+  }
+}

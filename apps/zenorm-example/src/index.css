@@ -1,0 +1,8 @@
+/*
+ * The web's stylesheet, compiled here with the composition's sources: Tailwind detects sources
+ * from this app's root and skips `node_modules`, so web's and the plugin's classes are named here.
+ */
+@import "../../../packages/web/src/index.css";
+
+@source "../../../packages/web/src";
+@source "../../../examples/plugin-example/src";

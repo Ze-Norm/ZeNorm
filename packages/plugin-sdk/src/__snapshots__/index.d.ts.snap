@@ -1,0 +1,95 @@
+import type { ChangeEntityType, ChangeEvent, CheckAccess, DeliveryExecutor, Identify, Seams, SeamWrappers, Stage } from "@zenorm/contracts";
+import type { Hono } from "hono";
+import type { ComponentType } from "react";
+export { err, gitIdentityEnv, ok, ticketBranchName } from "@zenorm/contracts";
+export { DeliveryAgentErrorCode, ImplementEvent, ImplementRequest, PullRequestRequest, ReviewRequest, Verdict, } from "@zenorm/contracts";
+export type { AdmitRun, DeliveryAgentError, GitIdentity, Result, ChangeEntityType, ChangeEvent, CheckAccess, Checkout, CheckoutProject, DeliveryExecutor, ExecutorEnv, ExecutorEnvRun, Identify, ImplementTicketSet, ReviewDelivery, RunAdmissionRefusal, RunAdmissionRequest, SeamRequest, Seams, SeamWrappers, WritePullRequest, } from "@zenorm/contracts";
+export declare const SDK_VERSION = "0.1.0";
+export interface ConfigSchema<Config> {
+    safeParse(input: unknown): {
+        readonly success: true;
+        readonly data: Config;
+    } | {
+        readonly success: false;
+        readonly error: {
+            readonly message: string;
+        };
+    };
+}
+export interface PluginManifest {
+    readonly id: string;
+    readonly version: string;
+    readonly sdk: string;
+}
+export type SubscriberKey = ChangeEntityType | "*";
+export type Subscriber = (event: ChangeEvent) => void;
+export interface PluginContext {
+    readonly projectName: (projectId: string) => string | null;
+}
+export interface PluginRouteContext extends PluginContext {
+    readonly identify: Identify;
+    readonly checkAccess: CheckAccess;
+}
+export interface PluginStartContext extends PluginContext {
+    readonly log: (line: string) => void;
+}
+export interface ServerPluginContributions<Config> {
+    readonly seams?: (config: Config, context: PluginContext) => SeamWrappers;
+    readonly subscribers?: (config: Config, context: PluginContext) => Readonly<Partial<Record<SubscriberKey, Subscriber>>>;
+    readonly routes?: (config: Config, context: PluginRouteContext) => Hono;
+    readonly executors?: (config: Config) => readonly DeliveryExecutor[];
+    readonly start?: (config: Config, context: PluginStartContext) => Promise<void>;
+    readonly stop?: () => Promise<void>;
+}
+export type ServerPluginDefinition<Config> = PluginManifest & {
+    readonly config: ConfigSchema<Config>;
+} & ServerPluginContributions<Config>;
+export type ServerPluginDefinitionWithoutConfig = PluginManifest & ServerPluginContributions<undefined>;
+export interface BoundServerContributions {
+    readonly seams: ((context: PluginContext) => SeamWrappers) | null;
+    readonly subscribers: ((context: PluginContext) => Readonly<Partial<Record<string, Subscriber>>>) | null;
+    readonly routes: ((context: PluginRouteContext) => Hono) | null;
+    readonly executors: (() => readonly DeliveryExecutor[]) | null;
+    readonly start: ((context: PluginStartContext) => Promise<void>) | null;
+    readonly stop: (() => Promise<void>) | null;
+}
+export type ConfigureResult = {
+    readonly ok: true;
+    readonly value: BoundServerContributions;
+} | {
+    readonly ok: false;
+    readonly message: string;
+};
+export interface ServerPlugin extends PluginManifest {
+    readonly kind: "server";
+    readonly configured: boolean;
+    readonly configure: (section: unknown) => ConfigureResult;
+}
+export declare function definePlugin<Config>(definition: ServerPluginDefinition<Config>): ServerPlugin;
+export declare function definePlugin(definition: ServerPluginDefinitionWithoutConfig): ServerPlugin;
+export interface SlotProps {
+    readonly "header.end": {
+        readonly projectId: string | null;
+    };
+    readonly "project.page.sections": {
+        readonly projectId: string;
+    };
+    readonly "map.workspace.aside": {
+        readonly projectId: string;
+        readonly mapId: string;
+        readonly stage: Stage;
+    };
+}
+export type SlotName = keyof SlotProps;
+export declare const SLOT_NAMES: readonly SlotName[];
+export type SlotComponents = {
+    readonly [S in SlotName]?: ComponentType<SlotProps[S]>;
+};
+export interface WebPlugin extends PluginManifest {
+    readonly kind: "web";
+    readonly slots: SlotComponents;
+}
+export declare function defineWebPlugin(definition: PluginManifest & {
+    readonly slots: SlotComponents;
+}): WebPlugin;
+export declare const SEAM_NAMES: readonly (keyof Seams)[];

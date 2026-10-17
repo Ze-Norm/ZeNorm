@@ -1,0 +1,50 @@
+{
+  "name": "@zenorm/web",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./app": "./src/app.tsx"
+  },
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch --emptyOutDir false",
+    "typecheck": "tsc -p .",
+    "lint": "eslint .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@fontsource-variable/instrument-sans": "catalog:",
+    "@fontsource-variable/jetbrains-mono": "catalog:",
+    "@fontsource-variable/space-grotesk": "catalog:",
+    "@orpc/client": "catalog:",
+    "@orpc/contract": "catalog:",
+    "@orpc/tanstack-query": "catalog:",
+    "@tanstack/react-query": "catalog:",
+    "@tanstack/react-router": "catalog:",
+    "@zenorm/contracts": "workspace:*",
+    "@zenorm/plugin-sdk": "workspace:*",
+    "class-variance-authority": "catalog:",
+    "clsx": "catalog:",
+    "lucide-react": "catalog:",
+    "radix-ui": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "react-markdown": "catalog:",
+    "tailwind-merge": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "catalog:",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "eslint": "catalog:",
+    "tailwindcss": "catalog:",
+    "tw-animate-css": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  }
+}

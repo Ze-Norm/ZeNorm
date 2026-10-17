@@ -1,0 +1,258 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1791383209145,
+      "tag": "0000_projects",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1791388844335,
+      "tag": "0001_maps_and_question_rounds",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1791394001119,
+      "tag": "0002_spec_revisions_and_ticket_sets",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1791400527515,
+      "tag": "0003_delivery_runs",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1791411712390,
+      "tag": "0004_projects_drop_name",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1791428437370,
+      "tag": "0005_wayfinding",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1791471471730,
+      "tag": "0006_research_task_fog",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1791490674350,
+      "tag": "0007_specs_and_reviews",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1791512025893,
+      "tag": "0008_hatch_messages_and_reopen",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1791533366966,
+      "tag": "0009_tickets_review_routes",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1791554990726,
+      "tag": "0010_delivery_completion",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1791586044831,
+      "tag": "0011_revising_delivered_spec",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1791604845954,
+      "tag": "0012_hatch_change_fog_lists",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "6",
+      "when": 1791646309611,
+      "tag": "0013_person_decides",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "6",
+      "when": 1791647309611,
+      "tag": "0014_ticket_pointers",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "6",
+      "when": 1791667141372,
+      "tag": "0015_retained_reason",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "6",
+      "when": 1791674476289,
+      "tag": "0016_planning_run_usage",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "6",
+      "when": 1791675639936,
+      "tag": "0017_code_surveys",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "6",
+      "when": 1791684152616,
+      "tag": "0018_spec_revision_removals",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "6",
+      "when": 1791685742118,
+      "tag": "0019_fog_runs",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "6",
+      "when": 1791731730100,
+      "tag": "0020_users_actor_change_feed",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "6",
+      "when": 1791734113709,
+      "tag": "0021_spec_review_verified",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "6",
+      "when": 1791737465887,
+      "tag": "0022_task_round_options",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "6",
+      "when": 1791738770548,
+      "tag": "0023_unanswered_optionless_rounds",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "6",
+      "when": 1791845897376,
+      "tag": "0024_delivery_resume",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "6",
+      "when": 1791853153786,
+      "tag": "0025_tickets_stage",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "6",
+      "when": 1791856753786,
+      "tag": "0026_map_proposals",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "6",
+      "when": 1791860353786,
+      "tag": "0027_hatch_map_proposals",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "6",
+      "when": 1791932958886,
+      "tag": "0028_map_proposal_titles",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "6",
+      "when": 1791933514212,
+      "tag": "0029_map_proposal_kinds",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "6",
+      "when": 1792000000000,
+      "tag": "0030_delivery_pull_requests",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "6",
+      "when": 1792019030082,
+      "tag": "0031_spec_review_per_rewrite",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "6",
+      "when": 1792020825568,
+      "tag": "0032_project_repair_settings",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "6",
+      "when": 1792020829342,
+      "tag": "0033_delivery_run_repairs",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "6",
+      "when": 1792173429000,
+      "tag": "0034_first_map_round_not_final",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "6",
+      "when": 1792246036836,
+      "tag": "0035_agent_decided",
+      "breakpoints": true
+    }
+  ]
+}

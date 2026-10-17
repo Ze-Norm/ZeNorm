@@ -1,0 +1,50 @@
+name: check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  # The publish workflow runs these jobs on a version tag and publishes only once all pass (6.3).
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  # Linux only: GitHub bills a macOS minute as ten Linux ones, and a macOS job beside each Linux
+  # one used up the Actions minutes too fast.
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: |
+          git config --global user.name "zenorm-ci"
+          git config --global user.email "ci@zenorm.invalid"
+      # Everything in `pnpm check` but e2e, whose flows don't pass on Linux yet: run `pnpm check`
+      # locally for them. The sweep and `ps` parsing C6 needs are unit tests.
+      - run: pnpm exec turbo run build typecheck lint test
+      - run: pnpm exec prettier --check .
+
+  smoke:
+    # The install smoke test (1.1, 1.2): the packed @ze-norm/cli installed with npm into an empty
+    # folder outside the repository, with better-sqlite3's prebuild.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: |
+          git config --global user.name "zenorm-ci"
+          git config --global user.email "ci@zenorm.invalid"
+      - run: pnpm exec turbo run pack --filter=@ze-norm/cli
+      - run: pnpm --filter @ze-norm/cli smoke

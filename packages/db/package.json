@@ -1,0 +1,28 @@
+{
+  "name": "@zenorm/db",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p .",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "db:generate": "drizzle-kit generate"
+  },
+  "dependencies": {
+    "@zenorm/contracts": "workspace:*",
+    "better-sqlite3": "catalog:",
+    "drizzle-orm": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "catalog:",
+    "@types/node": "catalog:",
+    "drizzle-kit": "catalog:",
+    "eslint": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
