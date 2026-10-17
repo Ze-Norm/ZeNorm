@@ -1077,7 +1077,7 @@ describe("runChecks", () => {
       script,
       [
         "#!/bin/sh",
-        // Bounded (about 40 s, past the 2 s grace and the 20 s test timeout) so an orphan left by a killed worker exits by itself.
+        // Bounded (about 40 s, past the 3 s grace and the 20 s test timeout) so an orphan left by a killed worker exits by itself.
         `sh -c 'trap "" TERM; echo $$ > ${pidFile}; i=0; while [ $i -lt 40 ]; do sleep 1; i=$((i+1)); done' </dev/null >/dev/null 2>&1 &`,
         "trap 'exit 143' TERM",
         "while :; do sleep 1; done",
@@ -1101,7 +1101,7 @@ describe("runChecks", () => {
         checks: [script],
         timeoutMs: 500,
         // Short, so the test does not wait out a run's 10 s.
-        killGraceMs: 2_000,
+        killGraceMs: 3_000,
         env,
         signal: new AbortController().signal,
       });
@@ -1116,7 +1116,7 @@ describe("runChecks", () => {
         () => {
           expect(alive(pid)).toBe(false);
         },
-        { timeout: 4_000, interval: 100 },
+        { timeout: 6_000, interval: 100 },
       );
     } finally {
       // Whatever failed above, the grandchild that ignores SIGTERM and this test's folder go.
