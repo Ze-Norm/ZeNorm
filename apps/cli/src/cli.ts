@@ -200,6 +200,10 @@ interface Outcome {
  * The commander program for `table`. The exit and output hooks are set before any command is
  * added, since a command copies them only when it is added; the help command is off; every
  * command refuses excess arguments; and each option value goes through `optionValue`.
+ *
+ * Commander's traps: `helpCommand(false)` is not inherited by a command group, so a group needs
+ * its own; values are checked in an `argParser`, never with `.choices()`; and no library default
+ * (`.default()`, a default argument) is used: defaults live in code.
  */
 function buildProgram(input: CliInput, table: CommandTable, outcome: Outcome) {
   const program = new CommanderCommand()

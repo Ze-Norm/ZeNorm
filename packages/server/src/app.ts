@@ -204,7 +204,9 @@ function createRouter(
   /**
    * The RPC boundary: `identify` names the User; the input's record resolves to its project;
    * `checkAccess` admits the action or the procedure answers `access_denied`. Returns the User the
-   * procedure acts as.
+   * procedure acts as. Every procedure on a stored project's records calls it first; only
+   * `project.list` (filtered by `readable`), `project.inspect` and `project.create` (which name no
+   * stored project) don't.
    */
   function guard(
     context: RpcContext,
