@@ -17,7 +17,7 @@ Bring any software idea, however rough. ZeNorm turns it into a clear plan, then 
 
 MIT licensed, and runs on your machine using [Claude Code](https://docs.claude.com/en/docs/claude-code).
 
-[Website](https://zenorm.com) · [Setup](SETUP.md) · [Developing](DEVELOPING.md) · [Glossary](CONTEXT.md)
+[Website](https://zenorm.com/?ref=gh-readme) · [Setup](SETUP.md) · [Developing](DEVELOPING.md) · [Glossary](CONTEXT.md)
 
 </div>
 
@@ -50,6 +50,8 @@ zenorm run
 `zenorm init` asks for one model, hands you to Claude Code's own sign-in if it isn't signed in, and writes `~/.config/zenorm/config.json` with its data folder beside it (`~/.config/zenorm/data`). On a machine without a browser (SSH, WSL, a container), run `claude auth login` first, or set `ANTHROPIC_API_KEY`; ZeNorm passes its environment on to Claude Code. Every command reads its config from `--config <path>`, else `ZENORM_CONFIG`, else `~/.config/zenorm/config.json`. The [example config](config.example.json) lists every key. `zenorm doctor` checks Node, the platform, the config, the data folder, Claude Code and its sign-in, git, the web build and the database, changes nothing, and lists every failing check with its code. Open [http://127.0.0.1:4310](http://127.0.0.1:4310), add a project, and start a map.
 
 Every config key but `fastMode` is required; ZeNorm refuses to start rather than guess a default. [SETUP.md](SETUP.md) explains each key. To run ZeNorm from a checkout of this repository instead, for example to work on it or to use plugins, see [DEVELOPING.md](DEVELOPING.md).
+
+If ZeNorm is useful to you, a star on GitHub helps others find it. Want ZeNorm in the cloud for your whole team? [ZeNorm Pro](https://zenorm.com/?ref=gh-readme#pro) is coming; join the waitlist.
 
 ## How it works
 
@@ -87,7 +89,7 @@ Plugins can add their own server routes, UI and delivery executor. The [example 
 
 ## ZeNorm Pro
 
-We're building ZeNorm Pro on top of this open-source workspace. ZeNorm itself stays MIT licensed. If you'd like to hear when there's something to try, join the waitlist at [zenorm.com](https://zenorm.com/#pro).
+We're building ZeNorm Pro on top of this open-source workspace. ZeNorm itself stays MIT licensed. If you'd like to hear when there's something to try, join the waitlist at [zenorm.com](https://zenorm.com/?ref=gh-readme#pro).
 
 ## Learn more
 
