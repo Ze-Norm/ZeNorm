@@ -12,7 +12,7 @@ permissions:
 
 # A new push to a pull request cancels its older run; main and tags run every commit.
 concurrency:
-  group: check-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
+  group: check-${{ github.ref }}-${{ github.event_name == 'pull_request' && 'latest' || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 # Linux only: a macOS job beside each Linux one used up the Actions minutes too fast. Everything in
