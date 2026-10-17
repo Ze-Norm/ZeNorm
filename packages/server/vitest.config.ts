@@ -10,5 +10,7 @@ export default defineProject({
     // where turbo runs every package's tests at once, so vitest's 5 s leaves no room. A hang still
     // fails, at 20 s.
     testTimeout: 20_000,
+    // Migrates the database each app test case copies.
+    globalSetup: ["./vitest.templates.ts"],
   },
 });

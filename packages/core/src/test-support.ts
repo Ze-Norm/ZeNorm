@@ -4,7 +4,6 @@
  * planning runner would.
  */
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { copyFile, cp, mkdtemp, realpath, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -45,8 +44,6 @@ import {
   hatchMessages,
   installChangeFeed,
   maps,
-  MIGRATIONS_FOLDER,
-  migrateDatabase,
   openDatabase,
   planningRuns,
   projects,
@@ -66,6 +63,7 @@ import {
 import type { ZeNormDatabase } from "@zenorm/db";
 import { and, asc, desc, eq } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
+import { inject } from "vitest";
 
 import { recordSurvey } from "./code-survey.ts";
 import { deliveryIdentity, endDelivery, prepareDelivery, startDelivery } from "./delivery.ts";
@@ -268,45 +266,10 @@ export interface TestContext {
   readonly user: UserActor;
 }
 
-interface Templates {
-  /** A database file every migration has run on, closed. */
-  readonly database: string;
-  /** A repository on `main` with one commit holding a README. */
-  readonly repository: string;
-}
-
-let templates: Templates | undefined;
-
-/**
- * The templates each test copies, made on first use in each test file's worker and removed when
- * it exits: migrating a database and committing to a new repository were most of a case's time.
- */
-function testTemplates(): Templates {
-  if (templates !== undefined) return templates;
-  const root = mkdtempSync(join(tmpdir(), "zenorm-core-templates-"));
-  process.on("exit", () => {
-    rmSync(root, { recursive: true, force: true });
-  });
-  const database = join(root, "zenorm.sqlite");
-  const opened = openDatabase(database);
-  if (!opened.ok) throw new Error(opened.error.message);
-  const migrated = migrateDatabase(opened.value, MIGRATIONS_FOLDER);
-  if (!migrated.ok) throw new Error(migrated.error.message);
-  opened.value.$client.close();
-  const repository = join(root, "repository");
-  mkdirSync(repository);
-  git(repository, ["init", "-q", "-b", "main"]);
-  writeFileSync(join(repository, "README.md"), "# Repo\n");
-  git(repository, ["add", "README.md"]);
-  git(repository, ["commit", "-q", "-m", "init"]);
-  templates = { database, repository };
-  return templates;
-}
-
 export async function openTestContext(prefix: string): Promise<TestContext> {
   const root = await mkdtemp(join(tmpdir(), prefix));
   const file = join(root, "zenorm.sqlite");
-  await copyFile(testTemplates().database, file);
+  await copyFile(inject("coreTemplates").database, file);
   const opened = openDatabase(file);
   if (!opened.ok) throw new Error(opened.error.message);
   return testContextOf(root, opened.value);
@@ -356,12 +319,12 @@ function git(cwd: string, args: readonly string[]): void {
 
 /**
  * A Project over a fresh repository on `main` with one commit holding a README (a copy of the
- * template, so every project of a test file has the same commit), inserted as a fixture row:
+ * run's template, so every project has the same commit), inserted as a fixture row:
  * `createProject`'s git checks run in its own tests.
  */
 export async function addProject(context: TestContext, name: string): Promise<Project> {
   const path = join(context.root, name);
-  await cp(testTemplates().repository, path, { recursive: true });
+  await cp(inject("coreTemplates").repository, path, { recursive: true });
   const row: ProjectRow = {
     id: uuidv7(),
     folderPath: await realpath(path),

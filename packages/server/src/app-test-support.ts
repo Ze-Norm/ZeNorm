@@ -4,7 +4,7 @@
  * the cases share. A test file calls `setUpAppTests()` once, at its top.
  */
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdtempSync, rmSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { copyFile, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -69,11 +69,11 @@ import type {
 } from "@zenorm/contracts";
 import { gitIdentityEnv, ok } from "@zenorm/contracts";
 import { createChangeBus, ticketBranchName } from "@zenorm/core";
-import { installChangeFeed, MIGRATIONS_FOLDER, migrateDatabase, openDatabase } from "@zenorm/db";
+import { installChangeFeed, openDatabase } from "@zenorm/db";
 import type { ZeNormDatabase } from "@zenorm/db";
 import { definePlugin, SDK_VERSION } from "@zenorm/plugin-sdk";
 import type { ServerPlugin } from "@zenorm/plugin-sdk";
-import { afterEach, beforeEach, expect, vi } from "vitest";
+import { afterEach, beforeEach, expect, inject, vi } from "vitest";
 import type { Mock } from "vitest";
 
 import { createApp } from "./app.ts";
@@ -446,30 +446,8 @@ export function useDatabase(next: ZeNormDatabase): void {
   db = next;
 }
 
-let template: string | undefined;
-
 /**
- * A database file every migration has run on, made on first use in each test file's worker and
- * removed when it exits; each case copies it, as migrating anew was a large part of a case's time.
- */
-function migratedTemplate(): string {
-  if (template !== undefined) return template;
-  const folder = mkdtempSync(join(tmpdir(), "zenorm-server-template-"));
-  process.on("exit", () => {
-    rmSync(folder, { recursive: true, force: true });
-  });
-  const file = join(folder, "zenorm.sqlite");
-  const opened = openDatabase(file);
-  if (!opened.ok) throw new Error(opened.error.message);
-  const migrated = migrateDatabase(opened.value, MIGRATIONS_FOLDER);
-  if (!migrated.ok) throw new Error(migrated.error.message);
-  opened.value.$client.close();
-  template = file;
-  return template;
-}
-
-/**
- * Registers each case's fresh app and database (a copy of the migrated template), and their
+ * Registers each case's fresh app and database (a copy of the run's migrated template), and their
  * removal after it, in the calling test file.
  */
 export function setUpAppTests(): void {
@@ -481,7 +459,7 @@ export function setUpAppTests(): void {
     await writeFile(join(webDistDir, "asset.js"), "export {};");
     await mkdir(join(root, "runs"));
     const file = join(root, "zenorm.sqlite");
-    await copyFile(migratedTemplate(), file);
+    await copyFile(inject("migratedDatabase"), file);
     const opened = openDatabase(file);
     if (!opened.ok) {
       throw new Error(opened.error.message);
