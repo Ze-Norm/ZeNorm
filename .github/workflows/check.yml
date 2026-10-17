@@ -66,19 +66,19 @@ jobs:
         include:
           - name: core 1/3
             key: core-1
-            args: --filter=@zenorm/core -- --shard=1/3
+            args: --filter=@zenorm/core -- --shard=1/3 --maxWorkers=6
           - name: core 2/3
             key: core-2
-            args: --filter=@zenorm/core -- --shard=2/3
+            args: --filter=@zenorm/core -- --shard=2/3 --maxWorkers=6
           - name: core 3/3
             key: core-3
-            args: --filter=@zenorm/core -- --shard=3/3
+            args: --filter=@zenorm/core -- --shard=3/3 --maxWorkers=6
           - name: server
             key: server
-            args: --filter=@zenorm/server
+            args: --filter=@zenorm/server -- --maxWorkers=6
           - name: the rest
             key: rest
-            args: --filter=!@zenorm/core --filter=!@zenorm/server
+            args: --filter=!@zenorm/core --filter=!@zenorm/server -- --maxWorkers=6
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
