@@ -22,7 +22,7 @@ interface HatchContextValue extends HatchState {
   setOpen: (open: boolean) => void;
   setText: (text: string) => void;
   /**
-   * The one open-and-focus entry point (slice 7b D7, D8): opens the hatch and focuses the composer,
+   * The one open-and-focus entry point: opens the hatch and focuses the composer,
    * with `prefill` as its text when given. It sends nothing.
    */
   openHatch: (prefill: HatchPrefill | null) => void;
@@ -33,7 +33,7 @@ interface HatchContextValue extends HatchState {
 const HatchContext = createContext<HatchContextValue | null>(null);
 
 /**
- * The escape hatch's composer state for one map's pages (slice 7b D7): the Activity column renders
+ * The escape hatch's composer state for one map's pages: the Activity column renders
  * it, and any button on the page opens and focuses it through `useHatch().openHatch`.
  */
 export function HatchProvider({ children }: { children: ReactNode }) {

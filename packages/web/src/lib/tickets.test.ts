@@ -102,7 +102,7 @@ describe("dispositionTally", () => {
     expect(dispositionTally([satisfied("1.1")])).toBe("1 already done");
   });
 
-  it("tallies the five kinds in the demo's order", () => {
+  it("tallies the five kinds in order", () => {
     expect(
       dispositionTally([
         removed("3.1", null),
@@ -194,7 +194,7 @@ describe("reconciliationRows", () => {
     ]);
   });
 
-  it("shows a criterion an earlier revision dropped, which the delta does not name, under its own clause last (CR-3)", () => {
+  it("shows a criterion an earlier revision dropped, which the delta does not name, under its own clause last", () => {
     const criterion = { id: "4.1", text: "Dropped two revisions ago." };
     const older = {
       clause: { id: "C4", title: "The footer", text: "Text.", sources: [], criteria: [criterion] },
@@ -365,7 +365,7 @@ describe("ticketsReviewPanel", () => {
   });
 });
 
-describe("criteriaSummary (UX audit B3)", () => {
+describe("criteriaSummary", () => {
   it("reads one kind as all of it, and a lone criterion in the singular", () => {
     expect(criteriaSummary([work("1.1", "T1"), work("1.2", "T1")])).toBe(
       "2 criteria, all need work",
@@ -384,7 +384,7 @@ describe("criteriaSummary (UX audit B3)", () => {
   });
 });
 
-describe("reconciliationGroups and onTicketCard (UX audit B1)", () => {
+describe("reconciliationGroups and onTicketCard", () => {
   it("groups a first revision's rows by clause with no change", () => {
     const rows = reconciliationRows(
       content,
@@ -462,7 +462,7 @@ describe("reconciliationGroups and onTicketCard (UX audit B1)", () => {
   });
 });
 
-describe("ticketSetStateLine (UX audit B3)", () => {
+describe("ticketSetStateLine", () => {
   const at = "2026-10-09T10:00:00.000Z";
   const moment = (iso: string) => `at ${iso}`;
   const base = { state: "awaiting_review" as const, approvedAt: null, replaced: false };
@@ -551,7 +551,7 @@ describe("ticketSetStateLine (UX audit B3)", () => {
   });
 });
 
-describe("runInLabels (UX audit B2)", () => {
+describe("runInLabels", () => {
   it("bolds a short label and colon at a paragraph's start, and nothing else", () => {
     expect(runInLabels("Core: save it.\n\nWeb/e2e: show it.")).toBe(
       "**Core:** save it.\n\n**Web/e2e:** show it.",
@@ -601,7 +601,7 @@ describe("heldFindings", () => {
   });
 });
 
-describe("ticketDecisions (the demo's decisionsBehind; mid QA P-2)", () => {
+describe("ticketDecisions", () => {
   const EARLIER = "00000000000000000000000001";
   const LATER = "00000000000000000000000002";
   const waypoint = (mapId: string, number: number, kind: "grilling" | "research") => ({

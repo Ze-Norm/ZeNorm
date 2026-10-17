@@ -92,7 +92,7 @@ async function overview(mapId: string): Promise<MapOverviewDetail> {
   return result.value;
 }
 
-/** The review of the map's one ticket set through 02's read (`map.overview`, D11). */
+/** The review of the map's one ticket set through 02's read (`map.overview`). */
 async function reviewOf(mapId: string): Promise<TicketSetReview | null> {
   const set = (await overview(mapId)).specs[0]?.ticketSets[0];
   if (set === undefined) throw new Error(`Map ${mapId} has no ticket set`);
@@ -115,7 +115,7 @@ function expectDecisionsRefused(ticketSetId: string, code: string): void {
   });
 }
 
-describe("the review repair (S7c-4, D4)", () => {
+describe("the review repair", () => {
   test("a revise-only failed review of v1 starts the repair in its recording transaction; v2 is awaiting_review and gets a full review", async () => {
     const { mapId, specificationId, ticketSetId } = await draftedTicketSet(context, project);
 
@@ -170,7 +170,7 @@ describe("the review repair (S7c-4, D4)", () => {
     });
   });
 
-  test("L180 (2): a rejection reason reaches the review of the version it shaped and the repair of that version, and every later one", async () => {
+  test("a rejection reason reaches the review of the version it shaped and the repair of that version, and every later one", async () => {
     const { mapId, ticketSetId } = await draftedTicketSet(context, project);
     recordRunningTicketsReview(context, mapId);
     expect(rejectTicketSet(context.user, context.db, { ticketSetId, reason: REASON }).ok).toBe(
@@ -211,7 +211,7 @@ describe("the review repair (S7c-4, D4)", () => {
     });
   });
 
-  test("a running repair refuses approve and reject review_in_flight, so its set cannot be approved or rejected meanwhile (S7c-10)", async () => {
+  test("a running repair refuses approve and reject review_in_flight, so its set cannot be approved or rejected meanwhile", async () => {
     const { mapId, ticketSetId } = await draftedTicketSet(context, project);
     fail(mapId, [TICKETS_REVISE_FINDING]);
 
@@ -219,7 +219,7 @@ describe("the review repair (S7c-4, D4)", () => {
   });
 });
 
-describe("escalation and the derived hold (S7c-5, L30)", () => {
+describe("escalation and the derived hold", () => {
   test("v1 fails, v2 (repair) fails, v3 (repair) fails: v3's review escalates every finding, v2's does not", async () => {
     const { mapId, specificationId, ticketSetId } = await draftedTicketSet(context, project);
 
@@ -295,7 +295,7 @@ describe("escalation and the derived hold (S7c-5, L30)", () => {
   });
 });
 
-describe("a stopped repair (S7c-9, S7c-10)", () => {
+describe("a stopped repair", () => {
   test("keeps Try again, refuses approval review_in_flight, and the fresh repair carries the findings", async () => {
     const { mapId, ticketSetId } = await draftedTicketSet(context, project);
     fail(mapId, FAILED_TICKETS_REVIEW.findings);

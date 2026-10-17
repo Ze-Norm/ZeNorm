@@ -6,7 +6,7 @@
 -- every stored proposal has its own line or a waypoint) and refuses to finish unless the new table
 -- has as many rows as the old one. The rebuilds run with foreign keys off (`migrateDatabase`;
 -- `hatch_messages` is a parent of `planning_runs`, `waypoints` and `spec_waits`) and the migration
--- ends by refusing any foreign key violation (L163).
+-- ends by refusing any foreign key violation.
 CREATE TABLE `__new_hatch_messages` (
 	`id` text PRIMARY KEY NOT NULL,
 	`map_id` text NOT NULL,

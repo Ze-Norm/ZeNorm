@@ -26,9 +26,9 @@ export interface WebAppOptions {
 }
 
 /**
- * The web app, composed in code (S9-18): `apps/zenorm` passes no plugins, an example or paid
- * composition passes its own. It mounts on `#root` once the plugins pass D16's checks (slot names,
- * then `GET /plugins` against this list); otherwise it shows the blocking page and starts nothing.
+ * The web app, composed in code: `apps/zenorm` passes no plugins, an example or paid composition
+ * passes its own. It mounts on `#root` once the plugins pass the startup checks (slot names, then
+ * `GET /plugins` against this list); otherwise it shows the blocking page and starts nothing.
  * Returns the unmount: what it rendered is unmounted, and a check still pending renders nothing.
  */
 export function createWebApp({ plugins }: WebAppOptions): () => void {
@@ -58,7 +58,7 @@ export function createWebApp({ plugins }: WebAppOptions): () => void {
       return;
     }
 
-    // The app's one change stream (S9-16, D13), opened once outside React so StrictMode's double
+    // The app's one change stream, opened once outside React so StrictMode's double
     // effects never open a second.
     live = startLiveUpdates(queryClient, () => new EventSource("/events"), {
       setTimeout: (callback, ms) => window.setTimeout(callback, ms),

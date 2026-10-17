@@ -134,7 +134,7 @@ function flag(argv: string[], name: string): string {
   return value;
 }
 
-describe("the fog run (harness change #4)", () => {
+describe("the fog run", () => {
   test("its --json-schema roots are the five settlements, the proposals among them", () => {
     const schema = z
       .object({ properties: z.record(z.string(), z.unknown()) })
@@ -220,7 +220,7 @@ describe("the fog run (harness change #4)", () => {
     expect(prompt).not.toContain(mapChangesRules(LIMITS)[0]);
   });
 
-  test("its prompt carries the project's map suggestions and maps, titles and lines quoted (C1)", () => {
+  test("its prompt carries the project's map suggestions and maps, titles and lines quoted", () => {
     const prompt = buildFogPrompt(REQUEST, LIMITS);
     expect(prompt).toContain(renderedProjectContext(prompt));
     for (const expected of expectedProjectContextLines(promptNonce(prompt))) {
@@ -270,7 +270,7 @@ describe("the fog run's lengths follow the model's limits (agent.models)", () =>
   });
 });
 
-describe("the fog prompt's destination rounds (DR-16)", () => {
+describe("the fog prompt's destination rounds", () => {
   test("renders the map-level rounds right after the destination", () => {
     expectRoundsAfterDestination(buildFogPrompt(REQUEST, LIMITS));
   });

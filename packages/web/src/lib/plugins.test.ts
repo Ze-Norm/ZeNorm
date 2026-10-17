@@ -20,7 +20,7 @@ function answer(body: unknown, status: number): () => Promise<Response> {
   return () => Promise.resolve(Response.json(body, { status }));
 }
 
-describe("comparePluginSets (S9-18, D16)", () => {
+describe("comparePluginSets", () => {
   it("passes with no plugins on either side", () => {
     expect(comparePluginSets([], [])).toEqual({ ok: true, value: null });
   });
@@ -59,7 +59,7 @@ describe("comparePluginSets (S9-18, D16)", () => {
   });
 });
 
-describe("checkSlotNames (D16)", () => {
+describe("checkSlotNames", () => {
   it("passes every SDK slot", () => {
     const all = defineWebPlugin({
       id: "a",

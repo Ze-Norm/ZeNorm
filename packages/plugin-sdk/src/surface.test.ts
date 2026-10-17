@@ -6,9 +6,9 @@ import { expect, test } from "vitest";
 import * as sdk from "./index.ts";
 
 /**
- * The SDK's public surface (S9-18; SDK §6): its runtime exports, their values where they are data,
- * and the declarations of every exported type, so any change to the surface shows in review as a
- * snapshot diff.
+ * The SDK's public surface: its runtime exports, their values where they are data, and the
+ * declarations of every exported type, so any change to the surface shows in review as a snapshot
+ * diff.
  */
 test("the exported names and values", () => {
   expect(Object.keys(sdk).sort()).toMatchInlineSnapshot(`

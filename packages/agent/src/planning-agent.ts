@@ -65,10 +65,10 @@ function limitsOf(models: AgentConfig["models"], model: string): ModelLimits {
 }
 
 /**
- * The planning agent through the Claude Code CLI: wayfinding runs (chart, survey, grill, research, task,
- * fog, consistency, the escape hatch) use `agent.wayfindingModel`, spec runs (spec and ticket set drafts,
- * revisions and reviews) `agent.specModel`; everything else, `sessionsDir` (spec D3) included, is shared.
- * Spec runs follow the product skills in `skillsDir`, which the entry passes in.
+ * The planning agent through the Claude Code CLI: wayfinding runs (chart, survey, grill, research,
+ * task, fog, consistency, the escape hatch) use `agent.wayfindingModel`, spec runs (spec and ticket
+ * set drafts, revisions and reviews) `agent.specModel`; everything else, `sessionsDir` included, is
+ * shared. Spec runs follow the product skills in `skillsDir`, which the entry passes in.
  */
 export function claudeCodePlanningAgent(
   config: AgentConfig & { readonly sessionsDir: string; readonly skillsDir: string },

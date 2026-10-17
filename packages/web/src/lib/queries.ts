@@ -2,18 +2,18 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { orpc } from "@/orpc";
 
-/** Every map with its project and status, newest first; the live layer refetches it (D13). */
+/** Every map with its project and status, newest first; the live layer refetches it. */
 export function useMapOverviews() {
   return useQuery(orpc.map.overviews.queryOptions());
 }
 
-/** One map with its project, status, activity and messages; the live layer refetches it (D13). */
+/** One map with its project, status, activity and messages; the live layer refetches it. */
 export function useMapOverview(mapId: string) {
   return useQuery(orpc.map.overview.queryOptions({ input: { mapId } }));
 }
 
 /**
- * `hatch.send` (slice 7b S7b-2): stores the message and returns the overview, which replaces the
+ * `hatch.send`: stores the message and returns the overview, which replaces the
  * map's cached one (its messages list the new one queued or working); the Inbox's reads refetch.
  */
 export function useSendHatchMessage() {

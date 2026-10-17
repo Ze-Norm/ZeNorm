@@ -63,13 +63,13 @@ export interface PlanningTools {
   readonly disallowed: string;
 }
 
-/** Every planning call but research: read the repository, nothing else (L115 for Task runs). */
+/** Every planning call but research: read the repository, nothing else (Task runs too). */
 export const READ_ONLY_TOOLS: PlanningTools = {
   allowed: "Read,Grep,Glob",
   disallowed: "Bash,Edit,Write,NotebookEdit,WebFetch,WebSearch",
 };
 
-/** A research call (spec D2): read the repository and the web, change nothing. */
+/** A research call: read the repository and the web, change nothing. */
 export const RESEARCH_TOOLS: PlanningTools = {
   allowed: "Read,Grep,Glob,WebFetch,WebSearch",
   disallowed: "Bash,Edit,Write,NotebookEdit",
@@ -148,8 +148,7 @@ export function fastModeArgs(fastMode: boolean | undefined): string[] {
 }
 
 /**
- * The argv of the headless run (slice 2 spec D4.2). The prompt comes straight after `-p`: the tool
- * flags are variadic.
+ * The argv of the headless run. The prompt comes straight after `-p`: the tool flags are variadic.
  */
 function runArgs(
   config: PlanningRunConfig,
@@ -190,19 +189,19 @@ function runArgs(
 /** Every way one CLI call can fail before its output is interpreted. */
 export type SessionError = PlanningAgentError | CancelledError;
 
-/** Which `claude` process a session record is for (spec D3). */
+/** Which `claude` process a session record is for. */
 export type SessionKind = "auth" | "planning" | "orchestrator" | "reviewer";
 
 /**
- * The CLI binary, the call's one deadline (L63), who the call is for, as error messages name it,
- * and how its processes are spawned and recorded (S9-6, spec D3 and D4).
+ * The CLI binary, the call's one deadline, who the call is for, as error messages name it, and how
+ * its processes are spawned and recorded.
  */
 export interface CliCall {
   readonly claudePath: string;
   readonly timeoutSeconds: number;
   /** "The planning agent", "The delivery orchestrator", ... */
   readonly who: string;
-  /** Each process's session record is `<sessionsDir>/<pid>.json` while it runs (spec D3). */
+  /** Each process's session record is `<sessionsDir>/<pid>.json` while it runs. */
   readonly sessionsDir: string;
   /** The run's kind; its auth step is always `"auth"`. */
   readonly kind: Exclude<SessionKind, "auth">;
@@ -226,14 +225,14 @@ export interface RunOptions {
   /** Called with each stdout chunk as it arrives; null when the caller reads stdout only at the end. */
   readonly onStdout: ((chunk: string) => void) | null;
   /**
-   * Spawns the CLI in its own process group and signals the whole group (L197 item 12, S9-3): a
-   * session's subprocesses then stop with it, and once the CLI exits after an abort its leftovers
-   * get SIGKILL. A terminal's Ctrl+C no longer reaches the group; the shutdown aborts it instead.
+   * Spawns the CLI in its own process group and signals the whole group: a session's subprocesses
+   * then stop with it, and once the CLI exits after an abort its leftovers get SIGKILL. A
+   * terminal's Ctrl+C no longer reaches the group; the shutdown aborts it instead.
    */
   readonly processGroup: boolean;
 }
 
-/** A planning call's spawn: in its own process group (S9-3), stopped by the runner's `signal` (D2). */
+/** A planning call's spawn: in its own process group, stopped by the runner's `signal`. */
 function planningOptions(signal: AbortSignal): RunOptions {
   return { env: null, signal, stdoutFile: null, onStdout: null, processGroup: true };
 }
@@ -251,9 +250,9 @@ function planningCall(config: PlanningRunConfig): CliCall {
 /**
  * One planning agent call: the auth check, then the headless run of `prompt` in `projectFolder`,
  * answering through `output` with `tools`. One deadline bounds the whole call: both steps share
- * `timeoutSeconds` (L63). Every expected failure is one of the five `agent_*` codes. The run's
- * usage reaches `session.onUsage` whenever the CLI printed a result, failed or not; a session to
- * resume replaces `prompt` with `RESUME_PROMPT`.
+ * `timeoutSeconds`. Every expected failure is one of the five `agent_*` codes. The run's usage
+ * reaches `session.onUsage` whenever the CLI printed a result, failed or not; a session to resume
+ * replaces `prompt` with `RESUME_PROMPT`.
  */
 export async function runStructured<S extends z.ZodType>(
   config: PlanningRunConfig,
@@ -268,7 +267,7 @@ export async function runStructured<S extends z.ZodType>(
 
 /**
  * `runStructured` with `extraArgs` after the run's own argv: a skill-following call adds its
- * `--add-dir` and `--append-system-prompt-file` there (L51, spec D4).
+ * `--add-dir` and `--append-system-prompt-file` there.
  */
 export async function runStructuredWith<S extends z.ZodType>(
   config: PlanningRunConfig,
@@ -286,7 +285,7 @@ export async function runStructuredWith<S extends z.ZodType>(
     projectFolder,
     planningOptions(session.signal),
   );
-  // An aborted call (`agent_cancelled`) reports no usage: the runner's stop records nothing (D2).
+  // An aborted call (`agent_cancelled`) reports no usage: the runner's stop records nothing.
   if (!run.ok) return err(run.error);
   const usage = readUsage(run.value);
   if (usage.kind === "usage") session.onUsage(usage.usage);
@@ -307,9 +306,9 @@ export async function runStructuredWith<S extends z.ZodType>(
 export type ExitedRun = Extract<RunOutcome, { kind: "exited" }>;
 
 /**
- * The auth step, then the run of `args` in `cwd`, under one deadline of `call.timeoutSeconds`
- * (L63). Returns the exited run for the caller to interpret, or the spawn, auth, deadline or
- * cancel failure.
+ * The auth step, then the run of `args` in `cwd`, under one deadline of `call.timeoutSeconds`.
+ * Returns the exited run for the caller to interpret, or the spawn, auth, deadline or cancel
+ * failure.
  */
 /** The spawn fields every process of `call` shares. */
 function callSpawn(call: CliCall): Pick<SpawnSpec, "claudePath" | "sessionsDir"> {
@@ -408,8 +407,8 @@ export function parseJson(text: string): { ok: true; value: unknown } | { ok: fa
 }
 
 /**
- * Step 1 (spec D4.1): `claude auth status --json`, with a SIGTERM after `timeoutMs` (the time left
- * before the call's deadline); stdout is parsed whatever the exit code.
+ * Step 1: `claude auth status --json`, with a SIGTERM after `timeoutMs` (the time left before the
+ * call's deadline); stdout is parsed whatever the exit code.
  */
 async function checkAuth(
   call: CliCall,
@@ -579,24 +578,24 @@ type RunOutcome =
       stderrTail: string;
     };
 
-/** The record `runProcess` keeps at `<sessionsDir>/<pid>.json` while a process runs (spec D3). */
+/** The record `runProcess` keeps at `<sessionsDir>/<pid>.json` while a process runs. */
 export interface SessionRecord {
   readonly pid: number;
   /** What `ps -o command=` shows first for the pid: `claudePath`. */
   readonly command: string;
   readonly startedAt: string;
   readonly kind: SessionKind;
-  /** The spawning server's pid, so a later sweep can tell whether that server is gone (C6). */
+  /** The spawning server's pid, so a later sweep can tell whether that server is gone. */
   readonly serverPid: number;
   /** The spawning server's `ps` start time (ISO), to tell it from a process reusing its pid. */
   readonly serverStartedAt: string;
 }
 
-/** What a stopped session left behind, as `ps` last showed it (CR-2). */
+/** What a stopped session left behind, as `ps` last showed it. */
 interface SessionTree {
   /** Every descendant of the session's pid seen so far. */
   readonly pids: Set<number>;
-  /** Each group a descendant leads (the Bash tool's own groups, spike surprise 8). */
+  /** Each group a descendant leads (the Bash tool's own groups). */
   readonly groups: Set<number>;
 }
 
@@ -657,10 +656,10 @@ async function untilGone(targets: readonly number[]): Promise<void> {
 /**
  * Runs the CLI with `args` in `cwd` and sends it a SIGTERM after `timeoutMs`, or when
  * `options.signal` aborts; an aborted CLI that has not exited 10 s after the SIGTERM gets SIGKILL.
- * Used for every step: the auth check (D4.1) and each headless run. While the process runs, its
- * session record is `<sessionsDir>/<pid>.json`; it is removed once the process has exited and, after
- * an abort or a timeout, its group, its descendants and the groups they lead have had SIGKILL and are
- * gone (or the wait for them is over; CR-2).
+ * Used for every step: the auth check and each headless run. While the process runs, its session
+ * record is `<sessionsDir>/<pid>.json`; it is removed once the process has exited and, after an
+ * abort or a timeout, its group, its descendants and the groups they lead have had SIGKILL and are
+ * gone (or the wait for them is over).
  */
 function runProcess(
   spec: SpawnSpec,
@@ -671,7 +670,7 @@ function runProcess(
 ): Promise<RunOutcome> {
   const { signal, stdoutFile, onStdout, processGroup } = options;
   if (signal?.aborted === true) return Promise.resolve({ kind: "cancelled", stderrTail: "" });
-  // A missing records folder is a programmer error: startup creates it (spec D3).
+  // A missing records folder is a programmer error: startup creates it.
   if (!statSync(spec.sessionsDir).isDirectory()) {
     throw new Error(`The sessions folder ${spec.sessionsDir} is not a directory`);
   }
@@ -711,7 +710,7 @@ function runProcess(
       }
       return signalTarget(-child.pid, killSignal);
     };
-    /** What the CLI started, seen before each signal of a stop (CR-2). */
+    /** What the CLI started, seen before each signal of a stop. */
     const tree: SessionTree = { pids: new Set(), groups: new Set() };
     /** Every pid and negated group a stop sends SIGKILL to besides the CLI's own. */
     const treeTargets = (): number[] => [...tree.pids, ...[...tree.groups].map((group) => -group)];
@@ -759,7 +758,7 @@ function runProcess(
       const errno = kill(killSignal);
       if (errno !== null) settle({ kind: "kill_failed", errno, stderrTail: errTail });
     };
-    /** SIGKILL to the CLI (its group) and to every process and group of its tree (CR-2). */
+    /** SIGKILL to the CLI (its group) and to every process and group of its tree. */
     const killTree = (): void => {
       const errnos = [kill("SIGKILL"), ...treeTargets().map((t) => signalTarget(t, "SIGKILL"))];
       const errno = errnos.find((found) => found !== null);
@@ -819,8 +818,8 @@ function runProcess(
           ? { kind: "cancelled", stderrTail: errTail }
           : { kind: "timed_out", stderrTail: errTail };
         // What the CLI left running after an abort or a timeout stops with it: its group, and every
-        // descendant seen since the stop began with each group one leads (the Bash tool's, CR-2).
-        // The record goes once they are gone, or once they have had SIGKILL and the wait is over.
+        // descendant seen since the stop began with each group one leads (the Bash tool's). The
+        // record goes once they are gone, or once they have had SIGKILL and the wait is over.
         const pid = child.pid;
         const finish = async (): Promise<void> => {
           if (pid !== undefined) await observeTree(pid, tree);
@@ -913,8 +912,8 @@ export function exitDescription(run: ExitedRun): string {
 }
 
 /**
- * Interprets a `--output-format json` run (slice 2's rule): exit 0, one `result` object with
- * subtype `success` and `is_error` false, and a `structured_output` that parses as `schema`.
+ * Interprets a `--output-format json` run: exit 0, one `result` object with subtype `success` and
+ * `is_error` false, and a `structured_output` that parses as `schema`.
  */
 export function interpretExit<S extends z.ZodType>(
   call: CliCall,

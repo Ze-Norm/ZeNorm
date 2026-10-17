@@ -4,8 +4,8 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 
-// Round 3 badges: tinted fill, coloured mono text at 11px, the floor for text that is read
-// (UX audit A7). `default` is the signal: needs you.
+// Badges: tinted fill, coloured mono text at 11px, the floor for text that is read. `default`
+// is the signal: needs you.
 const badgeVariants = cva(
   "inline-flex h-5 items-center justify-center gap-1.5 px-[7px] font-mono text-[11px] leading-none font-semibold tracking-[0.04em] uppercase w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 [&>svg]:pointer-events-none overflow-hidden",
   {

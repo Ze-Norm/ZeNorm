@@ -13,5 +13,5 @@ export const client: ContractRouterClient<Contract> = createORPCClient(link);
 
 export const orpc = createTanstackQueryUtils(client);
 
-/** A contract-defined error is never retried, so a route error shows at once (CR9b-5). */
+/** A contract-defined error is never retried, so a route error shows at once. */
 export const queryClient = new QueryClient({ defaultOptions: { queries: { retry: retryQuery } } });

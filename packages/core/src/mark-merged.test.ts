@@ -61,7 +61,7 @@ async function mergedAt(runId: string): Promise<string | null> {
   return found.value.mergedAt;
 }
 
-describe("delivery.markMerged (S8-5, B28)", () => {
+describe("delivery.markMerged", () => {
   test("delivery_not_merged before the merge; recorded with ZeNorm's line after a real merge", async () => {
     const { run, finalCommit } = await passedRun();
     expect(await markMerged(context.user, context.db, run.id)).toMatchObject({
@@ -93,7 +93,7 @@ describe("delivery.markMerged (S8-5, B28)", () => {
     expect(readRunEvents(context.db, run.id)).toHaveLength(1);
   });
 
-  test("the update and its line are one write: one publish holding both rows (CR9b-14)", async () => {
+  test("the update and its line are one write: one publish holding both rows", async () => {
     const { run } = await passedRun();
     git(["merge", "-q", "--no-ff", "-m", "Merge the run", run.branch]);
     const publishes: (readonly ChangeEvent[])[] = [];
@@ -178,7 +178,7 @@ describe("delivery.markMerged (S8-5, B28)", () => {
 });
 
 /**
- * A stand-in for the GitHub CLI, first on the test process's `PATH` (2.4). Every call appends its
+ * A stand-in for the GitHub CLI, first on the test process's `PATH`. Every call appends its
  * arguments as one line to `<state>/calls`. `gh auth status` succeeds, and fails while
  * `<state>/signed-out` exists. `gh pr view <url> --json state` prints the state in
  * `<state>/pr-<number>` (`OPEN` when there is none), and fails while `<state>/view-fails` exists.
@@ -205,7 +205,7 @@ function fakeGhScript(state: string): string {
   ].join("\n");
 }
 
-describe("checkPullRequest: Check now and the timer's checks (C4)", () => {
+describe("checkPullRequest: Check now and the timer's checks", () => {
   let originalPath: string;
   let ghState: string;
 
@@ -269,7 +269,7 @@ describe("checkPullRequest: Check now and the timer's checks (C4)", () => {
 
   const signal = (): AbortSignal => new AbortController().signal;
 
-  test("a squash-merged pull request sets merged_at with ZeNorm's line, though git never shows the final commit in main (4.1)", async () => {
+  test("a squash-merged pull request sets merged_at with ZeNorm's line, though git never shows the final commit in main", async () => {
     const run = await passedWithPullRequest();
     // GitHub's squash merge: main gets one new commit, never the run's final commit.
     git(["merge", "-q", "--squash", run.branch]);
@@ -328,7 +328,7 @@ describe("checkPullRequest: Check now and the timer's checks (C4)", () => {
   test.each([
     { code: "delivery_github_not_signed_in", file: "signed-out" },
     { code: "delivery_github_unreachable", file: "view-fails" },
-  ] as const)("$code changes nothing (4.2)", async ({ code, file }) => {
+  ] as const)("$code changes nothing", async ({ code, file }) => {
     const run = await passedWithPullRequest();
     await reportState(1, "MERGED");
     await writeFile(join(ghState, file), "");
@@ -341,7 +341,7 @@ describe("checkPullRequest: Check now and the timer's checks (C4)", () => {
     expect(readRunEvents(context.db, run.id)).toEqual([]);
   });
 
-  test("delivery_gh_missing when gh is not on PATH changes nothing (4.2)", async () => {
+  test("delivery_gh_missing when gh is not on PATH changes nothing", async () => {
     const run = await passedWithPullRequest();
     const empty = join(context.root, "no-gh");
     await mkdir(empty);
@@ -356,7 +356,7 @@ describe("checkPullRequest: Check now and the timer's checks (C4)", () => {
     expect(await stored(run.id)).toEqual(run);
   });
 
-  test("delivery_run_not_found and delivery_no_pull_request ask gh nothing (4.2)", async () => {
+  test("delivery_run_not_found and delivery_no_pull_request ask gh nothing", async () => {
     expect(await checkPullRequest(context.user, context.db, UNKNOWN_ID, signal())).toMatchObject({
       ok: false,
       error: { code: "delivery_run_not_found", data: { runId: UNKNOWN_ID } },
@@ -371,7 +371,7 @@ describe("checkPullRequest: Check now and the timer's checks (C4)", () => {
     expect(existsSync(join(ghState, "calls"))).toBe(false);
   });
 
-  test("after a later run of the spec opens its own pull request, the earlier one is still checked and its merge records the earlier run merged (4.3)", async () => {
+  test("after a later run of the spec opens its own pull request, the earlier one is still checked and its merge records the earlier run merged", async () => {
     const earlier = await passedWithPullRequest();
     // The later run of the same spec, passed with its own pull request #2.
     const laterId = uuidv7();
@@ -411,7 +411,7 @@ describe("checkPullRequest: Check now and the timer's checks (C4)", () => {
   });
 });
 
-describe("a run from before 0010 (S8-12)", () => {
+describe("a run from before 0010", () => {
   test("Mark merged records merged_at and writes no line", async () => {
     const { run } = await passedRun();
     asPre0010Run(context, run.id);

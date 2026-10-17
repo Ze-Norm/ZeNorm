@@ -24,13 +24,13 @@ import { DestinationRoundPage } from "@/pages/stages/wayfinding/DestinationRound
 import { WaypointPage } from "@/pages/stages/wayfinding/WaypointPage";
 
 /**
- * A record's number in a search parameter (a spec revision, a ticket set version or a run, L100)
+ * A record's number in a search parameter (a spec revision, a ticket set version or a run)
  * or in a waypoint's path.
  */
 const RecordNumber = z.int().positive();
 
 /**
- * A stage's search parameters (spec D1), absent meaning the latest: Spec `revision`,
+ * A stage's search parameters, absent meaning the latest: Spec `revision`,
  * Tickets `version`, Delivery `run`. Unknown keys and a key on another stage are invalid.
  */
 const StageSearch = z.strictObject({
@@ -40,7 +40,7 @@ const StageSearch = z.strictObject({
 });
 type StageSearch = z.infer<typeof StageSearch>;
 
-/** The stages each spec of a map has its own of (slice 7 D11). */
+/** The stages each spec of a map has its own of. */
 const SpecStageParam = z.enum(["spec", "tickets", "delivery"]);
 
 const SEARCH_KEY_STAGE: Record<keyof StageSearch, Stage> = {
@@ -50,7 +50,7 @@ const SEARCH_KEY_STAGE: Record<keyof StageSearch, Stage> = {
 };
 
 const rootRoute = createRootRoute({
-  // An address no route matches keeps the top bar and offers the inbox (audit A6); an error the
+  // An address no route matches keeps the top bar and offers the inbox; an error the
   // shell itself throws shows the same route error page instead of the router's default.
   notFoundComponent: NotFound,
   errorComponent: RouteError,
@@ -85,7 +85,7 @@ export const projectRoute = createRoute({
   },
 });
 
-/** A project's settings: its base branch and required checks (slice 8 D12). */
+/** A project's settings: its base branch and required checks. */
 export const projectSettingsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/projects/$projectId/settings",
@@ -100,7 +100,7 @@ export const projectSettingsRoute = createRoute({
   },
 });
 
-/** The map workspace: a layout route, so the rail renders once above every stage (spec D1). */
+/** The map workspace: a layout route, so the rail renders once above every stage. */
 export const mapRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/maps/$mapId",
@@ -129,7 +129,7 @@ const mapIndexRoute = createRoute({
   },
 });
 
-/** Refuses a search key that belongs to another stage (D1). */
+/** Refuses a search key that belongs to another stage. */
 function checkStageSearch(shown: Stage, search: StageSearch): void {
   for (const [key, stage] of Object.entries(SEARCH_KEY_STAGE)) {
     if (key in search && stage !== shown) {
@@ -138,7 +138,7 @@ function checkStageSearch(shown: Stage, search: StageSearch): void {
   }
 }
 
-/** A stage of the map; Spec, Tickets and Delivery open D11's default spec (slice 7). */
+/** A stage of the map; Spec, Tickets and Delivery open the default spec `map.overview` decides. */
 export const mapStageRoute = createRoute({
   getParentRoute: () => mapRoute,
   path: "$stage",
@@ -158,7 +158,7 @@ export const mapStageRoute = createRoute({
   },
 });
 
-/** Spec, Tickets or Delivery of one spec of the map, by its number (slice 7 D11). */
+/** Spec, Tickets or Delivery of one spec of the map, by its number. */
 export const mapSpecStageRoute = createRoute({
   getParentRoute: () => mapRoute,
   path: "$stage/$specNumber",
@@ -186,10 +186,10 @@ export const mapSpecStageRoute = createRoute({
   },
 });
 
-/** The ticket page's search parameter: the run, absent meaning the latest (D10, deviation 9). */
+/** The ticket page's search parameter: the run, absent meaning the latest. */
 const TicketExecutionSearch = z.strictObject({ run: RecordNumber.optional() });
 
-/** One ticket's execution in a delivery run of one spec (slice 8 D10). */
+/** One ticket's execution in a delivery run of one spec. */
 export const ticketExecutionRoute = createRoute({
   getParentRoute: () => mapRoute,
   path: "delivery/$specNumber/$ticketId",
@@ -222,7 +222,7 @@ export const ticketExecutionRoute = createRoute({
   },
 });
 
-/** The map-level round on Wayfinding (slice 6a D9). */
+/** The map-level round on Wayfinding. */
 export const destinationRoundRoute = createRoute({
   getParentRoute: () => mapRoute,
   path: "wayfinding/destination",
@@ -234,7 +234,7 @@ export const destinationRoundRoute = createRoute({
   },
 });
 
-/** One waypoint on Wayfinding, by its number (slice 6a D9). */
+/** One waypoint on Wayfinding, by its number. */
 export const waypointRoute = createRoute({
   getParentRoute: () => mapRoute,
   path: "wayfinding/$number",

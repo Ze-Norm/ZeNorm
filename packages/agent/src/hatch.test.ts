@@ -246,12 +246,12 @@ function request(
   };
 }
 
-/** Screen 14's question on the spec it asks about (D5's boundary: a reply and no change). */
+/** A question on the spec it asks about (the boundary: a reply and no change). */
 function questionRequest(): ReplyThroughHatchRequest {
   return request({ stage: "spec", specNumber: 4, text: QUESTION }, null);
 }
 
-/** An instruction with no named target, sent from Tickets (D5: `rewrite_tickets`). */
+/** An instruction with no named target, sent from Tickets (its change: `rewrite_tickets`). */
 function instructionRequest(): ReplyThroughHatchRequest {
   return request({ stage: "tickets", specNumber: 4, text: INSTRUCTION }, null);
 }
@@ -312,7 +312,7 @@ describe("buildHatchPrompt", () => {
     expect(lines).toContain("Spec on screen: 4");
   });
 
-  test("carries the project's map suggestions and maps, titles and lines quoted (C1)", () => {
+  test("carries the project's map suggestions and maps, titles and lines quoted", () => {
     const prompt = buildHatchPrompt(questionRequest(), LIMITS);
     expect(prompt).toContain(renderedProjectContext(prompt));
     for (const expected of expectedProjectContextLines(promptNonce(prompt))) {
@@ -353,7 +353,7 @@ describe("buildHatchPrompt", () => {
     expect(buildHatchPrompt(questionRequest(), LIMITS)).not.toMatch(/^<<<REFUSED /m);
   });
 
-  test("states each D5 rule for a question and for an instruction", () => {
+  test("states each judgment rule for a question and for an instruction", () => {
     expect(HATCH_JUDGMENT_RULES.join("\n")).toMatch(/question[\s\S]*no change/);
     for (const built of [questionRequest(), instructionRequest()]) {
       const prompt = buildHatchPrompt(built, LIMITS);
@@ -390,14 +390,14 @@ describe("buildHatchPrompt", () => {
     expect(rule).toContain(SALIENT_SUGGESTION_RULE.map((line) => `  ${line}`).join("\n"));
   });
 
-  test("states that after a reopen the re-clear writes the spec, so the reply asks for no revision (L149 (a))", () => {
+  test("states that after a reopen the re-clear writes the spec, so the reply asks for no revision", () => {
     const prompt = buildHatchPrompt(instructionRequest(), LIMITS);
     expect(prompt).toContain(REOPEN_RECLEAR_RULE.join("\n"));
     const rule = prompt.indexOf(REOPEN_RECLEAR_RULE.join("\n"));
     expect(rule).toBeGreaterThan(prompt.indexOf("- reopen {"));
   });
 
-  test("states that a reopen, reword or rerun carries the message to the waypoint's next run (L162 (3))", () => {
+  test("states that a reopen, reword or rerun carries the message to the waypoint's next run", () => {
     const prompt = buildHatchPrompt(instructionRequest(), LIMITS);
     const rule = WAYPOINT_NOTE_RULE.join("\n");
     expect(prompt).toContain(rule);
@@ -405,7 +405,7 @@ describe("buildHatchPrompt", () => {
     for (const kind of ["reopen", "reword", "run_waypoint"]) expect(rule).toContain(kind);
   });
 
-  test("renders a waiting waypoint's unanswered report for an accept_report gist (L162 (4))", () => {
+  test("renders a waiting waypoint's unanswered report for an accept_report gist", () => {
     const prompt = buildHatchPrompt(instructionRequest(), LIMITS);
     expect(prompt).toContain(
       "Unanswered report summary: realpath resolves symlinks on macOS; Linux was not checked.",
@@ -423,7 +423,7 @@ describe("buildHatchPrompt", () => {
     expect(buildHatchPrompt(none, LIMITS)).not.toContain("Unanswered report summary:");
   });
 
-  test("names the approved specs, and the rule promises no revision of one (L156 (2))", () => {
+  test("names the approved specs, and the rule promises no revision of one", () => {
     const draft = instructionRequest();
     expect(buildHatchPrompt(draft, LIMITS).split("\n")).toContain("Approved specs: none");
     const approved: ReplyThroughHatchRequest = {
@@ -437,7 +437,7 @@ describe("buildHatchPrompt", () => {
     expect(prompt.indexOf("Approved specs: 4")).toBeLessThan(prompt.indexOf(rule));
   });
 
-  test("names the map's open waits with their notes, and the rule answers a waited spec with no change (E-4)", () => {
+  test("names the map's open waits with their notes, and the rule answers a waited spec with no change", () => {
     const none = buildHatchPrompt(instructionRequest(), LIMITS);
     expect(none.split("\n")).toContain(openWaitsLine([]));
     const wait = { specNumber: 7, note: "Accept symlinked folders too." };
@@ -448,7 +448,7 @@ describe("buildHatchPrompt", () => {
     expect(rule).toMatch(/waits on[\s\S]*no change[\s\S]*not saved/);
   });
 
-  test("an approved or delivered spec is changed through revise_spec, never refused as approved (L213 D-3)", () => {
+  test("an approved or delivered spec is changed through revise_spec, never refused as approved", () => {
     const draft = instructionRequest();
     const approved: ReplyThroughHatchRequest = {
       ...draft,
@@ -465,7 +465,7 @@ describe("buildHatchPrompt", () => {
   });
 });
 
-/** The request with waypoint 1 a Grilling waypoint stopped after a failed retry (S6a-12). */
+/** The request with waypoint 1 a Grilling waypoint stopped after a failed retry. */
 function stoppedGrillingRequest(text: string): ReplyThroughHatchRequest {
   const base = request({ stage: "wayfinding", specNumber: null, text }, null);
   return {
@@ -478,8 +478,8 @@ function stoppedGrillingRequest(text: string): ReplyThroughHatchRequest {
   };
 }
 
-describe("stopped waypoints and held ticket sets (slice 7c D8, L164)", () => {
-  test("S7c-14: marks a stopped waypoint on its status line and in its block", () => {
+describe("stopped waypoints and held ticket sets", () => {
+  test("marks a stopped waypoint on its status line and in its block", () => {
     const prompt = buildHatchPrompt(stoppedGrillingRequest("Why did waypoint 1 stop?"), LIMITS);
     const lines = prompt.split("\n");
     expect(lines).toContain("Waypoint 1 status: open, stopped");
@@ -490,7 +490,7 @@ describe("stopped waypoints and held ticket sets (slice 7c D8, L164)", () => {
     expect(buildHatchPrompt(questionRequest(), LIMITS)).not.toContain("Stopped:");
   });
 
-  test("S7c-14: run_waypoint runs a waiting or stopped waypoint of any kind (L157)", () => {
+  test("run_waypoint runs a waiting or stopped waypoint of any kind", () => {
     const prompt = buildHatchPrompt(stoppedGrillingRequest("Run waypoint 1 again."), LIMITS);
     expect(prompt).toContain(
       "- run_waypoint {waypoint}: a waypoint waiting on the person or stopped, of any kind, runs again",
@@ -498,7 +498,7 @@ describe("stopped waypoints and held ticket sets (slice 7c D8, L164)", () => {
     expect(prompt).not.toContain("(an unanswered report or a failed task) runs again");
   });
 
-  test("S7c-14: a reply about a stopped waypoint it does not rerun points at Try again or a note", () => {
+  test("a reply about a stopped waypoint it does not rerun points at Try again or a note", () => {
     const prompt = buildHatchPrompt(stoppedGrillingRequest("Why did waypoint 1 stop?"), LIMITS);
     const rule = STOPPED_WAYPOINT_RULE.join("\n");
     expect(prompt).toContain(rule);
@@ -508,7 +508,7 @@ describe("stopped waypoints and held ticket sets (slice 7c D8, L164)", () => {
     expect(rule).toMatch(/never say it will run/);
   });
 
-  test("D8: a held set's review and escalated findings are listed, and the held-set rules stated", () => {
+  test("a held set's review and escalated findings are listed, and the held-set rules stated", () => {
     const base = instructionRequest();
     const held: ReplyThroughHatchRequest = {
       ...base,
@@ -665,7 +665,7 @@ describe("claudeCodeReplyThroughHatch", () => {
   });
 });
 
-describe("the map's code survey (harness change #1)", () => {
+describe("the map's code survey", () => {
   test("each prompt carries the survey as FACTS, or says the map has none", () => {
     const builds = [
       (survey: CodeSurvey | null) => buildHatchPrompt({ ...questionRequest(), survey }, LIMITS),
@@ -713,7 +713,7 @@ describe("the hatch reply's lengths follow the model's limits (agent.models)", (
   });
 });
 
-describe("the hatch prompt's destination rounds (DR-16, D7)", () => {
+describe("the hatch prompt's destination rounds", () => {
   test("renders the map-level rounds right after the destination", () => {
     expectRoundsAfterDestination(buildHatchPrompt(questionRequest(), LIMITS));
   });

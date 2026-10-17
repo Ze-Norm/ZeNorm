@@ -33,10 +33,9 @@ const sourceKindNames: Record<ResearchSourceKind, string> = {
 };
 
 /**
- * A waiting waypoint's box (spec D9): "Research could not answer." with the gap, or "Task
- * failed." with what was done and what stopped it, in the needs-you tone (a saved outcome waiting
- * on the person, not a failure: L122); then the line saying the agent waits, and **Try again** on
- * the waiting run (S6b-12, L115).
+ * A waiting waypoint's box: "Research could not answer." with the gap, or "Task failed." with
+ * what was done and what stopped it, in the needs-you tone (a saved outcome waiting on the person,
+ * not a failure); then the line saying the agent waits, and **Try again** on the waiting run.
  */
 export function WaitingBox({
   waypoint,
@@ -98,7 +97,7 @@ function FailedTaskAlert({ outcome }: { outcome: WaypointTaskOutcome }) {
 }
 
 /**
- * A Research waypoint's reports (spec D9): the latest under **Report**, the summary of an
+ * A Research waypoint's reports: the latest under **Report**, the summary of an
  * unresolved one first (a resolved one's is the Findings box), then "Earlier reports" oldest first.
  */
 export function ResearchReports({ waypoint }: { waypoint: WayfindingWaypoint }) {
@@ -217,7 +216,7 @@ function NoteList({ title, notes }: { title: string; notes: readonly string[] })
   );
 }
 
-/** A resolved Task waypoint's "What was done" (spec D9): its `done` outcome's action. */
+/** A resolved Task waypoint's "What was done": its `done` outcome's action. */
 export function WhatWasDone({ waypoint }: { waypoint: WayfindingWaypoint }) {
   const outcome = latest(waypoint.taskOutcomes, "task outcome");
   if (outcome.outcome !== "done") {
@@ -231,7 +230,7 @@ export function WhatWasDone({ waypoint }: { waypoint: WayfindingWaypoint }) {
   );
 }
 
-/** A waypoint ruled out of scope (spec D9): its reason under "Out of scope". */
+/** A waypoint ruled out of scope: its reason under "Out of scope". */
 export function ExclusionReason({ waypoint }: { waypoint: WayfindingWaypoint }) {
   if (waypoint.exclusion === null) {
     throw new Error(`Out-of-scope waypoint ${waypoint.id} has no Out of scope line`);
@@ -245,9 +244,9 @@ export function ExclusionReason({ waypoint }: { waypoint: WayfindingWaypoint }) 
 }
 
 /**
- * A waypoint opened by the consistency pass (spec D9): the waypoints it names, with the
- * explanation folded under Evidence; or one a planning review sent on (slice 7 L136 (a)), in the
- * same style: the spec with the clauses and criteria named, the explanation folded under Evidence.
+ * A waypoint opened by the consistency pass: the waypoints it names, with the explanation folded
+ * under Evidence; or one a planning review sent on, in the same style: the spec with the clauses
+ * and criteria named, the explanation folded under Evidence.
  */
 export function PassFinding({
   detail,

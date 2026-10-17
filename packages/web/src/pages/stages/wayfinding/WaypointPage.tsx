@@ -40,7 +40,7 @@ import { TouchesCard } from "./TouchesCard.tsx";
 import { waypointByNumber } from "./waits.ts";
 
 /**
- * `wayfinding/$number`: one waypoint (spec D9, D10): its open round, or the waypoint with its
+ * `wayfinding/$number`: one waypoint: its open round, or the waypoint with its
  * resolution and the record of its rounds. An unknown number is the route's error.
  */
 export function WaypointPage({ mapId, number }: { mapId: string; number: number }) {
@@ -79,7 +79,7 @@ export function WaypointPage({ mapId, number }: { mapId: string; number: number 
 }
 
 /**
- * The waypoint's head as every stage's (UX review P2-4, P1-3), above Wayfinding's index: its
+ * The waypoint's head as every stage's, above Wayfinding's index: its
  * number and kind in the eyebrow, with the open round's number while one waits on you; the
  * question as the lede, clamped to 3 lines (the round asks it with its intro and options, the
  * resolution answers it); its state as badges at the right.
@@ -142,7 +142,7 @@ function WaypointHead({
 }
 
 /**
- * The map's next action that tries the waypoint's stopped run again (L112), or null when its run
+ * The map's next action that tries the waypoint's stopped run again, or null when its run
  * is not stopped. A stopped run with no such action is a status the overview cannot give.
  */
 function stoppedAction(detail: MapOverviewDetail, waypoint: WayfindingWaypoint): NextAction | null {
@@ -158,8 +158,8 @@ function stoppedAction(detail: MapOverviewDetail, waypoint: WayfindingWaypoint):
 }
 
 /**
- * The waiting run that the map's next action for this waypoint tries again (slice 6b D7, L103,
- * L115), or null when the waypoint does not wait on the person.
+ * The waiting run that the map's next action for this waypoint tries again, or null when the
+ * waypoint does not wait on the person.
  */
 function waitingAction(
   detail: MapOverviewDetail,
@@ -177,7 +177,7 @@ function waitingAction(
   return waiting;
 }
 
-/** The blocked waypoint's line (6a D9, 6b D9), worded by its kind. */
+/** The blocked waypoint's line, worded by its kind. */
 function blockedText(waypoint: WayfindingWaypoint, waits: readonly WayfindingWaypoint[]): string {
   const names = waits.map((blocker) => `“${blocker.title}”`).join(" and ");
   const are = waits.length === 1 ? "is" : "are";
@@ -216,7 +216,7 @@ function workingText(waypoint: WayfindingWaypoint): string {
   }
 }
 
-/** The demo's amber working box under the Question while the waypoint's run works (D9). */
+/** The amber working box under the Question while the waypoint's run works. */
 function WorkingBox({ waypoint }: { waypoint: WayfindingWaypoint }) {
   return (
     <Alert variant="work" role="status" aria-label="Agent working">

@@ -146,12 +146,12 @@ async function migrationsCopy(
   return folder;
 }
 
-/** Every shipped migration but the last, as an earlier build shipped them (5.3). */
+/** Every shipped migration but the last, as an earlier build shipped them. */
 function earlierMigrations(): Promise<string> {
   return migrationsCopy("migrations-earlier", (shipped) => shipped.slice(0, -1));
 }
 
-/** The shipped migrations and one stand-in after the last, as a newer build ships them (5.2). */
+/** The shipped migrations and one stand-in after the last, as a newer build ships them. */
 async function newerMigrations(): Promise<string> {
   const folder = await migrationsCopy("migrations-newer", (shipped) => {
     const last = shipped.at(-1);
@@ -176,7 +176,7 @@ function appliedMigrations(): unknown[] {
   return rows;
 }
 
-/** The startup sweeps' lines (S9-4, S9-5). */
+/** The startup sweeps' lines. */
 let logLines: string[];
 function log(line: string): void {
   logLines.push(line);
@@ -388,7 +388,7 @@ describe("startup", () => {
       subject: "delivery.checkTimeoutMinutes",
     },
     {
-      name: "a delivery section with no executor (S9-22)",
+      name: "a delivery section with no executor",
       config: () => ({
         server: { host: "127.0.0.1", port: 4310 },
         dataDir,
@@ -399,7 +399,7 @@ describe("startup", () => {
       subject: "delivery.executor",
     },
     {
-      name: "no plugins object (S9-18)",
+      name: "no plugins object",
       config: () => ({ server: { host: "127.0.0.1", port: 4310 }, dataDir, agent, delivery }),
       subject: "plugins",
     },
@@ -462,7 +462,7 @@ describe("startup", () => {
       subject: "agent.models.claude-sonnet-5-5.clauseText.max",
     },
     {
-      name: "a delivery section without executor (QA-2: required, no default)",
+      name: "a delivery section without executor (required, no default)",
       config: () => ({
         server: { host: "127.0.0.1", port: 4310 },
         dataDir,
@@ -512,7 +512,7 @@ describe("startup", () => {
     }
   });
 
-  test("sweeps a stale session record and an orphaned run folder before returning (S9-4, S9-5)", async () => {
+  test("sweeps a stale session record and an orphaned run folder before returning", async () => {
     // A pid that has exited: the sweep removes its record without a signal.
     const exited = spawn("/usr/bin/true");
     await once(exited, "exit");
@@ -567,7 +567,7 @@ describe("startup", () => {
     expect(await startupCode(viaEnv())).toBeNull();
   });
 
-  test("deletes every change feed row an earlier server left, and issues no id again (CR9b-17)", async () => {
+  test("deletes every change feed row an earlier server left, and issues no id again", async () => {
     migratedWith((db) => {
       for (let row = 0; row < 3; row += 1) {
         db.$client
@@ -591,7 +591,7 @@ describe("startup", () => {
     { name: "says signed out", script: SIGNED_OUT },
     { name: "fails without a status", script: "exit 1" },
   ])(
-    "agent_not_logged_in when claude auth status $name, before the database is opened (C5)",
+    "agent_not_logged_in when claude auth status $name, before the database is opened",
     async ({ script }) => {
       await writeClaude(agent.claudePath, script);
       expect(await startupCode(viaEnv())).toEqual({
@@ -602,7 +602,7 @@ describe("startup", () => {
     },
   );
 
-  test("database_newer_than_build: a database a newer build migrated is left unchanged (5.2)", async () => {
+  test("database_newer_than_build: a database a newer build migrated is left unchanged", async () => {
     const opened = openDatabase(join(dataDir, DATABASE_FILE));
     if (!opened.ok) throw new Error(opened.error.message);
     const migrated = migrateDatabase(opened.value, await newerMigrations());
@@ -659,14 +659,14 @@ describe("startup", () => {
     return dbPath;
   }
 
-  test("user_missing when the users table has no row (S9-10)", async () => {
+  test("user_missing when the users table has no row", async () => {
     const dbPath = migratedWith((db) => {
       db.delete(users).run();
     });
     expect(await startupCode(viaEnv())).toEqual({ code: "user_missing", subject: dbPath });
   });
 
-  test("user_ambiguous when the users table has more than one row (S9-10)", async () => {
+  test("user_ambiguous when the users table has more than one row", async () => {
     const dbPath = migratedWith((db) => {
       db.insert(users)
         .values({ id: "0".repeat(32), createdAt: new Date().toISOString() })
@@ -676,7 +676,7 @@ describe("startup", () => {
   });
 });
 
-describe("startZeNorm (S9-18, S9-22)", () => {
+describe("startZeNorm", () => {
   function zenormInput(): ZeNormInput {
     return {
       ...viaEnv(),
@@ -700,7 +700,7 @@ describe("startZeNorm (S9-18, S9-22)", () => {
       code: "executor_unknown",
       subject: "remote",
     });
-    // Refused before the database is opened or migrated (QA-1): the empty dataDir stays empty.
+    // Refused before the database is opened or migrated: the empty dataDir stays empty.
     expect(await readdir(dataDir)).toEqual([]);
   });
 
@@ -717,7 +717,7 @@ describe("startZeNorm (S9-18, S9-22)", () => {
     expect(await readdir(dataDir)).toEqual([]);
   });
 
-  test("a config whose delivery section has only today's keys and no gh key starts the app with the pull request writer (2.4, 3.3)", async () => {
+  test("a config whose delivery section has only today's keys and no gh key starts the app with the pull request writer", async () => {
     expect(Object.keys(delivery).sort()).toEqual([
       "checkTimeoutMinutes",
       "effort",
@@ -754,7 +754,7 @@ describe("startZeNorm (S9-18, S9-22)", () => {
     await result.value.app.stopPlugins();
   });
 
-  test("the app serves the Host of the config's server section and no other (1.3)", async () => {
+  test("the app serves the Host of the config's server section and no other", async () => {
     await writeConfig({
       server: { host: "zenorm.example", port: 4312 },
       dataDir,
@@ -789,7 +789,7 @@ describe("startZeNorm (S9-18, S9-22)", () => {
     await app.stopPlugins();
   });
 
-  test("a database an earlier build migrated migrates forward and serves its maps (5.3)", async () => {
+  test("a database an earlier build migrated migrates forward and serves its maps", async () => {
     const projectId = "01900000-0000-7000-8000-000000000001";
     const mapId = "01900000-0000-7000-8000-000000000002";
     const opened = openDatabase(join(dataDir, DATABASE_FILE));
@@ -838,7 +838,7 @@ describe("startZeNorm (S9-18, S9-22)", () => {
   });
 });
 
-describe("shutDown (L197 item 12, spec D2)", () => {
+describe("shutDown", () => {
   test("stops planning and delivery runs together, and closes the database only after both and the server", async () => {
     const steps: string[] = [];
     const settle: Record<"planning" | "delivery", () => void> = {

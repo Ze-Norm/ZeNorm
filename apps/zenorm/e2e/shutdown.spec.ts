@@ -12,7 +12,7 @@ import { freePort, recordServer as recordServerFolder, serverRecordFile } from "
 import { SONNET_LIMITS } from "./model-limits.ts";
 
 /**
- * S9-2's timing (L198, L200): a server stopped by SIGTERM while a chart run is in flight stops the
+ * The shutdown timing: a server stopped by SIGTERM while a chart run is in flight stops the
  * planning run, then closes the database, and exits in time without writing to a closed database.
  * Each case spawns its own `node src/main.ts` on a free port with a scratch config whose
  * `claudePath` is a `/bin/sh` stand-in, so it uses no worker server (`worker-server.ts`): this
@@ -183,7 +183,7 @@ async function serverWithChartInFlight(onTerm: OnTerm): Promise<{
 }
 
 /**
- * Records the server's pid with its scratch folder (CR-10): a worker killed before `afterEach`
+ * Records the server's pid with its scratch folder: a worker killed before `afterEach`
  * leaves the record for the global teardown, which kills the server by that pid only.
  */
 function recordServer(child: ChildProcess): void {
@@ -204,7 +204,7 @@ function groupGone(pid: number): boolean {
   }
 }
 
-/** Every recorded stand-in's process group is gone once the server has exited (S9-1, S9-3; CR-9). */
+/** Every recorded stand-in's process group is gone once the server has exited. */
 async function expectStandInsGone(): Promise<void> {
   if (current === null) throw new Error("The case was not created");
   const pids = standInPids(current.pidsFile);
@@ -240,7 +240,7 @@ test.afterEach(async () => {
   if (server?.pid !== undefined) rmSync(serverRecordFile(server.pid), { force: true });
   server = null;
   if (current !== null) {
-    // The stand-in leads its own process group (S9-3); kill the group of each recorded pid.
+    // The stand-in leads its own process group; kill the group of each recorded pid.
     for (const pid of standInPids(current.pidsFile)) {
       try {
         process.kill(-pid, "SIGKILL");
@@ -253,7 +253,7 @@ test.afterEach(async () => {
   current = null;
 });
 
-test("SIGTERM with a chart in flight on a CLI that exits on SIGTERM exits within 5 s (S9-2)", async () => {
+test("SIGTERM with a chart in flight on a CLI that exits on SIGTERM exits within 5 s", async () => {
   const { child, stderr } = await serverWithChartInFlight("exit");
 
   const { ms, code } = await stopServer(child);
@@ -264,13 +264,13 @@ test("SIGTERM with a chart in flight on a CLI that exits on SIGTERM exits within
   await expectStandInsGone();
 });
 
-test("SIGTERM with a chart in flight on a CLI that ignores SIGTERM exits within 15 s (S9-2)", async () => {
+test("SIGTERM with a chart in flight on a CLI that ignores SIGTERM exits within 15 s", async () => {
   const { child, stderr } = await serverWithChartInFlight("ignore");
 
   const { ms, code } = await stopServer(child);
 
   expect(code).toBe(0);
-  // The stand-in ignored the SIGTERM, so the stop waited out the agent's 10 s grace (CR-9).
+  // The stand-in ignored the SIGTERM, so the stop waited out the agent's 10 s grace.
   expect(ms).toBeGreaterThanOrEqual(9_000);
   expect(ms).toBeLessThan(15_000);
   expect(stderr()).not.toContain(CLOSED_DATABASE);

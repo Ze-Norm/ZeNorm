@@ -1,4 +1,4 @@
-// Fails `no-restricted-syntax`: a `??=` or `||=` fallback to a literal, `[]` or `{}` (CR-6).
+// Fails `no-restricted-syntax`: a `??=` or `||=` fallback to a literal, `[]` or `{}`.
 export function assigned(options: {
   name?: string;
   label?: string;

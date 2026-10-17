@@ -1,9 +1,8 @@
 import { z } from "zod";
 
 /**
- * What both entries of the example plugin share (slice 9 spec D17): the manifest the web compares
- * with `GET /plugins`, and the body of its raw route. Nothing here touches Node, so the web entry
- * imports it too.
+ * What both entries of the example plugin share: the manifest the web compares with `GET /plugins`,
+ * and the body of its raw route. Nothing here touches Node, so the web entry imports it too.
  */
 export const EXAMPLE_PLUGIN = {
   id: "example",
@@ -17,10 +16,10 @@ export const EXAMPLE_EXECUTOR = "example";
 /** The raw route's path under `/plugins/example/`. */
 export const COUNTS_PATH = `/plugins/${EXAMPLE_PLUGIN.id}/counts`;
 
-/** The orchestrator line the executor emits first (D17). */
+/** The orchestrator line the executor emits first. */
 export const EXAMPLE_EXECUTOR_LINE = "Example executor: no agent runs; each ticket is one commit.";
 
-/** The admission refusal's reason (D17). */
+/** The admission refusal's reason. */
 export const REFUSED_DELIVERY_REASON =
   "The example plugin refuses delivery runs for this project (refusedDeliveryProjectNames).";
 

@@ -44,10 +44,10 @@ export function fogCountLine(count: number): string {
 }
 
 /**
- * The prompt of a map's fog run (harness change #4): the map, its code survey, every resolved
- * waypoint with who stands behind it, and its fog, each item to be settled exactly once. Every text
- * the person or an earlier run wrote sits in a block under one fresh nonce per call (L63). The
- * lengths are the run's model's (`limits`).
+ * The prompt of a map's fog run: the map, its code survey, every resolved waypoint with who stands
+ * behind it, and its fog, each item to be settled exactly once. Every text the person or an earlier
+ * run wrote sits in a block under one fresh nonce per call. The lengths are the run's model's
+ * (`limits`).
  */
 export function buildFogPrompt(request: SettleFogRequest, limits: ModelLimits): string {
   const nonce = randomUUID();
@@ -142,9 +142,8 @@ export function buildFogPrompt(request: SettleFogRequest, limits: ModelLimits): 
 }
 
 /**
- * The planning agent's fog run (harness change #4) through the Claude Code CLI at
- * `config.claudePath`: it may read the repository and changes nothing, under the configured turns
- * and timeout.
+ * The planning agent's fog run through the Claude Code CLI at `config.claudePath`: it may read the
+ * repository and changes nothing, under the configured turns and timeout.
  */
 export function claudeCodeSettleFog(config: PlanningRunConfig): SettleFog {
   const output = structuredOutput(fogSettlementOutcome(config.limits));

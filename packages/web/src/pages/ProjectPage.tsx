@@ -23,7 +23,7 @@ import { MapRows } from "@/pages/inbox/MapRows";
 import { DeliveryUnavailableCard, FolderMissingAlert } from "@/pages/project/ProjectAlerts";
 import { SpecRows } from "@/pages/project/SpecRows";
 
-/** Why New map is disabled: the project's folder is gone (spec S5-6). */
+/** Why New map is disabled: the project's folder is gone. */
 function newMapDisabledReason(project: ProjectDetail): string | null {
   switch (project.folder) {
     case "present":
@@ -91,9 +91,9 @@ function CompletedMaps({ overviews }: { overviews: readonly MapOverview[] }) {
 }
 
 /**
- * This project's maps, from `map.overviews` (spec D6), under the Inbox's groups with the finished
- * ones folded into Completed, and its specs, from `project.get` (slice 7
- * D12). When a map's Spec stage moves, read the project again.
+ * This project's maps, from `map.overviews`, under the Inbox's groups with the finished ones
+ * folded into Completed, and its specs, from `project.get`. When a map's Spec stage moves, read
+ * the project again.
  */
 function ProjectMaps({ project }: { project: ProjectDetail }) {
   const overviews = useMapOverviews();
@@ -164,13 +164,13 @@ function ProjectMaps({ project }: { project: ProjectDetail }) {
 
 /**
  * A project: its name, folder and base branch, **New map** opening the composer with the project
- * fixed, **Settings** (slice 8 D12), the folder-missing alert, why Start delivery is unavailable,
- * its maps, and one spec row per map with a spec revision (spec D6).
+ * fixed, **Settings**, the folder-missing alert, why Start delivery is unavailable, its maps, and
+ * one spec row per map with a spec revision.
  */
 export function ProjectPage({ projectId }: { projectId: string }) {
   const project = useQuery(orpc.project.get.queryOptions({ input: { projectId } }));
   const error = shownQueryError(project.error);
-  // A refusal (`project_not_found`, `access_denied`) is the error page, with its title (P2-19).
+  // A refusal (`project_not_found`, `access_denied`) is the error page, with its title.
   const refusal = error !== null && isDefinedError(error) ? error : null;
   useDocumentTitle(
     pageTitle(

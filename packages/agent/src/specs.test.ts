@@ -536,7 +536,7 @@ describe("the four skill-following calls", () => {
     expect(clean).toEqual({ ok: true, value: passed });
   });
 
-  test("DraftSpecs returns zero specs as parsed: core decides whether zero is right (S7b-8)", async () => {
+  test("DraftSpecs returns zero specs as parsed: core decides whether zero is right", async () => {
     const result = await draftSpecsWith(config(writeStandIn({ specs: [], waits: [] })), skill)(
       draftSpecsRequest(),
       SESSION,
@@ -611,7 +611,7 @@ describe("the four skill-following calls", () => {
   });
 });
 
-describe("schema roots (L107)", () => {
+describe("schema roots", () => {
   function roots(jsonSchema: string): string {
     const parsed = z
       .looseObject({ properties: z.record(z.string(), z.unknown()) })
@@ -645,7 +645,7 @@ describe("schema roots (L107)", () => {
     expect(new Set([...fresh, ...others]).size).toBe(fresh.length + others.length);
   });
 
-  test("the tickets review's roots are the spec review's but verified: the prompt line tells them apart (slice 7c D2)", () => {
+  test("the tickets review's roots are the spec review's but verified: the prompt line tells them apart", () => {
     expect(roots(reviewTicketSetJsonSchema(LIMITS))).toBe("findings,summary");
     expect(roots(reviewSpecJsonSchema(LIMITS))).toBe("findings,summary,verified");
     expect(reviewTicketSetJsonSchema(LIMITS)).not.toBe(reviewSpecJsonSchema(LIMITS));
@@ -1007,7 +1007,7 @@ describe("the earlier findings (the repair loop's memory)", () => {
   const ticketsGrouped =
     /EARLIER FINDINGS \(the ticket set's earlier failed reviews, by version\):\n<<<EARLIER-FINDINGS [0-9a-f-]{36}\nVersion 1:\n- contradiction \[T1, 1\.1\]: Builds in web\.\nVersion 2:\n- unsupported_evidence \[\]: Not in the code\.\nEARLIER-FINDINGS [0-9a-f-]{36}>>>/;
 
-  test("the tickets review and the rewrite read the set's computed shape (RC5)", () => {
+  test("the tickets review and the rewrite read the set's computed shape", () => {
     const [ticket] = set.tickets;
     if (ticket === undefined) throw new Error("The set has no ticket");
     const tickets = [
@@ -1084,7 +1084,7 @@ describe("the prompts' plain lines (the e2e stand-in keys on them)", () => {
     expectIdeaInNonceBlock(prompt);
   });
 
-  test("ReviseSpec and DraftSpecs name the spec's retired ids (E-3, E-6); core refuses a broken id rule", () => {
+  test("ReviseSpec and DraftSpecs name the spec's retired ids; core refuses a broken id rule", () => {
     const revise = buildReviseSpecPrompt(
       { ...reviseRequest(), retiredIds: ["C3", "3.1", "2.3"] },
       LIMITS,
@@ -1105,7 +1105,7 @@ describe("the prompts' plain lines (the e2e stand-in keys on them)", () => {
     expect(draft).toContain("Project spec 4 retired ids: 2.4");
   });
 
-  test("ReviseSpec asks for removed; ReviewSpec judges the whole revision and reads each removal's reason (RC4)", () => {
+  test("ReviseSpec asks for removed; ReviewSpec judges the whole revision and reads each removal's reason", () => {
     const revise = buildReviseSpecPrompt(reviseRequest(), LIMITS);
     expect(revise).toContain(REMOVED_RULE.join("\n"));
     const review = buildReviewSpecPrompt(
@@ -1141,7 +1141,7 @@ describe("the prompts' plain lines (the e2e stand-in keys on them)", () => {
     );
   });
 
-  test("ReviewSpec carries the person's rejection, which outranks earlier resolutions (L141)", () => {
+  test("ReviewSpec carries the person's rejection, which outranks earlier resolutions", () => {
     const prompt = buildReviewSpecPrompt(
       {
         ...reviewRequest(),
@@ -1154,7 +1154,7 @@ describe("the prompts' plain lines (the e2e stand-in keys on them)", () => {
     expect(buildReviewSpecPrompt(reviewRequest(), LIMITS)).not.toContain("<<<REJECTION");
   });
 
-  test("ReviseSpec carries the problem its previous attempt was refused for (L141)", () => {
+  test("ReviseSpec carries the problem its previous attempt was refused for", () => {
     const prompt = buildReviseSpecPrompt(
       {
         ...reviseRequest(),
@@ -1168,7 +1168,7 @@ describe("the prompts' plain lines (the e2e stand-in keys on them)", () => {
     expect(buildReviseSpecPrompt(reviseRequest(), LIMITS)).not.toContain("<<<REFUSED");
   });
 
-  test("ReviseSpec carries a note as its feedback, which outranks earlier resolutions (S7b-11)", () => {
+  test("ReviseSpec carries a note as its feedback, which outranks earlier resolutions", () => {
     const prompt = buildReviseSpecPrompt(
       {
         ...reviseRequest(),
@@ -1184,7 +1184,7 @@ describe("the prompts' plain lines (the e2e stand-in keys on them)", () => {
     expect(prompt).not.toContain("<<<REJECTION");
   });
 
-  test("ReviewSpec carries each note-directed revision and states its rank (S7b-11)", () => {
+  test("ReviewSpec carries each note-directed revision and states its rank", () => {
     const prompt = buildReviewSpecPrompt(
       {
         ...reviewRequest(),
@@ -1204,7 +1204,7 @@ describe("the prompts' plain lines (the e2e stand-in keys on them)", () => {
     expect(none).not.toContain("<<<NOTE");
   });
 
-  test("DraftSpecs carries the problem its previous attempt was refused for, and nothing when null (S7b-15)", () => {
+  test("DraftSpecs carries the problem its previous attempt was refused for, and nothing when null", () => {
     const prompt = buildDraftSpecsPrompt(
       {
         ...draftSpecsRequest(),
@@ -1221,7 +1221,7 @@ describe("the prompts' plain lines (the e2e stand-in keys on them)", () => {
     expect(none).not.toContain("<<<REFUSED");
   });
 
-  test("DraftSpecs carries a spec's note feedback on a re-clear (S7b-11)", () => {
+  test("DraftSpecs carries a spec's note feedback on a re-clear", () => {
     const [spec] = draftSpecsRequest().specs;
     if (spec === undefined) throw new Error("fixture has a spec");
     const lines = buildDraftSpecsPrompt(
@@ -1268,8 +1268,8 @@ describe("the prompts' plain lines (the e2e stand-in keys on them)", () => {
   });
 });
 
-describe("the tickets review prompt (slice 7c D2, D3)", () => {
-  test("carries the version, the approved revision's ids, the skill path and each D3 rule", () => {
+describe("the tickets review prompt", () => {
+  test("carries the version, the approved revision's ids, the skill path and each review rule", () => {
     const prompt = buildReviewTicketSetPrompt(
       ticketsReviewRequest(),
       "/abs/skills/review/SKILL.md",
@@ -1280,7 +1280,7 @@ describe("the tickets review prompt (slice 7c D2, D3)", () => {
     expect(lines).toContain(
       "Follow the Tickets review section of the skill at /abs/skills/review/SKILL.md.",
     );
-    // L173 (a): the idea, in its nonce block, as the spec review's prompt carries it.
+    // The idea, in its nonce block, as the spec review's prompt carries it.
     expectIdeaInNonceBlock(prompt);
     expect(lines).toContain("Spec 1, approved revision 2:");
     expect(lines).toContain("Revision criterion ids: 1.1, 1.2, 2.1");
@@ -1302,7 +1302,7 @@ describe("the tickets review prompt (slice 7c D2, D3)", () => {
   });
 });
 
-describe("the To Tickets repair request (slice 7c D4)", () => {
+describe("the To Tickets repair request", () => {
   test("a review repair renders the findings and sends no REASON block", () => {
     const base = ticketsRequest();
     if (base.rewrite === null) throw new Error("fixture rewrites");
@@ -1334,7 +1334,7 @@ describe("the To Tickets repair request (slice 7c D4)", () => {
     expect(prompt).not.toContain("outranks the review findings");
   });
 
-  test("a reason beside findings is stated as outranking them (L141)", () => {
+  test("a reason beside findings is stated as outranking them", () => {
     const base = ticketsRequest();
     if (base.rewrite === null) throw new Error("fixture rewrites");
     const prompt = buildDraftTicketSetPrompt(
@@ -1356,7 +1356,7 @@ describe("the To Tickets repair request (slice 7c D4)", () => {
   });
 });
 
-describe("directed versions (L180 (2))", () => {
+describe("directed versions", () => {
   test("the tickets review carries each directed version's ask in its block and counts it as traced", () => {
     const prompt = buildReviewTicketSetPrompt(
       { ...ticketsReviewRequest(), directedVersions },
@@ -1410,7 +1410,7 @@ describe("directed versions (L180 (2))", () => {
 });
 
 describe("the product skills", () => {
-  test("live in the skills folder beside the repository's, and state D2, D5 and the backtick rule", () => {
+  test("live in the skills folder beside the repository's, and state the content fields, the slicing rules and the backtick rule", () => {
     for (const path of [
       PLANNING_SKILLS.toSpec,
       PLANNING_SKILLS.planningReview,
@@ -1500,7 +1500,7 @@ describe("the product skills", () => {
   });
 });
 
-// Slice 8b D6, D8: a later map's revision. Each new request field reaches its prompt.
+// A later map's revision. Each new request field reaches its prompt.
 const touch = {
   specNumber: 4,
   specTitle: "Count words",
@@ -1591,7 +1591,7 @@ const touchingWaypoint = {
   resolution: "When their real paths match.",
 };
 
-describe("a later map's revision (slice 8b D6, D8)", () => {
+describe("a later map's revision", () => {
   test("DraftSpecs carries the project specs with holds, each waypoint's touches and the open waits", () => {
     const prompt = buildDraftSpecsPrompt(
       {
@@ -1612,7 +1612,7 @@ describe("a later map's revision (slice 8b D6, D8)", () => {
     expect(prompt).toMatch(/^<<<SPEC-4-REVISION-2 \S+$/m);
   });
 
-  test("a held spec names its latest approved revision, its criterion ids and its text (L213 D-5)", () => {
+  test("a held spec names its latest approved revision, its criterion ids and its text", () => {
     const prompt = buildDraftSpecsPrompt(
       {
         ...draftSpecsRequest(),
@@ -1648,7 +1648,7 @@ describe("a later map's revision (slice 8b D6, D8)", () => {
     expect(prompt).toContain(touchLine(touch));
   });
 
-  // S8b-16 (N-1): a release run is offered only the sources core accepts for it.
+  // A release run is offered only the sources core accepts for it.
   test("ReviseSpec: a decision-born wait cites waypoints or the destination, never a note", () => {
     const prompt = buildReviseSpecPrompt(
       {
@@ -1677,7 +1677,7 @@ describe("a later map's revision (slice 8b D6, D8)", () => {
     expect(prompt).not.toContain("Cite no note for it.");
   });
 
-  test("ReviewSpec carries touches, open waits, before's delivery and the S8b-17 rules", () => {
+  test("ReviewSpec carries touches, open waits, before's delivery and the revision review rules", () => {
     const prompt = buildReviewSpecPrompt(
       {
         ...reviewRequest(),
@@ -1693,7 +1693,7 @@ describe("a later map's revision (slice 8b D6, D8)", () => {
     expect(buildReviewSpecPrompt(reviewRequest(), LIMITS)).toContain(previousDeliveryLine(null));
   });
 
-  test("ReviewSpec names the changes since the approved revision; unchanged clauses are context (L213 D-6)", () => {
+  test("ReviewSpec names the changes since the approved revision; unchanged clauses are context", () => {
     const changes = {
       since: 2,
       writer: { kind: "another-map" as const, mapTitle: "Trim and collapse" },
@@ -1731,7 +1731,7 @@ describe("a later map's revision (slice 8b D6, D8)", () => {
       LIMITS,
     );
     expect(prompt).toContain(firstTicketNumberLine(3));
-    // Every criterion core takes out, the one dropped in a middle revision too (L213 D-1).
+    // Every criterion core takes out, the one dropped in a middle revision too.
     expect(prompt).toContain(removedCriterionLine(middle));
     expect(prompt).toContain(textDeltaLine(delta));
     expect(prompt).toContain(removedCriterionLine(removed));
@@ -1841,7 +1841,7 @@ describe("a later map's revision (slice 8b D6, D8)", () => {
   });
 });
 
-describe("the product skills for a later map's revision (slice 8b D6, D8)", () => {
+describe("the product skills for a later map's revision", () => {
   test("state revising, kept ids, waits, the five kinds, departures and the touch rule", () => {
     const toSpec = readFileSync(PLANNING_SKILLS.toSpec, "utf8");
     const toTickets = readFileSync(PLANNING_SKILLS.toTickets, "utf8");
@@ -1917,7 +1917,7 @@ describe("claudeCodePlanningAgent", () => {
   });
 });
 
-describe("clause declarations and the code they rely on (RC1, RC2)", () => {
+describe("clause declarations and the code they rely on", () => {
   const reference = {
     clauseId: "C1",
     name: "addProject",
@@ -2051,7 +2051,7 @@ describe("the spec and ticket runs' lengths follow the model's limits (agent.mod
   });
 });
 
-describe("the spec prompts' destination rounds (DR-16, DR-17)", () => {
+describe("the spec prompts' destination rounds", () => {
   const PHRASE = "the destination and the person's answers to its rounds";
 
   test("To Spec, its repair and the spec review render the map-level rounds right after the destination", () => {

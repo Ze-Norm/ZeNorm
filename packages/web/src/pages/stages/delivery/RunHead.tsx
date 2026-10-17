@@ -64,11 +64,11 @@ function State({ children }: { children: ReactNode }) {
 }
 
 /**
- * A run's head (slice 8 D9, the demo's `RunHead` and `endedHeadline`): the spec's title, as every
- * stage's head names the thing on the page (UX review P2-4), with the run's state leading the lede:
- * what a running run is doing and how far it has got, with **Cancel run** while it is the latest
- * and active; an ended run's headline and why it ended, a failure's full message behind **Show the
- * full error**. No worktree path: the worktrees are gone once the run ends.
+ * A run's head: the spec's title, as every stage's head names the thing on the page, with the
+ * run's state leading the lede: what a running run is doing and how far it has got, with **Cancel
+ * run** while it is the latest and active; an ended run's headline and why it ended, a failure's
+ * full message behind **Show the full error**. No worktree path: the worktrees are gone once the
+ * run ends.
  */
 export function RunHead({
   run,
@@ -130,7 +130,7 @@ export function RunHead({
         />
       );
     case "failed": {
-      // The one sentence the next-action card shows too (UX audit P1-1); the rest of the stored
+      // The one sentence the next-action card shows too; the rest of the stored
       // message (the CLI's stderr tail) opens under it.
       const failure = required(run.failure, "failure", run);
       const detail = failureDetail(failure);
@@ -202,7 +202,7 @@ function stateMoment(run: DeliveryRun): string {
 
 /**
  * The run's eyebrow, as every stage's: the stage, the run and the spec revision it delivers, the
- * executor carrying it (Claude Code for `"local"`, CR9b-6), then its state and when it reached it.
+ * executor carrying it (Claude Code for `"local"`), then its state and when it reached it.
  * The spec's title is the head's own.
  */
 export function runEyebrow(run: DeliveryRun, revision: number): string {

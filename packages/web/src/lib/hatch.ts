@@ -10,9 +10,9 @@ import type {
 import { shownSpec, waitsOnly } from "./specs.ts";
 
 /**
- * One entry of the Activity stream (slice 7b D7, the demo's `LogEntry`): an event line, a message
- * sent through the hatch, or the agent's reply to one (a refusal is a reply). `stage` is what the
- * stage filter reads: a message's and its reply's stage are the message's.
+ * One entry of the Activity stream: an event line, a message sent through the hatch, or the agent's
+ * reply to one (a refusal is a reply). `stage` is what the stage filter reads: a message's and its
+ * reply's stage are the message's.
  */
 export type StreamEntry =
   | { kind: "event"; stage: Stage; at: string; line: ActivityLine }
@@ -23,7 +23,7 @@ export type StreamEntry =
 const TIE_ORDER: Record<StreamEntry["kind"], number> = { message: 0, reply: 1, event: 2 };
 
 /**
- * The stream by time (D7): the activity lines and each message at its sent time, then its reply at
+ * The stream by time: the activity lines and each message at its sent time, then its reply at
  * its replied time. Both inputs come oldest first; equal moments keep the order above.
  */
 export function streamEntries(
@@ -57,7 +57,7 @@ export function streamEntries(
     .map(({ entry }) => entry);
 }
 
-/** The stream's filter (D7): the whole map, or the stage on screen. */
+/** The stream's filter: the whole map, or the stage on screen. */
 export type StreamFilter = "map" | "stage";
 
 /** What the filter shows: every entry, or those of the stage on screen (by a message's stage). */
@@ -70,9 +70,9 @@ export function filterStream(
 }
 
 /**
- * The messages whose run works, filtered as the stream is (D7: "while the run works"); each shows
- * the working line "The agent is replying." at the stream's end. A queued message shows none: it
- * may wait behind a stopped one (L153).
+ * The messages whose run works, filtered as the stream is; while the run works each shows the
+ * working line "The agent is replying." at the stream's end. A queued message shows none: it may
+ * wait behind a stopped one.
  */
 export function replyingMessages(
   messages: readonly HatchMessageView[],
@@ -90,7 +90,7 @@ export function stoppedRun(message: HatchMessageView): StoppedRun | null {
   return message.status.state === "stopped" ? message.status.stopped : null;
 }
 
-/** What a key in the composer does (D7): Enter sends, Shift+Enter is a new line. */
+/** What a key in the composer does: Enter sends, Shift+Enter is a new line. */
 export type ComposerKeyAction = "send" | "newline" | "none";
 
 export function composerKeyAction(key: { key: string; shiftKey: boolean }): ComposerKeyAction {
@@ -100,12 +100,12 @@ export function composerKeyAction(key: { key: string; shiftKey: boolean }): Comp
   return key.shiftKey ? "newline" : "send";
 }
 
-/** Whether the composer's text can be sent (D7): Send is disabled while it is blank. */
+/** Whether the composer's text can be sent: Send is disabled while it is blank. */
 export function canSend(text: string): boolean {
   return text.trim() !== "";
 }
 
-/** The clause footer's two prefills (D7, L145): Ask and Propose a change. */
+/** The clause footer's two prefills: Ask and Propose a change. */
 export type ClausePrefill = "ask" | "propose";
 
 /** The composer text a clause footer button opens the hatch with; it sends nothing. */
@@ -118,17 +118,15 @@ export function clausePrefill(kind: ClausePrefill, clauseId: string): string {
   }
 }
 
-/** The stages a message can be sent from: Delivery shows no hatch (S7b-17). */
+/** The stages a message can be sent from: Delivery shows no hatch. */
 export function isHatchStage(stage: Stage): stage is HatchStage {
   return stage !== "delivery";
 }
 
 /**
- * The spec a message is about (D7, the demo's `aboutSpec`): on Spec and Tickets the spec the
- * page renders, the route's else `map.overview`'s default (slice 7c D9); on the Spec page of a spec
- * the map only waits on, that spec (slice 8b E-1), and so on its Tickets page
- * (S8b-16, N-4); null on Idea and Wayfinding, or while the map
- * has no spec.
+ * The spec a message is about: on Spec and Tickets the spec the page renders, the route's else
+ * `map.overview`'s default; on the Spec page of a spec the map only waits on, that spec, and so on
+ * its Tickets page; null on Idea and Wayfinding, or while the map has no spec.
  */
 export function aboutSpec(
   detail: Pick<MapOverviewDetail, "specs" | "defaultSpecs" | "waits">,

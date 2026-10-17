@@ -1,11 +1,11 @@
--- The fourth stage is renamed Tickets (decisions ledger, October 12, 2026): the stage id
+-- The fourth stage is renamed Tickets: the stage id
 -- `implementation` becomes `tickets`. Rebuilds `hatch_messages` so its stage check admits
 -- `tickets` in place of `implementation`, rewriting each stored `implementation` stage to `tickets`
 -- inside the copy (the old table's own check refuses `tickets`, so it is never updated in place);
 -- every other column of every row is copied unchanged, and the rebuild refuses to finish unless
 -- the new table has as many rows as the old one. The rebuild runs with foreign keys off
 -- (`migrateDatabase`; `hatch_messages` is a parent of `planning_runs`, `waypoints` and
--- `spec_waits`) and the migration ends by refusing any foreign key violation (L163).
+-- `spec_waits`) and the migration ends by refusing any foreign key violation.
 PRAGMA foreign_keys=OFF;--> statement-breakpoint
 CREATE TABLE `__new_hatch_messages` (
 	`id` text PRIMARY KEY NOT NULL,

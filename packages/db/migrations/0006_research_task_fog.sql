@@ -1,15 +1,15 @@
--- Slice 6b spec D1 and Existing Records: additive. Adds `maps.fog_next_position` (1 on every
--- existing map, by the column's SQL DEFAULT, which only backfills: core writes the value on every
--- new map and `schema.ts` declares no default) and creates the fog, Out of scope, research, task and
--- consistency tables, all empty. Every other row is kept unchanged.
+-- Additive. Adds `maps.fog_next_position` (1 on every existing map, by the column's SQL DEFAULT,
+-- which only backfills: core writes the value on every new map and `schema.ts` declares no default)
+-- and creates the fog, Out of scope, research, task and consistency tables, all empty. Every other
+-- row is kept unchanged.
 --
--- Departures from the domain model (section 3.3): no `needs_person` task outcome row (the asked
--- round's `asked_by_run` and the run's `asked` state record it); no `research_sources.revision` or
--- `version` (nothing in 6b re-reads a source or changes a resolution in place; `compared` uses
--- `resolved_at` as the version stand-in); `task_outcomes.facts` is non-empty also when `failed`;
--- `consistency_findings.waypoint_numbers` holds numbers, not `waypoint_ids`. Keys: a research report
--- and a task outcome are keyed by their run, a finding by the waypoint it created, fog items and
--- Out of scope lines by `(map_id, position)`.
+-- No `needs_person` task outcome row (the asked round's `asked_by_run` and the run's `asked` state
+-- record it); no `research_sources.revision` or `version` (nothing re-reads a source or changes a
+-- resolution in place; `compared` uses `resolved_at` as the version stand-in);
+-- `task_outcomes.facts` is non-empty also when `failed`; `consistency_findings.waypoint_numbers`
+-- holds numbers, not `waypoint_ids`. Keys: a research report and a task outcome are keyed by their
+-- run, a finding by the waypoint it created, fog items and Out of scope lines by `(map_id,
+-- position)`.
 CREATE TABLE `consistency_findings` (
 	`created_waypoint_id` text PRIMARY KEY NOT NULL,
 	`pass_id` text NOT NULL,

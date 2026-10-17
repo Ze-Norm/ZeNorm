@@ -49,8 +49,8 @@ function pinnedTicket(tickets: readonly TicketContent[], id: string): TicketCont
 }
 
 /**
- * The ticket's result (the demo's `execution-result`): its status line from `map.overview`, and a
- * merged ticket's commit on the run branch.
+ * The ticket's result: its status line from `map.overview`, and a merged ticket's commit on the run
+ * branch.
  */
 function Result({
   row,
@@ -86,12 +86,12 @@ function Result({
 const SHOWN_LINES = 40;
 
 /**
- * "What the implementer did": the run's lines tied to this ticket, from `delivery.activity` (D10,
- * S8-14), oldest first; the latest line reads as live while the ticket is being implemented. A
+ * "What the implementer did": the run's lines tied to this ticket, from `delivery.activity`,
+ * oldest first; the latest line reads as live while the ticket is being implemented. A
  * long record shows its last 40 lines, the earlier ones behind one button at the top, so the
- * result and the criteria under it stay within reach (UX review P2-14). When one actor wrote
+ * result and the criteria under it stay within reach. When one actor wrote
  * every line, the head names it once and the rows drop the actor column; a code span (a path, a
- * pattern) breaks anywhere rather than run past its cell (UX audit D2, D3).
+ * pattern) breaks anywhere rather than run past its cell.
  */
 function ImplementerLines({
   run,
@@ -115,7 +115,7 @@ function ImplementerLines({
       list.current?.focus();
     }
   }, [all]);
-  // A fetch failure keeps the cached lines; the live Alert says why (QA-3).
+  // A fetch failure keeps the cached lines; the live Alert says why.
   const activityError = shownQueryError(activity.error);
   if (activityError !== null) {
     throw activityError;
@@ -204,8 +204,8 @@ function ImplementerLines({
 }
 
 /**
- * The ticket's criteria in full under the clause each comes from, in the pinned revision's order
- * (the demo's `CriteriaList`); a criterion a blocking finding names is marked.
+ * The ticket's criteria in full under the clause each comes from, in the pinned revision's order;
+ * a criterion a blocking finding names is marked.
  */
 function Criteria({
   mapId,
@@ -276,12 +276,11 @@ function Criteria({
 }
 
 /**
- * A ticket's execution in a run (slice 8 D10, S18; the demo's `TicketExecution`): its status and
- * result, the review findings against it, its implementer's lines, and the contract it was held
- * to; Run activity beside it (D11). `run` is the run's number, undefined for the latest
- * (deviation 9). Statuses come only from `map.overview` and lines only from `delivery.activity`
- * (S8-14). A ticket outside the run's pinned set, or a run from before `0010`, is the route's error
- * (L100).
+ * A ticket's execution in a run: its status and result, the review findings against it, its
+ * implementer's lines, and the contract it was held to; Run activity beside it. `run` is the run's
+ * number, undefined for the latest. Statuses come only from `map.overview` and lines only from
+ * `delivery.activity`. A ticket outside the run's pinned set, or a run from before `0010`, is the
+ * route's error.
  */
 export function TicketExecutionPage({
   detail,
@@ -299,7 +298,7 @@ export function TicketExecutionPage({
   if (spec === undefined) {
     throw new Error(`This map wrote no spec ${String(specNumber)}`);
   }
-  // Only this map's runs (slice 8b D9, the demo's `runsOn`): another map's run is delivered there.
+  // Only this map's runs: another map's run is delivered there.
   const runs = runsOn(spec, mapId);
   const shown = shownRun(runs, run);
   const row = runTicketOf(shown, ticketId);
@@ -349,7 +348,7 @@ export function TicketExecutionPage({
                 </SpecStageLink>
               </Button>
             </div>
-            {/* The status badge sits at the head's right, beside the eyebrow (UX audit D3). */}
+            {/* The status badge sits at the head's right, beside the eyebrow. */}
             <PageHead
               eyebrow={`Delivery · run ${String(shown.number)} · ${ticket.id}${several ? ` · ${spec.title}` : ""}`}
               title={<AgentText text={ticket.title} />}

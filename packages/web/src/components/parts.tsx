@@ -9,13 +9,13 @@ import { stageName } from "@/lib/map";
 import { cn } from "@/lib/utils";
 
 /**
- * Pieces shared by several screens, with the demo's classes (spec D5). The next-action card family
- * lives in `NextActionCard.tsx`.
+ * Pieces shared by several screens, with the theme's classes. The next-action card family lives
+ * in `NextActionCard.tsx`.
  */
 
 /**
  * The mono micro label. It reads as information (an eyebrow, a count, a time), so it is
- * `text-muted-foreground`; pass `text-faint` for decoration only (UX audit A7).
+ * `text-muted-foreground`; pass `text-faint` for decoration only.
  */
 export function Micro({ className, children }: { className?: string; children: ReactNode }) {
   return <div className={cn("micro text-muted-foreground", className)}>{children}</div>;
@@ -24,7 +24,7 @@ export function Micro({ className, children }: { className?: string; children: R
 /**
  * A page's head at the top of the page's container (`WorkspacePage`): eyebrow, title and lede,
  * with `right` beside them at the right from `md` up (aligned to the top, so a tall panel never
- * pushes the title down, UX audit A3) and under them below. The lede keeps a reading measure.
+ * pushes the title down) and under them below. The lede keeps a reading measure.
  * The eyebrow is one line from `sm`; below it wraps, since a cut line of nowrap text still
  * counts its whole width and would push the head past a phone's edge.
  */
@@ -73,7 +73,7 @@ export function SectionHead({
   );
 }
 
-/** A stage tone's text colour, as the demo's `toneText` (one map for every status line). */
+/** A stage tone's text colour (one map for every status line). */
 export const TONE_TEXT: Record<StageTone, string> = {
   done: "text-ok",
   "needs-you": "text-primary",
@@ -91,16 +91,15 @@ const toneUnderline: Record<StageTone, string> = {
 };
 
 /**
- * The five-stage rail: links that show each stage's status (spec D4, D5). It adds no gates. It
- * sticks under the top bar (and the live alert while the stream is down) at `--stage-rail` high
- * (the workspace column's height counts on it).
- * Each stage's line is on one line, cut with an ellipsis; below `md` only the number and name
- * show (UX audit A4), and below `sm` (a phone) each cell stacks its name under its number, since
- * five names beside their numbers do not fit a phone's width. A phone's cell is flat: the number
- * without its box, no fill, and the tone in the number's colour and the underline; the viewed
- * cell is marked by its underline's thicker bar. From `lg` the Delivery cell is wider, since its lines are the composed
- * ones (a run's name and progress, a blocker's sentence). A cell whose line is cut or hidden
- * carries the whole line in its tooltip; one whose line is whole has none (UX review P2-8).
+ * The five-stage rail: links that show each stage's status. It adds no gates. It sticks under the
+ * top bar (and the live alert while the stream is down) at `--stage-rail` high (the workspace
+ * column's height counts on it). Each stage's line is on one line, cut with an ellipsis; below `md`
+ * only the number and name show, and below `sm` (a phone) each cell stacks its name under its
+ * number, since five names beside their numbers do not fit a phone's width. A phone's cell is flat:
+ * the number without its box, no fill, and the tone in the number's colour and the underline; the
+ * viewed cell is marked by its underline's thicker bar. From `lg` the Delivery cell is wider, since
+ * its lines are the composed ones (a run's name and progress, a blocker's sentence). A cell whose
+ * line is cut or hidden carries the whole line in its tooltip; one whose line is whole has none.
  */
 export function StageRail({
   mapId,

@@ -6,16 +6,16 @@ import { asc, gt, max } from "drizzle-orm";
 
 import type { Tx } from "./planning-runs.ts";
 
-/** Receives each committed change, in `seq` order (slice 9 spec D11). */
+/** Receives each committed change, in `seq` order. */
 export type ChangeSubscriber = (event: ChangeEvent) => void;
 
 /** Where a subscriber's throw goes; the app passes its own `log`. */
 export type ChangeBusLog = (message: string, error: unknown) => void;
 
 /**
- * The in-memory after-commit bus (slice 9 spec D11, S9-14): `write` publishes each committed
- * transaction's change feed rows to it, in order. Delivery is at most once and nothing is retried.
- * The SSE route and plugin subscribers are its only listeners.
+ * The in-memory after-commit bus: `write` publishes each committed transaction's change feed rows
+ * to it, in order. Delivery is at most once and nothing is retried. The SSE route and plugin
+ * subscribers are its only listeners.
  */
 export interface ChangeBus {
   /** Adds `subscriber`, named in the log when it throws; returns its unsubscribe. */
@@ -54,7 +54,7 @@ export function createChangeBus(log: ChangeBusLog): ChangeBus {
 /** Each database's bus; `createApp` sets it, and a restarted app on the same database replaces it. */
 const buses = new WeakMap<ZeNormDatabase, ChangeBus>();
 
-/** Makes `bus` the one `write` publishes `db`'s committed changes to (slice 9 spec D11). */
+/** Makes `bus` the one `write` publishes `db`'s committed changes to. */
 export function setChangeBus(db: ZeNormDatabase, bus: ChangeBus): void {
   buses.set(db, bus);
 }
@@ -106,7 +106,7 @@ export function toChangeEvent(row: FeedRow): ChangeEvent {
 }
 
 /**
- * Runs `fn` as one write by `actor` (slice 9 spec D10, D11): an immediate transaction that fills
+ * Runs `fn` as one write by `actor`: an immediate transaction that fills
  * `write_actor`, runs `fn(tx)` and empties `write_actor` again, so every change feed row the
  * triggers append names `actor`. The rows above the `seq` noted at the start are read inside the
  * transaction (exactly this write's rows) and handed to the bus, in order, only once it has
@@ -143,7 +143,7 @@ export function write<T>(db: ZeNormDatabase, actor: Actor, fn: (tx: Tx) => T): T
   return value;
 }
 
-/** The instance's one User (S9-10). */
+/** The instance's one User. */
 export interface LocalUser {
   readonly id: UserId;
   /** ISO 8601 UTC. */
@@ -151,7 +151,7 @@ export interface LocalUser {
 }
 
 /**
- * The one User row (S9-10). Startup refuses zero rows (`user_missing`) and more than one
+ * The one User row. Startup refuses zero rows (`user_missing`) and more than one
  * (`user_ambiguous`), so either here is a programmer error, and throws.
  */
 export function localUser(db: Pick<ZeNormDatabase, "select">): LocalUser {

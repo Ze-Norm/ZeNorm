@@ -4,8 +4,8 @@ import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 
 /**
- * S8b-6 by construction (CR-3): starting a run can supersede a stopped spec-scoped run and so end a
- * hold, so every write calls `planAndRelease`, which releases what the hold's end frees. Only
+ * Waits are released by construction: starting a run can supersede a stopped spec-scoped run and so
+ * end a hold, so every write calls `planAndRelease`, which releases what the hold's end frees. Only
  * `planAndRelease` itself (in `spec-holds.ts`) may call `planNext`; tests are exempt.
  */
 describe("planNext callers", () => {

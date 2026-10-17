@@ -31,7 +31,7 @@ afterEach(async () => {
   await closeTestContext(context);
 });
 
-describe("run lines (S8-9, D5)", () => {
+describe("run lines", () => {
   test("lines append in order with seq = max + 1, any actor, and read oldest first", async () => {
     const set = await deliverableTicketSet(context, project);
     const run = await startedRun(context, set.ticketSetId);

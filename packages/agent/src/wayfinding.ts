@@ -154,9 +154,10 @@ function misset(fields: Readonly<Record<string, unknown>>, set: boolean): string
 }
 
 /**
- * A `choose` chart's output as the model writes it (DR-5, L253): flat, `kind` naming a confirmation
- * or a follow-up, `title`, `summary` and `destination` always set; the other kind's fields null. Parsed into a `ChartOutcome`
- * whose confirmation or follow-up is checked in full, so a follow-up of 0 or 4 questions fails.
+ * A `choose` chart's output as the model writes it: flat, `kind` naming a confirmation or a
+ * follow-up, `title`, `summary` and `destination` always set; the other kind's fields null. Parsed
+ * into a `ChartOutcome` whose confirmation or follow-up is checked in full, so a follow-up of 0 or
+ * 4 questions fails.
  */
 function chartChoiceOutput(limits: ModelLimits) {
   const confirmation = chartConfirmation(limits);
@@ -224,10 +225,9 @@ export function grillResolutionJsonSchema(limits: ModelLimits): string {
 }
 
 /**
- * The planning agent's chart (spec D2) through the Claude Code CLI at `config.claudePath`, with one
- * schema per step (`chartStep`, DR-4): a proposal at `propose`, a confirmation or a follow-up at
- * `choose`, a confirmation at `confirm`. Its structured outputs are built once, from
- * `config.limits`.
+ * The planning agent's chart through the Claude Code CLI at `config.claudePath`, with one schema
+ * per step (`chartStep`): a proposal at `propose`, a confirmation or a follow-up at `choose`, a
+ * confirmation at `confirm`. Its structured outputs are built once, from `config.limits`.
  */
 export function claudeCodeChartMap(config: PlanningRunConfig): ChartMap {
   const proposalOutput = structuredOutput(chartProposalOutput(config.limits));
@@ -255,9 +255,9 @@ export function claudeCodeChartMap(config: PlanningRunConfig): ChartMap {
 }
 
 /**
- * The planning agent's grilling of one waypoint (spec D2) through the Claude Code CLI at
- * `config.claudePath`. After a `final` round the call answers through the schema with no round, so
- * it can only resolve (S6a-10). Its structured outputs are built once, from `config.limits`.
+ * The planning agent's grilling of one waypoint through the Claude Code CLI at `config.claudePath`.
+ * After a `final` round the call answers through the schema with no round, so it can only resolve.
+ * Its structured outputs are built once, from `config.limits`.
  */
 export function claudeCodeGrillWaypoint(config: PlanningRunConfig): GrillWaypoint {
   const output = structuredOutput(grillOutput(config.limits));

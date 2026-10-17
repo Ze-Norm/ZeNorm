@@ -1,9 +1,8 @@
 /**
- * The reconciliation reads (slice 8b D5, S8b-10–S8b-13): what a spec's revision changes from the
- * revision before (the text delta), what was delivered (the baseline), what an earlier approved
- * set still carries (the open carrier), and what that leads one to expect of each criterion's
- * disposition. Ports of the demo's `derive.ts` over stored rows, read once by `readSpecRecord`
- * into a `SpecRecord`; nothing here writes or stores a result.
+ * The reconciliation reads: what a spec's revision changes from the revision before (the text
+ * delta), what was delivered (the baseline), what an earlier approved set still carries (the open
+ * carrier), and what that leads one to expect of each criterion's disposition. Derived from stored
+ * rows, read once by `readSpecRecord` into a `SpecRecord`; nothing here writes or stores a result.
  */
 import type {
   Clause,
@@ -136,9 +135,9 @@ function latestOnMap(spec: SpecRecord, mapId: string): number {
 
 /**
  * What revision `n` changes from revision n − 1 (whatever became of it), matched by clause and
- * criterion id (S8b-10, CONTEXT Text delta); null for revision 1. A `was` naming an id the revision
- * before lacks, or a criterion moved between clauses without `was`, is a programmer error: stored
- * revisions passed S7-5.
+ * criterion id; null for revision 1. A `was` naming an id the revision before lacks, or a
+ * criterion moved between clauses without `was`, is a programmer error: stored revisions passed
+ * the id rules.
  */
 export function textDelta(spec: SpecRecord, n: number): TextDelta | null {
   const after = revisionN(spec, n);
@@ -233,7 +232,7 @@ export function changeTally(delta: TextDelta): string {
 
 // --- The baseline ---------------------------------------------------------------------
 
-/** Where a ticket was delivered (S8b-11, S8b-14): the run, the commit, and the set's revision and map. */
+/** Where a ticket was delivered: the run, the commit, and the set's revision and map. */
 export interface Delivery {
   readonly ticket: TicketContent;
   readonly setId: string;
@@ -250,7 +249,7 @@ function setById(spec: SpecRecord, setId: string): SetRecord {
 }
 
 /**
- * Where the set's ticket was delivered (S8b-11): its row, in a run of that set with `merged_at`
+ * Where the set's ticket was delivered: its row, in a run of that set with `merged_at`
  * set, has a merged commit. Null while it isn't; a run from before `0010` has no rows, so never.
  * Keyed by set as well as ticket: a replaced set and its successor may share ticket ids.
  */
@@ -276,8 +275,8 @@ export function deliveryOf(spec: SpecRecord, setId: string, ticketId: string): D
 }
 
 /**
- * The delivery that last built a criterion before revision `n` (CONTEXT Baseline): the newest
- * earlier set's ticket carrying it that was delivered.
+ * The delivery that last built a criterion before revision `n`: the newest earlier set's
+ * ticket carrying it that was delivered.
  */
 export function baseline(spec: SpecRecord, n: number, criterionId: string): Delivery | null {
   for (const set of [...spec.sets].reverse()) {
@@ -292,8 +291,8 @@ export function baseline(spec: SpecRecord, n: number, criterionId: string): Deli
 }
 
 /**
- * Whether a set can still be delivered (D5, not in the demo): approved, no merged run, and its
- * revision the latest its own map wrote.
+ * Whether a set can still be delivered: approved, no merged run, and its revision the latest its
+ * own map wrote.
  */
 export function isDeliverable(spec: SpecRecord, set: SetRecord): boolean {
   return (
@@ -304,8 +303,7 @@ export function isDeliverable(spec: SpecRecord, set: SetRecord): boolean {
 }
 
 /**
- * A ticket of an earlier deliverable set that carries the criterion and hasn't been delivered
- * (the demo's `openCarrier`, with D5's deliverable rule).
+ * A ticket of an earlier deliverable set that carries the criterion and hasn't been delivered.
  */
 export function openCarrier(
   spec: SpecRecord,
@@ -324,7 +322,7 @@ export function openCarrier(
 
 /**
  * Whether an approved set of a revision before `n` disposes the criterion `removed`: that set took
- * it out, delivered or not, so no later revision takes it out again (L213 D-1).
+ * it out, delivered or not, so no later revision takes it out again.
  */
 function takenOutByApprovedSet(spec: SpecRecord, n: number, criterionId: string): boolean {
   return spec.sets.some(
@@ -336,12 +334,12 @@ function takenOutByApprovedSet(spec: SpecRecord, n: number, criterionId: string)
 }
 
 /**
- * Every criterion revision `n` takes out (S8b-12; spec review blocker 5): one revision n − 1 had
- * that `n` doesn't keep, and one an earlier revision had that the revisions since dropped, when it
+ * Every criterion revision `n` takes out: one revision n − 1 had that `n` doesn't
+ * keep, and one an earlier revision had that the revisions since dropped, when it
  * has a baseline or an open carrier before `n` (so one dropped in a replaced or superseded middle
- * revision is still taken out) and no approved set before `n` took it out already (L213 D-1). Each
+ * revision is still taken out) and no approved set before `n` took it out already. Each
  * with the clause it sat in, from the latest revision holding it; revision n − 1's first, then
- * older ones newest first. Ids are never reused (S7-5).
+ * older ones newest first. Ids are never reused.
  */
 export function removedCriteria(
   spec: SpecRecord,
@@ -382,7 +380,7 @@ export interface Expectation {
 }
 
 /**
- * The demo's `expectation` (S8b-13): work when the criterion is new or reworded (since the
+ * The expectation of a criterion: work when the criterion is new or reworded (since the
  * revision before, or since the revision that delivered or carries it), delivered when its
  * baseline still holds, retained when an open carrier still covers it.
  */
@@ -433,8 +431,8 @@ export function expectation(
 }
 
 /**
- * The question the tickets review asks when a disposition departs from its expectation (the
- * demo's `tension`, S8b-13), with the disposition's reason; null when it doesn't depart.
+ * The question the tickets review asks when a disposition departs from its expectation, with
+ * the disposition's reason; null when it doesn't depart.
  */
 export function tension(
   spec: SpecRecord,
@@ -503,11 +501,11 @@ export function dispositionTally(content: TicketSetContent): string {
     .join(" · ");
 }
 
-// --- Checks over references (S8b-12, S8b-13) ------------------------------------------
+// --- Checks over references ------------------------------------------
 
 /**
  * The delivery of the ticket a revision-`n` set names by id (a `delivered` disposition or a
- * follow-up, S8b-12, S8b-14): the newest earlier set's ticket of that id that a merged run
+ * follow-up): the newest earlier set's ticket of that id that a merged run
  * delivered; null when none did.
  */
 export function deliveredTicket(spec: SpecRecord, n: number, ticketId: string): Delivery | null {
@@ -520,9 +518,9 @@ export function deliveredTicket(spec: SpecRecord, n: number, ticketId: string): 
 }
 
 /**
- * Whether `ticketId` is an open, deliverable carrier of the criterion before revision `n` (D5,
- * S8b-12): a ticket of an earlier deliverable set, not delivered, carrying the criterion or the
- * one it was in revision n − 1.
+ * Whether `ticketId` is an open, deliverable carrier of the criterion before revision `n`: a
+ * ticket of an earlier deliverable set, not delivered, carrying the criterion or the one it was
+ * in revision n − 1.
  */
 export function isOpenCarrier(
   spec: SpecRecord,
@@ -546,7 +544,7 @@ export function isOpenCarrier(
 }
 
 /**
- * The criteria of a set's dispositions that depart from their expectation with no reason (S8b-13)
+ * The criteria of a set's dispositions that depart from their expectation with no reason
  * and that no `disposition_without_reason` finding names: each fails the tickets review
  * `review_departure_missed`. A departure with a reason needs no finding; core never judges one.
  */

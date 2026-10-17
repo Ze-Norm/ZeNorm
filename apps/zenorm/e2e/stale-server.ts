@@ -5,7 +5,7 @@ import { dirname, join } from "node:path";
 
 /** The command Playwright's `webServer` runs; only a listener running exactly this is a stale e2e server. */
 const E2E_SERVER_COMMAND = "node src/main.ts";
-/** How long a stale server has to free the port after SIGTERM, then after SIGKILL (spec D7). */
+/** How long a stale server has to free the port after SIGTERM, then after SIGKILL. */
 const TERM_WAIT_MS = 10_000;
 const KILL_WAIT_MS = 5_000;
 const POLL_MS = 100;
@@ -15,7 +15,7 @@ const POLL_MS = 100;
  * `pnpm check`) run one after the other instead of the second failing.
  */
 export const LIVE_RUN_WAIT_MS = 20 * 60 * 1000;
-/** The file in each e2e root naming the Playwright runner that made it (S9-13). */
+/** The file in each e2e root naming the Playwright runner that made it. */
 export const RUNNER_RECORD_FILE = "runner.json";
 /** A root with no runner record is taken as ended only once its `config.json` is this old. */
 export const UNRECORDED_ROOT_MAX_AGE_MS = 2 * 60 * 60 * 1000;
@@ -146,7 +146,7 @@ function startTime(pid: number): string | null {
 }
 
 /**
- * Records, synchronously, the calling Playwright runner in `<root>/runner.json` (S9-13), so a later
+ * Records, synchronously, the calling Playwright runner in `<root>/runner.json`, so a later
  * run's guard stops this root's server only once this runner is gone.
  */
 export function writeRunnerRecord(root: string): void {
@@ -246,10 +246,10 @@ function verdict(pid: number, command: string): Verdict {
 }
 
 /**
- * The e2e stale-server guard (S9-8, spec D7), run synchronously while the Playwright runner
+ * The e2e stale-server guard, run synchronously while the Playwright runner
  * evaluates its config, before it starts the web server. Every listener on `port` that is a stale
  * e2e server (see `verdict`) is stopped by PID: SIGTERM, up to 10 s for the port to free, then
- * SIGKILL. Another run's live server (S9-13) is waited for, up to `liveRunWaitMs`, to free the
+ * SIGKILL. Another run's live server is waited for, up to `liveRunWaitMs`, to free the
  * port; past that it fails the run with the live runner's PID. Any other listener fails the run with
  * its PID and command. Never a pattern kill.
  */

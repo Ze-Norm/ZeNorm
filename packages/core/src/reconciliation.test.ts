@@ -39,7 +39,7 @@ import {
 } from "./test-support.ts";
 import type { TestContext } from "./test-support.ts";
 
-// --- The demo's separator spec (`fixtures.ts` separatorR1, separatorR2, separatorDeltaTickets) ---
+// --- The separator spec: separatorR1, separatorR2, separatorDeltaTickets ---
 
 const SEPARATOR_MAP = "custom-separator";
 const LENGTH_MAP = "slug-length-and-separators";
@@ -148,7 +148,7 @@ const R1_SET: SetRecord = {
 const RESEARCH_REASON =
   "Research 3: T2's collapse step builds a character class from the separator, so once T3 lets '--' through, 'a -- b' collapses to 'a-b'.";
 
-/** The demo's `separatorDeltaTickets`: the set the agent writes for r2. */
+/** `separatorDeltaTickets`: the set the agent writes for r2. */
 const DELTA_TICKETS: TicketSetContent = {
   tickets: [
     { ...ticket("T3", ["1.2", "1.4", "1.5"]), followUp: "T1" },
@@ -187,13 +187,13 @@ const RUN_1: RunRecord = {
   ],
 };
 
-/** The separator spec as the demo has it: r1 delivered and merged, r2 from another map with its set. */
+/** The separator spec: r1 delivered and merged, r2 from another map with its set. */
 const SEPARATOR: SpecRecord = { revisions: [R1, R2], sets: [R1_SET, R2_SET], runs: [RUN_1] };
 
 /** r1's set approved and never delivered; r2 from another map. */
 const UNDELIVERED: SpecRecord = { revisions: [R1, R2], sets: [R1_SET, R2_SET], runs: [] };
 
-// --- Synthetic revisions the demo's fixtures lack: a moved criterion, new and removed clauses ---
+// --- Synthetic revisions the separator spec lacks: a moved criterion, new and removed clauses ---
 
 /**
  * r3 from r2: a new clause C3, walked before C1, takes 1.5 by a move (`was`, same wording) and 1.4
@@ -226,7 +226,7 @@ const R4 = revision(
 
 const MOVES: SpecRecord = { revisions: [R1, R2, R3, R4], sets: [R1_SET], runs: [RUN_1] };
 
-describe("textDelta (S8b-10, CONTEXT Text delta)", () => {
+describe("textDelta", () => {
   test("revision 1 has none", () => {
     expect(textDelta(SEPARATOR, 1)).toBeNull();
   });
@@ -309,7 +309,7 @@ describe("textDelta (S8b-10, CONTEXT Text delta)", () => {
   });
 });
 
-describe("deliveryOf, baseline and openCarrier (S8b-11, CONTEXT Baseline)", () => {
+describe("deliveryOf, baseline and openCarrier", () => {
   test("a ticket merged in a merged run is delivered, with its run, commit, revision and map", () => {
     expect(deliveryOf(SEPARATOR, "set-r1", "T2")).toMatchObject({
       ticket: { id: "T2" },
@@ -365,7 +365,7 @@ describe("deliveryOf, baseline and openCarrier (S8b-11, CONTEXT Baseline)", () =
   });
 });
 
-describe("removedCriteria (S8b-12)", () => {
+describe("removedCriteria", () => {
   test("separator r2: the criteria r1 had that r2 drops", () => {
     expect(removedCriteria(SEPARATOR, 2)).toEqual(textDelta(SEPARATOR, 2)?.removedCriteria);
   });
@@ -386,7 +386,7 @@ describe("removedCriteria (S8b-12)", () => {
     expect(removedCriteria({ revisions: [R1, R2, R3_AGAIN], sets: [], runs: [] }, 3)).toEqual([]);
   });
 
-  test("a criterion an approved set before took out is never taken out again (L213 D-1)", () => {
+  test("a criterion an approved set before took out is never taken out again", () => {
     // r2's set, approved, disposes 1.3 `removed`; r3 words r2 again, so 1.3 stays out.
     const approvedR2 = { ...R2, approved: true };
     const approvedSet = { ...R2_SET, approved: true };
@@ -420,7 +420,7 @@ describe("removedCriteria (S8b-12)", () => {
   });
 });
 
-describe("expectation and tension (S8b-13)", () => {
+describe("expectation and tension", () => {
   const delta = textDelta(SEPARATOR, 2);
 
   test("separator r2: each criterion's expectation", () => {
@@ -553,7 +553,7 @@ describe("expectation and tension (S8b-13)", () => {
     ).toBeNull();
   });
 
-  test("dispositionTally names each kind in the demo's words", () => {
+  test("dispositionTally names each kind with its count", () => {
     expect(dispositionTally(DELTA_TICKETS)).toBe("4 need work · 1 carry over · 1 removed");
     expect(
       dispositionTally({
@@ -567,9 +567,9 @@ describe("expectation and tension (S8b-13)", () => {
   });
 });
 
-// --- Stored rows (S8b-11): a real temp repository, a real run and Mark merged ---
+// --- Stored rows: a real temp repository, a real run and Mark merged ---
 
-describe("the reads over stored rows (S8b-11)", () => {
+describe("the reads over stored rows", () => {
   let context: TestContext;
 
   beforeEach(async () => {
@@ -699,7 +699,7 @@ describe("the reads over stored rows (S8b-11)", () => {
   });
 });
 
-describe("the review's departure check (S8b-13) over separatorDeltaTickets", () => {
+describe("the review's departure check over separatorDeltaTickets", () => {
   const reasonless = (content: TicketSetContent): TicketSetContent => ({
     ...content,
     dispositions: content.dispositions.map((d) =>

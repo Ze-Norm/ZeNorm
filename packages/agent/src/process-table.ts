@@ -5,8 +5,8 @@ const execFileAsync = promisify(execFile);
 
 /**
  * Parses what `ps -o lstart=` prints for `pid` in the C locale (macOS and procps alike, e.g.
- * `Wed Oct 14 10:00:00 2026`) into ms since the epoch, at `ps`'s 1 s resolution. A start time
- * that does not parse is a programmer error (CR-12).
+ * `Wed Oct 14 10:00:00 2026`) into ms since the epoch, at `ps`'s 1 s resolution. A start time that
+ * does not parse is a programmer error.
  */
 export function parseStartTime(pid: number, lstart: string): number {
   const started = Date.parse(lstart);
@@ -16,7 +16,7 @@ export function parseStartTime(pid: number, lstart: string): number {
   return started;
 }
 
-/** The server a session record names: this process's pid and `ps` start time (C6). */
+/** The server a session record names: this process's pid and `ps` start time. */
 export interface ServerIdentity {
   readonly serverPid: number;
   /** ISO string of `ps`'s start time for `serverPid`. */
@@ -52,7 +52,7 @@ export interface ProcessRow {
 
 /**
  * Parses `ps -A -o pid=,ppid=,pgid=` output. A line that is not three integers is a programmer
- * error (CR-12): `ps` printed something this parser does not know, never a process to skip.
+ * error: `ps` printed something this parser does not know, never a process to skip.
  */
 export function parseProcessTable(stdout: string): ProcessRow[] {
   return stdout

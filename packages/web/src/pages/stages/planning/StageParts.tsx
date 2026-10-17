@@ -102,7 +102,7 @@ function chromeLine(): number {
 /**
  * Which of the page's sections (element ids, in document order) the reader is at: the last one
  * whose top has reached the line a section scrolls to, the sticky chrome plus the section's own
- * `scroll-margin-top`, watched as the page scrolls, so the index can mark it (UX audit C4). A
+ * `scroll-margin-top`, watched as the page scrolls, so the index can mark it. A
  * section jumped to from the index lands exactly on that line, so it is marked at once; one near
  * the end that the page cannot scroll up to that line is marked once the page is at its end and
  * the section is in view, since the reader can go no further. Null until the first section is
@@ -147,10 +147,9 @@ export function useActiveSection(targets: readonly string[]): string | null {
 
 /**
  * A document's index below the split (`WorkspacePage`'s `folded`): a Jump to menu in a row stuck
- * under the chrome (UX audit C4, review P2-10), its entries (`children`, the Select's items and
- * groups, each valued with a section's id) under `label`, the index's name. Opening it first
- * brings the row there, so the menu opens downward with the document under it, and a jumped-to
- * section lands under the row.
+ * under the chrome, its entries (`children`, the Select's items and groups, each valued with a
+ * section's id) under `label`, the index's name. Opening it first brings the row there, so the menu
+ * opens downward with the document under it, and a jumped-to section lands under the row.
  */
 export function JumpMenu({ label, children }: { label: string; children: ReactNode }) {
   const row = useRef<HTMLDivElement>(null);
@@ -207,8 +206,7 @@ export function JumpMenu({ label, children }: { label: string; children: ReactNo
 
 /**
  * One entry of a document's index: a button that scrolls its section into view, marked when the
- * revision changes it (slice 8b D11, the demo's index marks) and `aria-current` while the reader
- * is in it (UX audit C4).
+ * revision changes it and `aria-current` while the reader is in it.
  */
 export function IndexItem({
   target,

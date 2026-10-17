@@ -14,7 +14,7 @@ import { orpc } from "@/orpc";
 import { actorLabel } from "@/pages/stages/delivery/ticket-status";
 import { shownQueryError } from "@/lib/query-errors";
 
-/** The time since `at`, counted up each second while `live` (the demo's `useAgo`). */
+/** The time since `at`, counted up each second while `live`. */
 function useAgo(at: string, live: boolean): string {
   const [now, setNow] = useState(Date.now);
   useEffect(() => {
@@ -31,7 +31,7 @@ function useAgo(at: string, live: boolean): string {
   return agoWords(now - Date.parse(at));
 }
 
-/** "last event 12s ago": how you tell a working run from a stuck one (the demo's liveness). */
+/** "last event 12s ago": how you tell a working run from a stuck one. */
 function Liveness({ last }: { last: RunEvent }) {
   const ago = useAgo(last.at, true);
   return (
@@ -42,9 +42,8 @@ function Liveness({ last }: { last: RunEvent }) {
 }
 
 /**
- * One line: its actor, the ticket it belongs to as a link, its time and its text (L141). A code
- * span in the text (a path, a search pattern) breaks anywhere rather than run past the column
- * (UX audit D2).
+ * One line: its actor, the ticket it belongs to as a link, its time and its text. A code span in
+ * the text (a path, a search pattern) breaks anywhere rather than run past the column.
  */
 function Line({
   event,
@@ -57,7 +56,7 @@ function Line({
   mapId: string;
   specNumber: number;
   run: number;
-  /** The run's executor, which names its own lines (CR9b-6). */
+  /** The run's executor, which names its own lines. */
   executor: string;
 }) {
   const host = event.who === "zenorm";
@@ -103,12 +102,12 @@ function Line({
 }
 
 /**
- * Run activity (slice 8 D11, S19; the demo's `RunActivity`): the run's major lines, ZeNorm's, the
- * orchestrator's and the reviewer's, oldest first, in the Activity column's place. Implementer lines
- * (each file read, search and edit) stay on their ticket's execution page. Lines come only from
- * `delivery.activity` (S8-14), refetched by the live layer on each change (S9-16). While it works, the header
- * counts the time since the last line. There is no hatch: Cancel run is the only control. It fills
- * whatever `WorkspaceColumns` puts it in.
+ * Run activity: the run's major lines, ZeNorm's, the orchestrator's and the reviewer's, oldest
+ * first, in the Activity column's place. Implementer lines (each file read, search and edit) stay
+ * on their ticket's execution page. Lines come only from `delivery.activity`, refetched by the
+ * live layer on each change. While it works, the header counts the time since the last line.
+ * There is no hatch: Cancel run is the only control. It fills whatever `WorkspaceColumns` puts
+ * it in.
  */
 export function RunActivity({
   mapId,
@@ -119,12 +118,12 @@ export function RunActivity({
   mapId: string;
   specNumber: number;
   run: SpecRun;
-  /** The `map.workspace.aside` slot, first in the column (S9-18, L36). */
+  /** The `map.workspace.aside` slot, first in the column. */
   aside: ReactNode;
 }) {
   const recorded = run.tickets !== null;
   const active = run.endedAt === null;
-  // Nothing runs an interrupted run, so it never reads as live (L197 item 13).
+  // Nothing runs an interrupted run, so it never reads as live.
   const interrupted = run.state === "interrupted";
   const activity = useQuery(
     orpc.delivery.activity.queryOptions({
@@ -146,7 +145,7 @@ export function RunActivity({
     }
   }, [run.id, count]);
 
-  // A fetch failure keeps the cached lines; the live Alert says why (QA-3).
+  // A fetch failure keeps the cached lines; the live Alert says why.
   const activityError = shownQueryError(activity.error);
   if (activityError !== null) {
     // `delivery_run_not_found` for a run the overview just listed is not an expected refusal.
@@ -197,7 +196,7 @@ export function RunActivity({
         </p>
       )}
 
-      {/* A run from before `0010` that has ended kept its worktree (D8), so it has no record line. */}
+      {/* A run from before `0010` that has ended kept its worktree, so it has no record line. */}
       {(active || recorded) && (
         <div className="grid shrink-0 gap-1 border-t border-border p-3 pb-14 text-xs text-muted-foreground">
           <span>

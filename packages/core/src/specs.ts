@@ -101,7 +101,7 @@ export function isDraft(revision: Pick<StoredRevision, "approvedAt" | "supersede
   return revision.approvedAt === null && revision.supersededAt === null;
 }
 
-/** A revision's state, from its timestamps (spec D1). */
+/** A revision's state, from its timestamps. */
 export function revisionState(
   revision: Pick<StoredRevision, "approvedAt" | "supersededAt" | "rejectionReason">,
 ): SpecRevisionState {
@@ -122,7 +122,7 @@ export interface ReadReview {
 
 /**
  * Every review of a revision with its findings, oldest first (by its run's start). A draft
- * rewritten in place (L241) has one per rewrite; the reviews of earlier content come first.
+ * rewritten in place has one per rewrite; the reviews of earlier content come first.
  */
 export function readReviews(db: Reader, specRevisionId: string): ReadReview[] {
   return db
@@ -145,7 +145,7 @@ export function readReviews(db: Reader, specRevisionId: string): ReadReview[] {
 
 /**
  * A revision's review of its current content and its findings by position, or null before one is
- * recorded: the review whose run started after the run that wrote the content (L241). A review of
+ * recorded: the review whose run started after the run that wrote the content. A review of
  * content a rewrite replaced is an earlier review (`earlierReviews`).
  */
 export function readReview(
@@ -166,7 +166,7 @@ export function readReview(
   return review;
 }
 
-/** A revision's reviews of content a rewrite in place replaced (L241), oldest first. */
+/** A revision's reviews of content a rewrite in place replaced, oldest first. */
 export function earlierReviews(
   db: Reader,
   revision: Pick<StoredRevision, "id" | "writtenByRun">,
@@ -215,7 +215,7 @@ export function readRejections(db: Reader, ticketSetId: string): StoredRejection
     .all();
 }
 
-/** A hatch message's text, by id (S7b-11, S7b-12); a missing one is a programmer error. */
+/** A hatch message's text, by id; a missing one is a programmer error. */
 export function readNoteText(db: Reader, hatchMessageId: string): string {
   const row = db
     .select({ text: hatchMessages.text })
@@ -229,9 +229,9 @@ export function readNoteText(db: Reader, hatchMessageId: string): string {
 }
 
 /**
- * The set's directed versions up to `upTo`, oldest first (L180 (2)): each version a run carrying a
- * hatch message wrote, with that note (S7b-12), else each version written after the version before
- * it was rejected, with the reason (S7-18). The first version and a review repair have none.
+ * The set's directed versions up to `upTo`, oldest first: each version a run carrying a
+ * hatch message wrote, with that note, else each version written after the version before
+ * it was rejected, with the reason. The first version and a review repair have none.
  */
 export function readDirectedVersions(
   db: Reader,
@@ -280,7 +280,7 @@ function isAfter(a: { startedAt: string; id: string }, b: { startedAt: string; i
 }
 
 /**
- * The note directing the revision after `revision` (S7b-11): the text of the hatch message the
+ * The note directing the revision after `revision`: the text of the hatch message the
  * latest spec-scoped `to_spec` run on the map writing `next` (else `revision`'s map) carries among those started after `revision`'s
  * writer and, when `next` is given, no later than `next`'s writer; null when none carries one. A
  * note's run (or its retry) writes that next revision, or, when a reopen or the re-clear ended it,
@@ -316,7 +316,7 @@ export function noteAfter(
 }
 
 /**
- * The spec's note-directed revisions, by number (S7b-11): each revision written after a note on
+ * The spec's note-directed revisions, by number: each revision written after a note on
  * the revision before it (`noteAfter`), with that note.
  */
 export function readNoteDirectedRevisions(
@@ -356,7 +356,7 @@ export function compareElementIds(a: string, b: string): number {
 }
 
 /**
- * The ids a spec has retired (D2, E-3): every clause and criterion id a revision of `revisions`
+ * The ids a spec has retired: every clause and criterion id a revision of `revisions`
  * (oldest first) used that the last of them drops. The next revision may not use one again.
  */
 export function retiredIds(revisions: readonly SpecRevisionContent[]): string[] {
@@ -366,7 +366,7 @@ export function retiredIds(revisions: readonly SpecRevisionContent[]): string[] 
   return [...used].filter((id) => !kept.has(id)).sort(compareElementIds);
 }
 
-/** A spec run due on the map (slice 7 D6). */
+/** A spec run due on the map. */
 export interface DueSpecRun {
   readonly specificationId: string;
   readonly purpose: PlanningRunPurpose;
@@ -377,15 +377,14 @@ export interface SpecRunGate {
   /** Whether the spec's scope neither runs, awaits its retry, nor is stopped (a superseded stop is idle). */
   readonly idle: (specificationId: string) => boolean;
   /**
-   * Whether a `spec_review` or a repair may start (S7-10, D6): the map is cleared and its map-scope
+   * Whether a `spec_review` or a repair may start: the map is cleared and its map-scope
    * `to_spec` neither runs nor is due (a due re-clear supersedes the map's drafts).
    */
   readonly writesOpen: boolean;
 }
 
 /**
- * Whether a revision's review failed with only unescalated `revise` findings, so a repair is due
- * (S7-7).
+ * Whether a revision's review failed with only unescalated `revise` findings, so a repair is due.
  */
 export function awaitsRepair(db: Reader, revision: StoredRevision): boolean {
   const reviewed = readReview(db, revision);
@@ -396,7 +395,7 @@ export function awaitsRepair(db: Reader, revision: StoredRevision): boolean {
   );
 }
 
-/** The recorded tickets review of one ticket set version with its findings in order, or null (S7c-2). */
+/** The recorded tickets review of one ticket set version with its findings in order, or null. */
 export function readTicketsReview(
   db: Reader,
   ticketSetId: string,
@@ -439,8 +438,8 @@ export function findingOf(finding: StoredTicketsReviewFinding): TicketsReviewFin
 
 /**
  * True when an approved revision has no ticket set, or its unapproved set's current version is
- * rejected (S7-18) or failed its tickets review with only unescalated `revise` findings, so its
- * review repair is due (slice 7c D5, S7c-4). A held set (an escalated finding) has none due.
+ * rejected or failed its tickets review with only unescalated `revise` findings, so its
+ * review repair is due. A held set (an escalated finding) has none due.
  */
 function ticketsDue(db: Reader, specRevisionId: string): boolean {
   const set = readTicketSetOf(db, specRevisionId);
@@ -464,9 +463,9 @@ function ticketsDue(db: Reader, specRevisionId: string): boolean {
 /**
  * Whether the spec's `to_tickets` on the map has work left: its latest approved revision of the map
  * has no set, or an unapproved set whose current version is rejected, awaits its review repair
- * (S7c-4) or that a note's rewrite has not yet written (S7b-12). False once that set is approved,
+ * or that a note's rewrite has not yet written. False once that set is approved,
  * so a stopped rewrite of a set approved since is not tried again, and once a newer revision
- * replaced it (slice 8b S8b-9).
+ * replaced it.
  */
 export function toTicketsDue(db: Reader, mapId: string, specificationId: string): boolean {
   const revisions = readSpecRevisions(db, specificationId);
@@ -480,7 +479,7 @@ export function toTicketsDue(db: Reader, mapId: string, specificationId: string)
 }
 
 /**
- * Whether a note's rewrite (S7b-12) has work left: the spec's latest `to_tickets` run on the map
+ * Whether a note's rewrite has work left: the spec's latest `to_tickets` run on the map
  * carries a message, and the revision's set is unapproved and its current version was not written
  * by a run carrying that message.
  */
@@ -520,15 +519,15 @@ function noteRewriteDue(
 }
 
 /**
- * The spec-scoped runs due on the map (D6), for each spec the map wrote a revision of whose scope
+ * The spec-scoped runs due on the map, for each spec the map wrote a revision of whose scope
  * is idle: while writes are open, a `spec_review` for an unreviewed latest draft, or a repair
- * `to_spec` for a latest draft whose review failed revise-only and unescalated (S7-7) or a latest
- * revision rejected (S7-12); else, whatever the clearing (L127 (1)), a `to_tickets` for an approved
- * revision of this map that is the spec's latest (an older one's set is replaced, S8b-9) with no
- * ticket set or whose set's current version is rejected (the rewrite, S7-18) or failed its review
- * revise-only and unescalated (the review repair, slice 7c D5, S7c-4), else a `tickets_review`
- * for its unapproved set whose current version has no review and no note rewrite due (slice 7c D5,
- * S7c-2). Retries are `planNext`'s.
+ * `to_spec` for a latest draft whose review failed revise-only and unescalated or a latest
+ * revision rejected; else, whatever the clearing, a `to_tickets` for an approved
+ * revision of this map that is the spec's latest (an older one's set is replaced) with no
+ * ticket set or whose set's current version is rejected (the rewrite) or failed its review
+ * revise-only and unescalated (the review repair), else a `tickets_review`
+ * for its unapproved set whose current version has no review and no note rewrite due.
+ * Retries are `planNext`'s.
  */
 export function dueSpecRuns(
   db: Reader,
@@ -560,7 +559,7 @@ export function dueSpecRuns(
       .at(-1);
     if (approved?.id !== latest.id) {
       // A set on a revision that is no longer the spec's latest is replaced: nothing is due for
-      // it (slice 8b S8b-9, issue 24 item 1).
+      // it.
       continue;
     }
     if (ticketsDue(db, approved.id)) {
@@ -574,7 +573,7 @@ export function dueSpecRuns(
       !noteRewriteDue(db, map.id, spec.id, approved.id) &&
       readTicketsReview(db, set.id, set.version) === null
     ) {
-      // Slice 7c D5, S7c-2: the current version's one review, once no `to_tickets` runs or is due.
+      // The current version's one review, once no `to_tickets` runs or is due.
       due.push({ specificationId: spec.id, purpose: "tickets_review" });
     }
   }

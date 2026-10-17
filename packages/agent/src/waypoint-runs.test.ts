@@ -401,7 +401,7 @@ describe("buildTaskPrompt", () => {
   });
 });
 
-describe("the person's note on a waypoint request (S7b-10)", () => {
+describe("the person's note on a waypoint request", () => {
   const note = { text: "Look in the ops repository first.", sentAt: "2026-10-08T09:30:00.000Z" };
   const noteBlock =
     /<<<NOTE [0-9a-f-]{36}\nLook in the ops repository first\.\nNOTE [0-9a-f-]{36}>>>/;
@@ -423,7 +423,7 @@ describe("the person's note on a waypoint request (S7b-10)", () => {
   });
 });
 
-describe("the project's map suggestions and maps (C1)", () => {
+describe("the project's map suggestions and maps", () => {
   test("the research, task and consistency prompts carry them, titles and lines quoted", () => {
     for (const prompt of [
       buildResearchPrompt(researchRequest([]), LIMITS, 24),
@@ -438,7 +438,7 @@ describe("the project's map suggestions and maps (C1)", () => {
   });
 });
 
-describe("no waypoint run carries a fog duty (harness change #4)", () => {
+describe("no waypoint run carries a fog duty", () => {
   test("research and task prompts with every other waypoint resolved name no duty to settle fog", () => {
     const resolved = <R extends ResearchWaypointRequest | WorkTaskRequest>(request: R): R => ({
       ...request,
@@ -763,7 +763,7 @@ describe("the research and task runs' rulings may carry a proposal", () => {
   });
 });
 
-describe("a research waypoint's touches (slice 8b D6)", () => {
+describe("a research waypoint's touches", () => {
   test("the prompt names each touched criterion's baseline commit, so research reads the delivered code", () => {
     const touch = {
       specNumber: 3,
@@ -790,12 +790,12 @@ describe("a research waypoint's touches (slice 8b D6)", () => {
     expect(prompt).toContain(touchLine(touch));
     expect(prompt).toContain("Baseline 2.1: T4, run 2, commit 0a1b2c3");
     expect(buildResearchPrompt(base, LIMITS, 24)).toContain("Touches: none");
-    // The touched revision's approved text, not only ids (L213 D-7).
+    // The touched revision's approved text, not only ids.
     expect(prompt).toContain(touchedTextLine(touch));
     expect(prompt).toMatch(/^<<<TOUCHED-SPEC-3-REVISION-2 \S+$/m);
   });
 
-  test("a task reads its touches and the touched revision's approved text (L213 D-7)", () => {
+  test("a task reads its touches and the touched revision's approved text", () => {
     const touch = {
       specNumber: 2,
       specTitle: "Separators",
@@ -833,7 +833,7 @@ const TOUCHED_CONTENT = {
   outOfScope: [],
 };
 
-describe("the map's code survey (harness change #1)", () => {
+describe("the map's code survey", () => {
   test("each prompt carries the survey as FACTS, or says the map has none", () => {
     const builds = [
       (survey: CodeSurvey | null) =>
@@ -920,7 +920,7 @@ describe("the research, task and consistency runs' lengths follow the model's li
   });
 });
 
-describe("the destination rounds in the Research, Task and consistency prompts (DR-16)", () => {
+describe("the destination rounds in the Research, Task and consistency prompts", () => {
   test("each renders the map-level rounds right after the destination", () => {
     expectRoundsAfterDestination(buildResearchPrompt(researchRequest([]), LIMITS, 24));
     expectRoundsAfterDestination(buildTaskPrompt(taskRequest(), LIMITS, 24));

@@ -33,7 +33,7 @@ function sectionIds(sections: TicketsSections): string[] {
 }
 
 /**
- * The Tickets page's index at the left of the page (`WorkspacePage`, UX audit C4): the
+ * The Tickets page's index at the left of the page (`WorkspacePage`): the
  * next action, the Tickets review, each ticket, the reconciliation (Coverage on a first revision),
  * why the agent sliced it so, and the spec's earlier tickets; the section the reader is in is
  * marked.

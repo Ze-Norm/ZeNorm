@@ -118,7 +118,7 @@ async function started(
   await contributions.start({ ...context, log });
 }
 
-describe("the example plugin's seam wrappers (D17)", () => {
+describe("the example plugin's seam wrappers", () => {
   test("identity passes through and counts", async () => {
     const context = contextOver([OPEN]);
     const contributions = bound();
@@ -211,7 +211,7 @@ describe("the example plugin's seam wrappers (D17)", () => {
   });
 });
 
-describe("the example plugin's subscriber, route and lifecycle (D17)", () => {
+describe("the example plugin's subscriber, route and lifecycle", () => {
   test("the * subscriber counts committed rows per project, and the route reports the readable ones", async () => {
     const context = contextOver([OPEN, DENIED]);
     const contributions = bound();
@@ -224,7 +224,7 @@ describe("the example plugin's subscriber, route and lifecycle (D17)", () => {
     subscriber(event(OPEN.id, { entityType: "question_rounds", op: "insert" }));
     subscriber(event(DENIED.id));
 
-    // The denied project's totals are absent (CR9b-13); the route's own checks are counted.
+    // The denied project's totals are absent; the route's own checks are counted.
     expect(await counts(contributions, seams, context)).toEqual({
       seams: { identify: 1, checkAccess: 2, checkout: 0, executorEnv: 0, admitRun: 0 },
       executor: { implement: 0, review: 0 },

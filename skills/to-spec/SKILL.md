@@ -7,7 +7,7 @@ Read [ZeNorm integration](../zenorm-integration.md) for authoritative records, h
 
 This skill takes the current conversation context and codebase understanding and produces a spec. Do NOT interview the user; just synthesize what you already know.
 
-Use the supplied tracker/tools and triage vocabulary. For direct work in this checkout, the repository's own planning records (decisions ledger, slice plan, scope trace, issues) are the tracker; never open the legacy checkout or follow `zenorm-legacy` links. Product runs publish through ZeNorm's supplied operations as described in the shared integration reference.
+Use the supplied tracker/tools and triage vocabulary. For direct work in a repository, the local planning records the session names (decision records, plan, scope trace, issues) are the tracker. Product runs publish through ZeNorm's supplied operations as described in the shared integration reference.
 
 ## Process
 

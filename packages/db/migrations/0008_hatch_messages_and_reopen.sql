@@ -1,16 +1,16 @@
--- Slice 7b spec D1 and Existing Records: additive. Adds `hatch_messages`; rebuilds `planning_runs`
--- (its `cancel_reason` check gains `reopened`, it gains `hatch_message_id` with its purpose check,
--- the map-scope index excludes `hatch` and one running `hatch` run per map is unique) and
--- `question_rounds` (`withdrawn_at`, `withdrawn_reason`, set exactly when withdrawn), copying every
--- row with the new columns null, so ids and `replaced` cancellations are kept; `waypoints` gains
--- `hatch_message_id` by ALTER TABLE. The rebuild runs with foreign keys off (`migrateDatabase`) and
--- ends by refusing any foreign key violation, so a broken copy rolls the migration back.
+-- Additive. Adds `hatch_messages`; rebuilds `planning_runs` (its `cancel_reason` check gains
+-- `reopened`, it gains `hatch_message_id` with its purpose check, the map-scope index excludes
+-- `hatch` and one running `hatch` run per map is unique) and `question_rounds` (`withdrawn_at`,
+-- `withdrawn_reason`, set exactly when withdrawn), copying every row with the new columns null, so
+-- ids and `replaced` cancellations are kept; `waypoints` gains `hatch_message_id` by ALTER TABLE.
+-- The rebuild runs with foreign keys off (`migrateDatabase`) and ends by refusing any foreign key
+-- violation, so a broken copy rolls the migration back.
 --
--- Departures from the domain model (section 3.3, `hatch_messages`): no `sent_by_user` column (B40);
--- `run_id` names the `hatch` run that replied and is set exactly when replied; `refusal` holds D4's
--- code beside the reply that states it; `change` holds the D3 change core applied with the reply,
--- written in its transaction (L147 Q1), null for a reply-only or refused message; the spec on screen
--- is `specification_id`, null on Idea and Wayfinding.
+-- `hatch_messages` has no `sent_by_user` column; `run_id` names the `hatch` run that replied and is
+-- set exactly when replied; `refusal` holds the refusal code beside the reply that states it;
+-- `change` holds the change core applied with the reply, written in its transaction, null for a
+-- reply-only or refused message; the spec on screen is `specification_id`, null on Idea and
+-- Wayfinding.
 CREATE TABLE `hatch_messages` (
 	`id` text PRIMARY KEY NOT NULL,
 	`map_id` text NOT NULL,

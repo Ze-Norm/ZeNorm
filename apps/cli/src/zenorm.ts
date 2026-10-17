@@ -22,7 +22,7 @@ const ended = await runCli(
     },
   },
   COMMANDS,
-  // Readable refusals at a terminal; one JSON line each when standard error is piped (C7).
+  // Readable refusals at a terminal; one JSON line each when standard error is piped.
   refusalReporter(isatty(2)),
 );
 // `run` keeps the process open while it serves; it exits on SIGTERM or SIGINT.

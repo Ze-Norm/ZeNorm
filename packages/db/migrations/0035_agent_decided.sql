@@ -4,7 +4,7 @@
 -- copied. The backfill sets it `[]` on every resolved waypoint, its runs having recorded no such
 -- list (a fog item the agent decided reads as wholly the agent's from its lack of rounds), and null
 -- on every other. The rebuild runs with foreign keys off (`migrateDatabase`) and ends by refusing
--- any foreign key violation (L163).
+-- any foreign key violation.
 CREATE TABLE `__new_waypoints` (
 	`id` text PRIMARY KEY NOT NULL,
 	`map_id` text NOT NULL,

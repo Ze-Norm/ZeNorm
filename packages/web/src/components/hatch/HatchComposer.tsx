@@ -24,17 +24,16 @@ function sendRefusalMessage(error: SendHatchMessageError | AccessDeniedError): s
     case "spec_not_found":
       return "This map wrote no such spec.";
     case "spec_waiting":
-      // The refusal stays (L220); the sentence says the note was not saved (S8b-16, N-3), as the
-      // hatch run's reply on a held waited spec does (L221).
+      // The refusal stays; the sentence says the note was not saved, as the hatch run's reply on
+      // a held waited spec does.
       return "Another map holds this spec, so your note was not saved. This map waits on the spec, and its change is written as the next revision once the spec is free.";
   }
 }
 
 /**
- * The escape hatch (slice 7b D7, the demo's `ActivityLog.tsx`): under the stream, a closed row;
- * open, the contract line, the composer (Enter sends, Shift+Enter a new line) and Send, disabled
- * while the text is blank. A message names the stage on screen and `specNumber`, the spec on
- * screen (the demo's `aboutSpec`).
+ * The escape hatch: under the stream, a closed row; open, the contract line, the composer (Enter
+ * sends, Shift+Enter a new line) and Send, disabled while the text is blank. A message names the
+ * stage on screen and `specNumber`, the spec on screen.
  */
 export function HatchComposer({
   mapId,

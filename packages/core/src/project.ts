@@ -57,7 +57,7 @@ export async function isDirectory(path: string): Promise<boolean> {
   }
 }
 
-/** A project's name: its folder's last path segment (spec D3). */
+/** A project's name: its folder's last path segment. */
 export function projectName(folderPath: string): string {
   const name = basename(folderPath);
   if (name === "") {
@@ -67,8 +67,8 @@ export function projectName(folderPath: string): string {
 }
 
 /**
- * The project's one run with no end (`interrupted` included; slice 8 D2, ruling 5), or null: the
- * map that wrote the revision its ticket set was cut from, and its spec's number and latest title.
+ * The project's one run with no end (`interrupted` included), or null: the map that wrote the
+ * revision its ticket set was cut from, and its spec's number and latest title.
  */
 export function readActiveRun(db: Reader, projectId: string): ActiveRun | null {
   const active = db
@@ -99,9 +99,9 @@ export function readActiveRun(db: Reader, projectId: string): ActiveRun | null {
 
 /**
  * What keeps `delivery.start` from starting a run in the project, every one that applies, in its
- * refusal order (S8-3, the demo's `deliveryBlockers`): a folder that is not a directory (alone:
- * nothing else can be read), a base branch with no commit, no required checks, no saved repair
- * limit, an active run. The one check `delivery.start` and every project read share.
+ * refusal order: a folder that is not a directory (alone: nothing else can be read), a base branch
+ * with no commit, no required checks, no saved repair limit, an active run. The one check
+ * `delivery.start` and every project read share.
  */
 export async function startDeliveryBlockers(
   project: Pick<ProjectRow, "folderPath" | "baseBranch" | "requiredChecks" | "repairLimit">,
@@ -145,10 +145,10 @@ export async function toProject(db: Reader, row: ProjectRow): Promise<Project> {
 }
 
 /**
- * The refusal for a folder's realpath against the stored projects (spec D3 steps 2–3, first
- * wins): already added, or inside a stored project's repository (its repository's top level is
- * that project's folder); else null. A nested repository, such as a submodule, is its own top
- * level, so it may be added inside a project, and a project may hold one.
+ * The refusal for a folder's realpath against the stored projects (in this order, first wins):
+ * already added, or inside a stored project's repository (its repository's top level is that
+ * project's folder); else null. A nested repository, such as a submodule, is its own top level, so
+ * it may be added inside a project, and a project may hold one.
  */
 function containmentRefusal(
   folder: string,
@@ -178,10 +178,10 @@ function readProjectRows(db: Pick<ZeNormDatabase, "select">): ProjectRow[] {
 }
 
 /**
- * Checks a folder before it is added (spec D3). Refuses in order, first wins: not a directory,
- * already a project, inside a project's repository, not its repository's top level.
- * Otherwise returns its realpath, name, the branch `HEAD` names (null when detached) and whether
- * `HEAD` has a commit. Writes nothing.
+ * Checks a folder before it is added. Refuses in order, first wins: not a directory, already a
+ * project, inside a project's repository, not its repository's top level. Otherwise returns its
+ * realpath, name, the branch `HEAD` names (null when detached) and whether `HEAD` has a commit.
+ * Writes nothing.
  */
 export async function inspectProject(
   db: ZeNormDatabase,
@@ -223,9 +223,9 @@ export async function inspectProject(
 }
 
 /**
- * Adds a Project (spec D3): re-runs the inspection, then the branch rule (a malformed name is
- * `project_branch_invalid`; with a commit, a branch with none is `project_branch_missing`; with
- * no commit, any valid name is accepted), then re-checks containment and inserts in one write
+ * Adds a Project: re-runs the inspection, then the branch rule (a malformed name is
+ * `project_branch_invalid`; with a commit, a branch with none is `project_branch_missing`; with no
+ * commit, any valid name is accepted), then re-checks containment and inserts in one write
  * transaction. Writes nothing on refusal.
  */
 export async function createProject(
@@ -313,13 +313,12 @@ export async function getProject(
 }
 
 /**
- * Saves a project's settings (S8-2): the base branch, the required checks, the repair limit and
- * the fix commands, in one write. A branch name `git check-ref-format --branch` refuses is
+ * Saves a project's settings: the base branch, the required checks, the repair limit and the fix
+ * commands, in one write. A branch name `git check-ref-format --branch` refuses is
  * `project_branch_invalid`, a check that needs a shell (quotes, `&&`, pipes, redirects…) is
- * `project_check_invalid` (L197 item 9), and a fix command that needs one is
- * `project_fix_command_invalid`; each writes nothing. A missing folder or a branch without commits
- * does not refuse a save (they are start blockers), and a running run keeps what it pinned at its
- * start.
+ * `project_check_invalid`, and a fix command that needs one is `project_fix_command_invalid`; each
+ * writes nothing. A missing folder or a branch without commits does not refuse a save (they are
+ * start blockers), and a running run keeps what it pinned at its start.
  */
 export async function saveProjectSettings(
   actor: Actor,

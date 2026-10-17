@@ -21,9 +21,9 @@ const sessionFields = {
 };
 
 /**
- * A `claude` session record, `<sessionsDir>/<pid>.json` (spec D3), written by `packages/agent`'s
- * `runProcess`; `startedAt` is an ISO string (L226). It names the server that spawned it (C6), or,
- * written before records did, carries neither server field (6.1). Each shape is strict, so a
+ * A `claude` session record, `<sessionsDir>/<pid>.json`, written by `packages/agent`'s
+ * `runProcess`; `startedAt` is an ISO string. It names the server that spawned it, or,
+ * written before records did, carries neither server field. Each shape is strict, so a
  * record with one server field and not the other is broken, never read as the older shape.
  */
 const SessionRecord = z.union([
@@ -42,7 +42,7 @@ const KILL_POLL_MS = 50;
 
 /**
  * How far apart `ps`'s start time (1 s resolution) and the record's `startedAt` (written right
- * after the spawn) may be for the process to be the one the record names (CR-1).
+ * after the spawn) may be for the process to be the one the record names.
  */
 const START_SLACK_MS = 3000;
 
@@ -98,16 +98,16 @@ async function psField(pid: number, field: "command" | "lstart"): Promise<string
   }
 }
 
-/** Whether `command` (from `ps`) runs `recorded`: equal, or `recorded` then a space (CR-1). */
+/** Whether `command` (from `ps`) runs `recorded`: equal, or `recorded` then a space. */
 function runsCommand(command: string, recorded: string): boolean {
   return command === recorded || command.startsWith(`${recorded} `);
 }
 
 /**
  * Why the session `record` names is not orphaned, or null when it is. A record that names its
- * server (C6) is orphaned when that server's pid is gone, or now runs a process that started at
+ * server is orphaned when that server's pid is gone, or now runs a process that started at
  * another time than the record says (the pid was reused): under a subreaper (systemd, a
- * container's init) an orphan's parent is not pid 1. A record without server fields (6.1) keeps
+ * container's init) an orphan's parent is not pid 1. A record without server fields keeps
  * the older rule: orphaned when its parent is pid 1.
  */
 async function whyNotOrphaned(record: SessionRecord, own: ProcessRow): Promise<string | null> {
@@ -129,8 +129,8 @@ async function whyNotOrphaned(record: SessionRecord, own: ProcessRow): Promise<s
 }
 
 /**
- * Why the live process `own` is not the orphaned session `record` names, or null when it is
- * (CR-1): it must be orphaned (see `whyNotOrphaned`; so no live server owns it and it is not the
+ * Why the live process `own` is not the orphaned session `record` names, or null when it is:
+ * it must be orphaned (see `whyNotOrphaned`; so no live server owns it and it is not the
  * person's own `claude`), it must have started when the record says, and it must run the recorded
  * command. Anything else is spared.
  */
@@ -167,9 +167,9 @@ async function waitUntilGone(target: number): Promise<boolean> {
 }
 
 /**
- * Kills a recorded session that is still running (S9-4): its group (or the pid alone when it
- * does not lead a group, D3) and every descendant, collected before any signal, because the
- * Bash tool runs in its own process group (spike surprise 8).
+ * Kills a recorded session that is still running: its group (or the pid alone when it
+ * does not lead a group) and every descendant, collected before any signal, because the
+ * Bash tool runs in its own process group.
  */
 async function killSession(
   record: SessionRecord,
@@ -217,7 +217,7 @@ async function entries(dir: string): Promise<string[] | null> {
   }
 }
 
-/** Kills the session `record` names when it is ours and orphaned (CR-1), else logs why not. */
+/** Kills the session `record` names when it is ours and orphaned, else logs why not. */
 async function sweepRecord(record: SessionRecord, path: string, log: SweepLog): Promise<void> {
   const table = await processTable();
   const own = table.find((row) => row.pid === record.pid);
@@ -234,7 +234,7 @@ async function sweepRecord(record: SessionRecord, path: string, log: SweepLog): 
 }
 
 /**
- * The startup process sweep (S9-4, L19; CR-1): for each session record left by an earlier server,
+ * The startup process sweep: for each session record left by an earlier server,
  * kills the session's processes when the recorded pid is orphaned, started when the record says
  * and runs the recorded command; spares any other process; and removes the record in every case.
  */
@@ -256,7 +256,7 @@ export async function sweepSessions(sessionsDir: string, log: SweepLog): Promise
 }
 
 /**
- * The orphaned run folder sweep (S9-5, L126 e): removes each entry of `runsDir` that names no
+ * The orphaned run folder sweep: removes each entry of `runsDir` that names no
  * delivery run. `rm` removes a symlink itself, never what it points to.
  */
 export async function sweepRunFolders(

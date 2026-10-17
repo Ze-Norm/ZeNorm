@@ -78,7 +78,7 @@ function MapAside({ mapId }: SlotProps["map.workspace.aside"]) {
   );
 }
 
-/** The example plugin's web entry (D17): one component in each of the three slots. */
+/** The example plugin's web entry: one component in each of the three slots. */
 export const exampleWebPlugin = defineWebPlugin({
   ...EXAMPLE_PLUGIN,
   slots: {

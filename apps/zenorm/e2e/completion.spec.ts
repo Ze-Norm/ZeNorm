@@ -33,10 +33,10 @@ import type { RepairSettings } from "./flows.ts";
 import { expect, test } from "./worker-server.ts";
 
 /**
- * Slice 8's delivery flows (ticket 10). Each adds its own fixture project and sets its required
- * checks on the Project settings page, so the one-active-run-per-project rule never couples them.
- * The delivery markers ride in the idea to the stand-in (`fake-claude.ts`). Run states and codes
- * are read from `map.overview`, the one read every page shares (S8-14).
+ * The delivery flows. Each adds its own fixture project and sets its required checks on the Project
+ * settings page, so the one-active-run-per-project rule never couples them. The delivery markers
+ * ride in the idea to the stand-in (`fake-claude.ts`). Run states and codes are read from
+ * `map.overview`, the one read every page shares.
  */
 const PASSING_CHECK = "git status --short";
 /** A fix command as a person saves one; T1 only stores it, no session runs it yet. */
@@ -126,7 +126,7 @@ async function readyMap(
   await expect(blockers.nth(1)).toHaveAttribute("data-code", "project_repair_limit_missing");
   const mapId = await approvedMap(page, deliveryRepo(flow), idea);
   // The Delivery card: Start delivery is unavailable, with the reasons and the link to Project
-  // settings, and no start form until checks and a repair limit are saved (UX audit D1).
+  // settings, and no start form until checks and a repair limit are saved.
   await expect(nextCard(page)).toHaveAttribute("data-who", "nobody");
   await expect(startDeliveryForm(page)).toHaveCount(0);
   const reasons = nextCard(page).getByRole("list", { name: "Why Start delivery is unavailable" });
@@ -165,7 +165,7 @@ function holdDeliveries(): void {
   rmSync(deliveryReleaseFile(), { force: true });
 }
 
-// A failed flow releases its held stand-in at once rather than leaving it up to 60 s (L197 N-Spec-6).
+// A failed flow releases its held stand-in at once rather than leaving it up to 60 s.
 test.afterEach(() => {
   writeFileSync(deliveryReleaseFile(), "");
   writeFileSync(deliveryClosingReleaseFile(), "");
@@ -192,7 +192,7 @@ test("cancel ends a held run: its worktrees and ticket branches are gone, its br
   await page.getByRole("button", { name: "Cancel run" }).click();
   await expectRunState(page, mapId, 1, "cancelled");
   await expect.poll(() => worktrees("cancel")).toHaveLength(1);
-  // The cleanup deletes the ticket branches after it removes the worktrees and prunes (D8).
+  // The cleanup deletes the ticket branches after it removes the worktrees and prunes.
   await expect.poll(() => ticketBranches("cancel", run.branch)).toBe("");
   expect(git("cancel", ["rev-parse", "--verify", "--quiet", `refs/heads/${run.branch}`])).toMatch(
     /^[0-9a-f]{40}$/,
@@ -235,7 +235,7 @@ test("a held run shows its tickets and activity, passes once released, then is m
   await expect(
     page.getByRole("button", { name: `Remove fix command ${FIX_COMMAND}` }),
   ).toBeVisible();
-  // A check that needs a shell is refused by Save settings (L197 item 9).
+  // A check that needs a shell is refused by Save settings.
   await page.getByLabel("Required checks").fill("pnpm lint && pnpm test");
   await page.getByRole("button", { name: "Add check" }).click();
   await expect(
@@ -391,7 +391,7 @@ test("a blocked run shows its findings before Start again from clean, which star
   await expectRunState(page, mapId, 2, "blocked");
 });
 
-test("a passing run on a GitHub project shows its pull request on Delivery, then reads merged after Check now (5.2)", async ({
+test("a passing run on a GitHub project shows its pull request on Delivery, then reads merged after Check now", async ({
   page,
 }) => {
   const mapId = await readyMap(

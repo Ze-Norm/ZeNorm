@@ -43,10 +43,10 @@ export function surveyRunConfig(config: PlanningRunConfig): PlanningRunConfig {
 }
 
 /**
- * The prompt of a map's code survey (harness change #1): the map as its confirming chart left it
- * and the survey's rules: rules files and workspace layout first, one entry per area, every fact
- * cited at a line it opened, code facts only. Every text the person or an earlier run wrote sits in
- * a block under one fresh nonce per call (L63); one line states the run's turn budget, `maxTurns`.
+ * The prompt of a map's code survey: the map as its confirming chart left it and the survey's
+ * rules: rules files and workspace layout first, one entry per area, every fact cited at a line it
+ * opened, code facts only. Every text the person or an earlier run wrote sits in a block under one
+ * fresh nonce per call; one line states the run's turn budget, `maxTurns`.
  */
 export function buildSurveyPrompt(
   request: SurveyCodeRequest,

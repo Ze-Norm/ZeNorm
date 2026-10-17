@@ -11,7 +11,7 @@ import { plural } from "@/pages/stages/delivery/words";
 import { SpecIndex, SpecJumpMenu } from "@/pages/stages/spec/SpecIndex";
 
 /**
- * A spec the map only waits on (slice 8b E-1): its latest revision, on whichever map wrote it, as
+ * A spec the map only waits on: its latest revision, on whichever map wrote it, as
  * one document with its index, under the map's waits and the stage's Next card (`next`). The map
  * has written none of it yet, so the document is read only: no revisions box, delta or clause
  * sources.

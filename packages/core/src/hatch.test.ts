@@ -46,7 +46,7 @@ function message(mapId: string, fields: Partial<SendHatchMessageInput>): SendHat
   return { mapId, stage: "idea", specNumber: null, text: "Make nesting any depth.", ...fields };
 }
 
-describe("hatch.send (S7b-2)", () => {
+describe("hatch.send", () => {
   test("stores the message with its stage and trimmed text, queued, and starts no run", async () => {
     // The chart runs: a message is never refused for what is in flight.
     const mapId = await newMap(context, project, "Export data");
@@ -62,7 +62,7 @@ describe("hatch.send (S7b-2)", () => {
       { stage: "wayfinding", spec: null, text: "Any depth?", status: { state: "queued" } },
     ]);
     expect(runsOf(context, mapId)).toEqual(runsBefore);
-    // A message is not a next action and moves no stage, rail or Inbox status (D6).
+    // A message is not a next action and moves no stage, rail or Inbox status.
     expect(sent.value.status).toEqual(before.status);
     expect(await overview(mapId)).toEqual(sent.value);
   });
@@ -80,7 +80,7 @@ describe("hatch.send (S7b-2)", () => {
     expect(added.map((run) => [run.purpose, run.state, run.hatchMessageId])).toEqual([
       ["hatch", "running", sent.value.messages[0]?.id],
     ]);
-    // A hatch run is not a next action and moves no stage status (D6).
+    // A hatch run is not a next action and moves no stage status.
     expect(sent.value.status).toEqual(before.status);
   });
 
@@ -115,7 +115,7 @@ describe("hatch.send (S7b-2)", () => {
     expect((await overview(mapId)).messages).toEqual([]);
   });
 
-  test("Spec and Tickets store the number sent, null when sent null (D9); Idea and Wayfinding none", async () => {
+  test("Spec and Tickets store the number sent, null when sent null; Idea and Wayfinding none", async () => {
     const { mapId } = await draftedSpec(context, project);
 
     for (const fields of [
@@ -150,7 +150,7 @@ describe("hatch.send (S7b-2)", () => {
   });
 });
 
-describe("the map's messages (D6)", () => {
+describe("the map's messages", () => {
   test("each reads queued, working, stopped with its run id, replied or refused, oldest first", async () => {
     const mapId = await newMap(context, project, "Export data");
     const text = "Does nested mean any depth?";

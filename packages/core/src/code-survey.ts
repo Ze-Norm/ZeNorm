@@ -30,7 +30,7 @@ interface RequestBase {
   readonly idea: SurveyCodeRequest["idea"];
 }
 
-/** A `survey` run's request (harness change #1): the map as its confirming chart left it. */
+/** A `survey` run's request: the map as its confirming chart left it. */
 export function surveyCodeRequest(db: Reader, mapId: string, base: RequestBase): SurveyCodeRequest {
   const map = readMap(db, mapId);
   return {
@@ -147,10 +147,10 @@ export function surveySourceProblem(folder: string, survey: CodeSurvey): RunFail
 
 /**
  * Saves a `survey` run's code survey as the map's current one in one transaction and inserts what
- * it makes due (harness change #1): the frontier's waypoint runs, or the map's next run. A survey
- * naming a path or line the project does not have is refused `survey_source_unknown`: the run
- * fails, follows the retry rules, and nothing is written. The paths are checked in `folder`, the
- * one the run's checkout gave (CR9b-3).
+ * it makes due: the frontier's waypoint runs, or the map's next run. A survey naming a path or line
+ * the project does not have is refused `survey_source_unknown`: the run fails, follows the retry
+ * rules, and nothing is written. The paths are checked in `folder`, the one the run's checkout
+ * gave.
  */
 export function recordSurvey(
   actor: Actor,
@@ -161,7 +161,7 @@ export function recordSurvey(
 ): Result<null, RunFailure> {
   return write(db, actor, (tx): Result<null, RunFailure> => {
     if (isReplaced(tx, runId)) {
-      // A run cancelled while its call was out saves nothing and is not retried (S7b-6).
+      // A run cancelled while its call was out saves nothing and is not retried.
       return ok(null);
     }
     const run = runningRun(tx, runId);

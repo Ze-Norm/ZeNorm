@@ -23,10 +23,10 @@ import type {
 import { eq } from "drizzle-orm";
 import type { Hono } from "hono";
 
-/** A plugin id (SDK §2): lowercase, starting with a letter. */
+/** A plugin id: lowercase, starting with a letter. */
 const PLUGIN_ID = /^[a-z][a-z0-9-]*$/;
 
-/** A plugin's `stop` is awaited at most this long on shutdown (D16). */
+/** A plugin's `stop` is awaited at most this long on shutdown. */
 export const PLUGIN_STOP_TIMEOUT_MS = 5000;
 
 /** Where the plugin set writes: a line (`error` null) or an unexpected error. */
@@ -39,8 +39,8 @@ export interface BoundPlugin {
 }
 
 /**
- * A plugin set checked before the database is opened (QA-1): manifests, config sections and the
- * executor registry. `createApp` composes it with the database.
+ * A plugin set checked before the database is opened: manifests, config sections and the executor
+ * registry. `createApp` composes it with the database.
  */
 export interface CheckedPlugins {
   /** `GET /plugins`: ids and versions in plugin order. */
@@ -50,9 +50,9 @@ export interface CheckedPlugins {
   readonly bound: readonly BoundPlugin[];
 }
 
-/** A checked plugin set, composed with core, ready to start (S9-18, D16, S9-22). */
+/** A checked plugin set, composed with core, ready to start. */
 export interface PreparedPlugins extends CheckedPlugins {
-  /** What each contribution's context reads: the server's own data, at call time (CR9b-1). */
+  /** What each contribution's context reads: the server's own data, at call time. */
   readonly context: PluginContext;
   /** Core's seams wrapped by each plugin's, in plugin order (core innermost). */
   readonly seams: Seams;
@@ -83,7 +83,7 @@ function refuse(
   return err({ code, message, subject });
 }
 
-/** A plugin contribution that threw or rejected (CR9b-11): its plugin and phase in `data`. */
+/** A plugin contribution that threw or rejected: its plugin and phase in `data`. */
 function startFailed(
   pluginId: string,
   phase: PluginStartPhase,
@@ -150,7 +150,7 @@ function checkManifests(plugins: readonly ServerPlugin[]): Result<null, StartupE
   return ok(null);
 }
 
-/** Parses each plugin's section (SDK §3.1): none missing, none invalid, none unknown. */
+/** Parses each plugin's section: none missing, none invalid, none unknown. */
 function configure(
   plugins: readonly ServerPlugin[],
   pluginConfig: Readonly<Record<string, unknown>>,
@@ -195,7 +195,7 @@ function configure(
   return ok(bound);
 }
 
-/** Core's seams wrapped by each plugin's in order; one identity provider at most (SDK §3.8). */
+/** Core's seams wrapped by each plugin's in order; one identity provider at most. */
 function composeSeams(
   bound: readonly BoundPlugin[],
   core: Seams,
@@ -241,7 +241,7 @@ function seamFailed(id: string, error: unknown): Result<never, StartupError> {
 
 /**
  * Each plugin's subscribers; a key that is neither `*` nor a feed table is refused, and a throw
- * from `subscribers()` is `plugin_start_failed` (CR9b-11).
+ * from `subscribers()` is `plugin_start_failed`.
  */
 function collectSubscribers(
   bound: readonly BoundPlugin[],
@@ -273,8 +273,8 @@ function collectSubscribers(
 }
 
 /**
- * Each plugin's raw router, given the composed `identify` and `checkAccess` (CR9b-13); two routes
- * on one method and path collide (SDK §3.3), and a throw from `routes()` is `plugin_start_failed`.
+ * Each plugin's raw router, given the composed `identify` and `checkAccess`; two routes on one
+ * method and path collide, and a throw from `routes()` is `plugin_start_failed`.
  */
 function collectRoutes(
   bound: readonly BoundPlugin[],
@@ -312,8 +312,8 @@ function collectRoutes(
 }
 
 /**
- * The executor registry (S9-22, D18): the app's executors, then each plugin's in plugin order.
- * A repeated name is `plugin_executor_duplicate`; `delivery.executor` must name one.
+ * The executor registry: the app's executors, then each plugin's in plugin order. A repeated name
+ * is `plugin_executor_duplicate`; `delivery.executor` must name one.
  */
 function chooseExecutor(
   bound: readonly BoundPlugin[],
@@ -358,8 +358,8 @@ function chooseExecutor(
 }
 
 /**
- * The plugin set's checks that need no database (D16, S9-22, QA-1), in order: manifests, config
- * sections, the executor registry. The first failure is the coded `StartupError`.
+ * The plugin set's checks that need no database, in order: manifests, config sections, the executor
+ * registry. The first failure is the coded `StartupError`.
  */
 export function checkPlugins(input: PluginSetInput): Result<CheckedPlugins, StartupError> {
   const manifests = checkManifests(input.plugins);
@@ -375,7 +375,7 @@ export function checkPlugins(input: PluginSetInput): Result<CheckedPlugins, Star
   });
 }
 
-/** The plugins' context over `db` (CR9b-1): each read is made when the plugin calls it. */
+/** The plugins' context over `db`: each read is made when the plugin calls it. */
 function pluginContext(db: ZeNormDatabase): PluginContext {
   return {
     projectName: (projectId) => {
@@ -413,7 +413,7 @@ export function composePlugins(
   });
 }
 
-/** Subscribes each plugin subscriber to the bus, after commit, by its table or `*` (SDK §3.4). */
+/** Subscribes each plugin subscriber to the bus, after commit, by its table or `*`. */
 export function subscribePlugins(prepared: PreparedPlugins, bus: ChangeBus): void {
   for (const { id, key, subscriber } of prepared.subscribers) {
     bus.subscribe(`plugin ${id} (${key})`, (event) => {
@@ -423,9 +423,9 @@ export function subscribePlugins(prepared: PreparedPlugins, bus: ChangeBus): voi
 }
 
 /**
- * Starts each plugin in order, awaiting each (SDK §3.12), and returns the started set for
- * `stopPlugins`. A rejection is `plugin_start_failed`; the plugins already started are stopped
- * first, in reverse order.
+ * Starts each plugin in order, awaiting each, and returns the started set for `stopPlugins`. A
+ * rejection is `plugin_start_failed`; the plugins already started are stopped first, in reverse
+ * order.
  */
 export async function startPlugins(
   prepared: PreparedPlugins,
@@ -478,7 +478,7 @@ async function stopBound(bound: readonly BoundPlugin[], log: PluginLog): Promise
   }
 }
 
-/** Stops each started plugin in reverse order, each bounded at 5 s (D16); a failure is logged. */
+/** Stops each started plugin in reverse order, each bounded at 5 s; a failure is logged. */
 export async function stopPlugins(started: readonly BoundPlugin[], log: PluginLog): Promise<void> {
   await stopBound(started, log);
 }

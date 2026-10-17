@@ -17,7 +17,7 @@ export function stageName(stage: Stage): string {
   return entry.name;
 }
 
-/** A map's name (slice 6a D11): its title once charted, else its idea's first line. */
+/** A map's name: its title once charted, else its idea's first line. */
 export function mapName(map: MapRecord): string {
   if (map.title !== null) {
     return map.title;
@@ -48,18 +48,18 @@ const timeFormat = new Intl.DateTimeFormat(undefined, {
 });
 const dayFormat = new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" });
 
-/** An ISO timestamp as the demo writes it: "Oct 2 · 15:00", in local time. */
+/** An ISO timestamp as the app writes it: "Oct 2 · 15:00", in local time. */
 export function formatMoment(iso: string): string {
   const date = new Date(iso);
   return `${dayFormat.format(date)} · ${timeFormat.format(date)}`;
 }
 
-/** The overview's next actions shown as cards before "Also in motion" (L143, the demo's two). */
+/** The overview's next actions shown as cards before "Also in motion". */
 const OVERVIEW_CARDS = 2;
 
 /**
  * The overview's next actions split into the cards it shows first and the rest it lists under
- * "Also in motion" (S7b-16, L143). A map always has a next action.
+ * "Also in motion". A map always has a next action.
  */
 export function overviewActions(next: readonly NextAction[]): {
   cards: readonly NextAction[];

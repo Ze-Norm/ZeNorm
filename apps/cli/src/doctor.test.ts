@@ -108,7 +108,7 @@ function isJournal(value: unknown): value is Journal {
   return Array.isArray(entries) && entries.every(isEntry);
 }
 
-/** The shipped migrations and one stand-in after the last, as a newer build ships them (5.2). */
+/** The shipped migrations and one stand-in after the last, as a newer build ships them. */
 async function newerMigrations(): Promise<string> {
   const folder = join(home, "migrations-newer");
   await cp(SOURCE_ASSETS.migrationsFolder, folder, { recursive: true });
@@ -158,7 +158,7 @@ afterEach(async () => {
   await rm(home, { recursive: true, force: true });
 });
 
-describe("zenorm doctor (C5, 5.4)", () => {
+describe("zenorm doctor", () => {
   test("everything passing exits 0 and leaves the config and database files unchanged", async () => {
     await writeConfig(dataDir);
     await migrate(SOURCE_ASSETS.migrationsFolder);
@@ -201,7 +201,7 @@ describe("zenorm doctor (C5, 5.4)", () => {
     });
   });
 
-  test("a database a newer build migrated is database_newer_than_build, and stays as it was (5.2)", async () => {
+  test("a database a newer build migrated is database_newer_than_build, and stays as it was", async () => {
     await writeConfig(dataDir);
     await migrate(await newerMigrations());
     const databaseBefore = await readFile(join(dataDir, DATABASE_FILE));
@@ -240,7 +240,7 @@ describe("zenorm doctor (C5, 5.4)", () => {
   });
 });
 
-describe("zenorm run's sign-in check (C5)", () => {
+describe("zenorm run's sign-in check", () => {
   test("a signed-out claude refuses agent_not_logged_in before listening or opening the database", async () => {
     const authFile = join(home, "fake-auth");
     await writeFile(authFile, "signed_out");

@@ -31,7 +31,7 @@ import { isDraft, latestOf, readRejections, readReview, readSpecRevisions } from
 import { planAndRelease } from "./spec-holds.ts";
 import { write } from "./writes.ts";
 
-/** The codes `spec.reject` returns: those of `spec.approve` but the review's (S7-12). */
+/** The codes `spec.reject` returns: those of `spec.approve` but the review's. */
 export type SpecRejectError = Exclude<SpecDecisionError, { code: "spec_review_not_passed" }>;
 
 /** Whether a scope's latest run is `purpose` and runs or awaits its retry. */
@@ -44,10 +44,10 @@ function working(runs: readonly PlanningRun[], purpose: PlanningRun["purpose"]):
 }
 
 /**
- * The refusals `spec.approve` and `spec.reject` share, in S7-11's order: the revision is not
- * found; not its spec's latest draft; its map un-cleared, its map-scope `to_spec` running, or its
- * re-clear due (stopped or not yet started), which writes the draft's next revision (L127 (3),
- * S7-10, L138); its review running. Returns the revision when none applies.
+ * The refusals `spec.approve` and `spec.reject` share, in order: the revision is not found; not its
+ * spec's latest draft; its map un-cleared, its map-scope `to_spec` running, or its re-clear due
+ * (stopped or not yet started), which writes the draft's next revision; its review running. Returns
+ * the revision when none applies.
  */
 function specDecisionRefusal(
   tx: Tx,
@@ -93,9 +93,9 @@ function specDecisionRefusal(
 }
 
 /**
- * Approves the spec's latest draft revision (S7-11): refuses, in order, `spec_revision_not_found`,
- * `spec_revision_decided`, `map_uncleared`, `review_in_flight`, `spec_review_not_passed`; else
- * sets `approved_at` and starts the spec's `to_tickets` in the same transaction. Returns the map id.
+ * Approves the spec's latest draft revision: refuses, in order, `spec_revision_not_found`,
+ * `spec_revision_decided`, `map_uncleared`, `review_in_flight`, `spec_review_not_passed`; else sets
+ * `approved_at` and starts the spec's `to_tickets` in the same transaction. Returns the map id.
  */
 export function approveSpecRevision(
   actor: Actor,
@@ -131,9 +131,9 @@ export function approveSpecRevision(
 }
 
 /**
- * Rejects the spec's latest draft revision with a reason (S7-12): the first refusals of
- * `spec.approve`, then supersedes it with the reason stored; `planNext` starts the spec-scoped
- * `to_spec` addressing it in the same transaction (L97). Returns the map id.
+ * Rejects the spec's latest draft revision with a reason: the first refusals of `spec.approve`,
+ * then supersedes it with the reason stored; `planNext` starts the spec-scoped `to_spec` addressing
+ * it in the same transaction. Returns the map id.
  */
 export function rejectSpecRevision(
   actor: Actor,
@@ -146,8 +146,8 @@ export function rejectSpecRevision(
       return checked;
     }
     const row = checked.value;
-    // A repair of the draft running is refused as its review is (writer's choice, 03): one
-    // running run per spec (S7-19) leaves no room for the rejection's own repair.
+    // A repair of the draft running is refused as its review is: one running run per spec leaves no
+    // room for the rejection's own repair.
     const runs = readMapRuns(tx, row.mapId);
     const scope = specRuns(runs, row.specificationId);
     if (working(scope, "to_spec")) {
@@ -157,8 +157,8 @@ export function rejectSpecRevision(
         data: { specRevisionId: row.id },
       });
     }
-    // A stopped review or repair, unless superseded (S7-26), keeps the spec from reading idle, so
-    // the rejection's repair would never start; refuse until its Try again ends it.
+    // A stopped review or repair, unless superseded, keeps the spec from reading idle, so the
+    // rejection's repair would never start; refuse until its Try again ends it.
     const stopped = scope.at(-1);
     if (
       stopped !== undefined &&
@@ -187,13 +187,13 @@ export function rejectSpecRevision(
 }
 
 /**
- * The refusals of `ticketSet.approve` and `ticketSet.reject`, in S7c-6's order with slice 8b D7's:
- * not found; approved `ticket_set_decided`; replaced (its revision no longer its spec's latest,
- * S8b-9) `revision_not_latest`; a `to_tickets` or `tickets_review` running or awaiting its retry,
- * or a `to_tickets` stopped after a failed retry (L167 (B1): a rejected or noted version is not
- * decided through a stopped rewrite), `review_in_flight`; the current version not `review_passed`
- * (no review, a stopped `tickets_review`, failed or held) `ticket_set_review_not_passed`. Returns
- * the set and its map id when none applies.
+ * The refusals of `ticketSet.approve` and `ticketSet.reject`, in order: not found; approved
+ * `ticket_set_decided`; replaced (its revision no longer its spec's latest) `revision_not_latest`;
+ * a `to_tickets` or `tickets_review` running or awaiting its retry, or a `to_tickets` stopped after
+ * a failed retry (a rejected or noted version is not decided through a stopped rewrite),
+ * `review_in_flight`; the current version not `review_passed` (no review, a stopped
+ * `tickets_review`, failed or held) `ticket_set_review_not_passed`. Returns the set and its map id
+ * when none applies.
  */
 function ticketSetRefusal(
   tx: Tx,
@@ -252,8 +252,8 @@ function ticketSetRefusal(
 }
 
 /**
- * Approves a ticket set's current version (S7c-6): the refusals above, then `review_passed →
- * approved` (issue 21 item 1; slice 7's interim relaxation removed). Returns the map id.
+ * Approves a ticket set's current version: the refusals above, then `review_passed → approved`.
+ * Returns the map id.
  */
 export function approveTicketSet(
   actor: Actor,
@@ -281,10 +281,10 @@ export function approveTicketSet(
 }
 
 /**
- * Rejects a ticket set's current version with a reason (S7c-7, S7-18): the refusals above, then
- * records the reason against the version, which makes the rewrite `to_tickets` due (D6); `planNext`
- * starts it in the same transaction. Its version is written `awaiting_review` (L32) and gets its
- * own review. Returns the map id.
+ * Rejects a ticket set's current version with a reason: the refusals above, then records the reason
+ * against the version, which makes the rewrite `to_tickets` due; `planNext` starts it in the same
+ * transaction. Its version is written `awaiting_review` and gets its own review. Returns the map
+ * id.
  */
 export function rejectTicketSet(
   actor: Actor,

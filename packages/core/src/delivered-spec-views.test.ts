@@ -51,7 +51,7 @@ const FROM_WAYPOINT: SpecRevisionContent = {
   })),
 };
 
-/** A set on REVISED whose T3 follows up r1's delivered T1 (S8b-14). */
+/** A set on REVISED whose T3 follows up r1's delivered T1. */
 const FOLLOW_UP: TicketSetContent = {
   tickets: [
     {
@@ -109,7 +109,7 @@ function storedContent(ticketSetId: string): unknown {
 }
 
 describe("ticket set views", () => {
-  test("S8b-9: a set whose revision is no longer the latest reads replaced; an approved one never does", async () => {
+  test("a set whose revision is no longer the latest reads replaced; an approved one never does", async () => {
     const replaced = replacedTicketSet(context, {
       specificationId: delivered.specificationId,
       mapId: delivered.mapId,
@@ -125,7 +125,7 @@ describe("ticket set views", () => {
     });
   });
 
-  test("S8b-14: followUps name the earlier ticket, revision, run, commit and map; earlier records are unchanged", async () => {
+  test("followUps name the earlier ticket, revision, run, commit and map; earlier records are unchanged", async () => {
     const before = storedContent(delivered.ticketSetId);
     const next = insertNextRevision(context, {
       specificationId: delivered.specificationId,
@@ -153,13 +153,13 @@ describe("ticket set views", () => {
 });
 
 describe("revision views", () => {
-  test("S8b-10: delta on every revision past 1, a same-map repair's included; sources walk back across maps", async () => {
+  test("delta on every revision past 1, a same-map repair's included; sources walk back across maps", async () => {
     insertNextRevision(context, {
       specificationId: delivered.specificationId,
       mapId: delivered.mapId,
       content: REVISED,
       approved: true,
-      // Approving r2 starts its to_tickets (D6): status reads the latest approved revision (S8b-8).
+      // Approving r2 starts its to_tickets: status reads the latest approved revision.
       set: { state: "approved", content: FOLLOW_UP },
     });
     const other = await chartedMap(context, project);
@@ -175,7 +175,7 @@ describe("revision views", () => {
     expect(r2?.delta).toMatchObject({ before: 1, after: 2 });
     expect(r3?.delta).toMatchObject({ before: 2, after: 3 });
     expect(r2?.delta?.criteria["1.3"]?.change).toBe("new");
-    // r1's destination source stays credited to the map that wrote r1, not to r3's map (CR-2).
+    // r1's destination source stays credited to the map that wrote r1, not to r3's map.
     expect(r3?.clauseSources.C1).toEqual([
       expect.objectContaining({ kind: "destination", mapId: delivered.mapId }),
       expect.objectContaining({
@@ -201,7 +201,7 @@ describe("revision views", () => {
   });
 });
 
-describe("clause sources (S8b-16, N-2)", () => {
+describe("clause sources", () => {
   test("a clause carried over unchanged credits only the maps that wrote or changed it", async () => {
     const other = await chartedMap(context, project);
     const [c1] = SPEC.clauses;
@@ -238,7 +238,7 @@ describe("clause sources (S8b-16, N-2)", () => {
   });
 });
 
-describe("waypoint touches (D13, the demo's TouchesCard; mid QA L211 (1))", () => {
+describe("waypoint touches", () => {
   test("a touch names the touched revision's writer map, its delivery, its clause titles and the later revisions", async () => {
     const other = await chartedMap(context, project);
     insertTouch(context, {
@@ -274,7 +274,7 @@ describe("waypoint touches (D13, the demo's TouchesCard; mid QA L211 (1))", () =
 });
 
 describe("waits", () => {
-  test("S8b-6 / B4: an open wait on an uncleared map whose spec nothing holds reads hold null, not released", async () => {
+  test("an open wait on an uncleared map whose spec nothing holds reads hold null, not released", async () => {
     const uncleared = await newMap(context, project, "Quote the export");
     insertWait(context, {
       mapId: uncleared,
@@ -334,7 +334,7 @@ describe("waits", () => {
   });
 });
 
-describe("project specs (S8b-18)", () => {
+describe("project specs", () => {
   test("a spec with r1 delivered and merged and r2 drafted by another map", async () => {
     const other = await clearedMap(context, project);
     holdByRevision(context, {
@@ -369,7 +369,7 @@ describe("project specs (S8b-18)", () => {
   });
 });
 
-describe("next actions (S8b-16, contract part)", () => {
+describe("next actions (contract part)", () => {
   test("every action core derives today has onMap null", async () => {
     await newMap(context, project, "Just an idea");
     await chartedMap(context, project);

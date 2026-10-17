@@ -6,13 +6,13 @@ import { DeliveryRun, MapOverviewDetail, Project, ProjectDetail } from "@zenorm/
 import type { SpecRun } from "@zenorm/contracts";
 
 /**
- * Steps the flows share, through the slice 5 navigation (spec D1, D6–D8): roles, accessible names
- * and `/maps/<id>/<stage>` URLs. Each returns once the page shows the step's result.
+ * Steps the flows share, through the app's navigation: roles, accessible names and
+ * `/maps/<id>/<stage>` URLs. Each returns once the page shows the step's result.
  */
 
 export type StageSegment = "idea" | "wayfinding" | "spec" | "tickets" | "delivery";
 
-/** Map creation opens Idea (slice 6a D4). */
+/** Map creation opens Idea. */
 export const MAP_URL = /\/maps\/([0-9a-f-]+)\/idea$/;
 export const PROJECT_URL = /\/projects\/([0-9a-f-]+)$/;
 
@@ -190,7 +190,7 @@ export function revisionList(page: Page): Locator {
   return page.getByRole("navigation", { name: "Revisions" });
 }
 
-/** The spec's approval button: "Approve the revision" past r1 (S7b-16). */
+/** The spec's approval button: "Approve the revision" past r1. */
 export const APPROVE_SPEC = /^Approve the (spec|revision)$/;
 
 /** The stage's next-action card. */
@@ -207,7 +207,7 @@ export async function approveSpec(page: Page): Promise<void> {
 
 /**
  * Approves the latest ticket set on the Tickets page once its tickets review passed: the
- * button renders only then (S7c-11), and the click waits for it while the page polls (L123).
+ * button renders only then, and the click waits for it while the page polls.
  */
 export async function approveTicketSet(page: Page): Promise<void> {
   const approve = nextCard(page).getByRole("button", { name: "Approve the tickets" });
@@ -248,7 +248,7 @@ const SAVED_REPAIR_LIMIT = 0;
 
 /**
  * Saves the required checks of the map's project through `project.saveSettings`, keeping its base
- * branch (slice 8 S8-2), with the repair limit `SAVED_REPAIR_LIMIT` and no fix commands: a
+ * branch, with the repair limit `SAVED_REPAIR_LIMIT` and no fix commands: a
  * project needs a saved repair limit before it can start delivery. Returns the saved project.
  */
 export async function saveChecks(
@@ -294,13 +294,13 @@ export function runStep(
   return page.getByRole("region", { name, exact: true });
 }
 
-/** The Merge step's pull request, its link and state; the state is its `data-state` (C5). */
+/** The Merge step's pull request, its link and state; the state is its `data-state`. */
 export function pullRequestStatus(page: Page): Locator {
   return runStep(page, "Merge").getByRole("group", { name: "Pull request" });
 }
 
 /**
- * Clicks the Delivery card's **Check now** (C4); returns the run as `delivery.checkPullRequest`
+ * Clicks the Delivery card's **Check now**; returns the run as `delivery.checkPullRequest`
  * answered it.
  */
 export async function checkPullRequestNow(page: Page): Promise<DeliveryRun> {
@@ -325,8 +325,8 @@ export function inboxGroup(page: Page, group: "Needs you" | "Agent is working" |
 const QUIET_ROW_ATTEMPT_MS = 1000;
 
 /**
- * Expects `row` within the Inbox's quiet group to be shown: a small group is inline (UX audit G2);
- * a long tail behind the active groups folds to one line, opened with **Show all** (spec C11.3).
+ * Expects `row` within the Inbox's quiet group to be shown: a small group is inline;
+ * a long tail behind the active groups folds to one line, opened with **Show all**.
  * Spec files run at once on one server, so another file's map can fold the group at any moment;
  * each attempt opens the fold if it is there, until the row shows (`expect.toPass` in the config).
  */
@@ -343,7 +343,7 @@ export async function expectQuietRow(page: Page, row: (quiet: Locator) => Locato
 
 /**
  * The project page's "Start delivery is unavailable" card's blockers, one `li[data-code]` per
- * blocker in core's order (slice 8 D12; UX audit P2-5), the same card a map's Delivery shows.
+ * blocker in core's order, the same card a map's Delivery shows.
  */
 export function projectBlockers(page: Page): Locator {
   return page
@@ -365,7 +365,7 @@ export interface RepairSettings {
 
 /**
  * Sets the required checks, the repair limit and the fix commands of a project that has none
- * through its Project settings page (slice 8 D12): opened from the project page's Settings button,
+ * through its Project settings page: opened from the project page's Settings button,
  * each check and fix command added, the limit typed, then saved. Returns once the page shows the
  * save.
  */
@@ -439,7 +439,7 @@ export async function startDelivery(page: Page): Promise<DeliveryRun> {
 /**
  * From the map's Delivery page with an approved set: starts delivery, waits for the run to pass,
  * merges its branch into `main` of `repo` with a real `git merge` and clicks **Mark merged**
- * (slice 8 S8-10, as `completion.spec.ts`'s held flow does). Returns the merged run.
+ * (as `completion.spec.ts`'s held flow does). Returns the merged run.
  */
 export async function deliverAndMarkMerged(
   page: Page,
@@ -459,7 +459,7 @@ export async function deliverAndMarkMerged(
   return await specRun(page, mapId, run.number, 1);
 }
 
-/** The hatch row's label under the Activity stream (slice 7b). */
+/** The hatch row's label under the Activity stream. */
 export const HATCH_ROW = "Need something the stages don't offer? Tell the agent";
 
 /** The Activity column. */

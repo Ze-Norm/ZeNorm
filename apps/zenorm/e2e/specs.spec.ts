@@ -20,10 +20,11 @@ import {
 import { expect, test } from "./worker-server.ts";
 
 /**
- * Slice 7's flows: several specs from one map, planning reviews that fail, escalate or ask for a
+ * The spec flows: several specs from one map, planning reviews that fail, escalate or ask for a
  * decision, rejections with a reason, and Try again on a stopped review. Each scenario starts a new
- * map in the file's own project (`specsRepo()`), so spec numbers continue across the file (they are per
- * project); a flow finds its specs' numbers from the switcher's URLs. Titles are the stand-in's.
+ * map in the file's own project (`specsRepo()`), so spec numbers continue across the file (they are
+ * per project); a flow finds its specs' numbers from the switcher's URLs. Titles are the
+ * stand-in's.
  */
 
 const SPEC_TITLE = "Export data as CSV";
@@ -31,7 +32,7 @@ const SECOND_SPEC_TITLE = "Import data from CSV";
 const REVISED = " (revised)";
 const FIRST_TICKET = "Write the CSV exporter";
 const SECOND_TICKET = "Add the Export button";
-/** The waypoint a review finding opens on the default three-waypoint chart (L136 (c)). */
+/** The waypoint a review finding opens on the default three-waypoint chart. */
 const ESCALATED_WAYPOINT = 4;
 /** The explanation of the `revise` finding the stand-in's review escalates (`fake-claude.ts`). */
 const REVIEW_EXPLANATION = "C1 says “every record”, which no resolution settles.";
@@ -173,7 +174,7 @@ test("[fake:four-specs]: four specs show the picker, the tally and Next waiting 
   await expect(stageLink(page, mapId, "spec")).toContainText("1 of 4 specs done");
 });
 
-test("[fake:review-fails-once]: r1's finding is repaired in place, and r1 passes; no new revision (L241)", async ({
+test("[fake:review-fails-once]: r1's finding is repaired in place, and r1 passes; no new revision", async ({
   page,
 }) => {
   const mapId = await chartAndClearMap(
@@ -195,7 +196,7 @@ test("[fake:review-fails-once]: r1's finding is repaired in place, and r1 passes
 
   await approveSpec(page);
   await expect(eyebrow(page, 1, "approved")).toBeVisible();
-  // The project page's chain of the spec lists the one revision (the screenshot's noise, L241).
+  // The project page's chain of the spec lists the one revision (repairs rewrite it in place).
   const overview = await mapOverview(page, mapId);
   const [spec] = overview.specs;
   if (spec === undefined) throw new Error("The map wrote no spec");
@@ -215,7 +216,7 @@ test("[fake:review-escalates]: the third failing review goes to Wayfinding; answ
 
   await page.goto(`/maps/${mapId}/spec`);
   await expect(stageLink(page, mapId, "spec")).toContainText("Review findings went to Wayfinding");
-  // Each repair rewrote r1 in place (L241): one revision, its third review's finding showing.
+  // Each repair rewrote r1 in place: one revision, its third review's finding showing.
   await expect(revisionList(page).getByRole("link")).toHaveCount(1);
   await expect(revisionLink(page, 1)).toContainText("1 finding");
   await expect(nextCard(page).getByRole("button", { name: APPROVE_SPEC })).toHaveCount(0);
@@ -231,7 +232,7 @@ test("[fake:review-escalates]: the third failing review goes to Wayfinding; answ
   await expect(fromReview.getByText(REVIEW_EXPLANATION)).toHaveCount(0);
   await fromReview.getByRole("button", { name: "Evidence" }).click();
   await expect(fromReview.getByText(REVIEW_EXPLANATION)).toBeVisible();
-  // With one spec on the map, the link opens the Spec stage without a number (D11).
+  // With one spec on the map, the link opens the Spec stage without a number.
   await fromReview.getByRole("link", { name: /^Spec \d+ · / }).click();
   await expect(page).toHaveURL(`/maps/${mapId}/spec`);
   await acceptWaypointRound(page, mapId, ESCALATED_WAYPOINT, 1);
@@ -268,7 +269,7 @@ test("[fake:review-decision]: the first review opens a waypoint and starts no re
   ).toHaveCount(1);
   await acceptWaypointRound(page, mapId, ESCALATED_WAYPOINT, 1);
 
-  // The re-clear rewrites r1 in place (L241).
+  // The re-clear rewrites r1 in place.
   await page.goto(`/maps/${mapId}/spec`);
   await expect(revisionList(page).getByRole("link")).toHaveCount(1);
   await expect(revisionLink(page, 1)).toContainText("review passed");
@@ -294,7 +295,7 @@ test("reject with a reason: the spec gets a new revision, the ticket set a versi
 
   await page.goto(`/maps/${mapId}/tickets`);
   await expect(ticketHeading(page, `T1 ${FIRST_TICKET}`)).toBeVisible();
-  // Reject waits for the passed tickets review, as Approve does (S7c-7).
+  // Reject waits for the passed tickets review, as Approve does.
   await expect(nextCard(page).getByRole("heading", { name: "Approve the tickets." })).toBeVisible();
   await reject(page, "the tickets", "Split the exporter from the button.");
   await expect(ticketHeading(page, `T1 ${FIRST_TICKET}${REVISED}`)).toBeVisible();
@@ -313,7 +314,7 @@ test("[fake:fail-twice:review]: a stopped planning review offers Try again, whic
 
   await page.goto(`/maps/${mapId}/spec`);
   const card = nextCard(page);
-  // The rail's line and the card are human, never a code (L141; UX audit P1-1): the card's
+  // The rail's line and the card are human, never a code: the card's
   // detail carries the code as `data-code`.
   await expect(stageLink(page, mapId, "spec")).toContainText("Planning review stopped");
   await expect(stageLink(page, mapId, "spec")).not.toContainText("agent_run_failed");

@@ -3,7 +3,7 @@ import { useLocation } from "@tanstack/react-router";
 import { RouteErrorPage } from "@/components/RouteError";
 
 /**
- * The root route's not-found page (audit A6): an address no route matches, in the same frame as a
+ * The root route's not-found page: an address no route matches, in the same frame as a
  * route error so the top bar stays and the inbox is one click away.
  */
 export function NotFound() {

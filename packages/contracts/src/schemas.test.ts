@@ -193,7 +193,7 @@ describe("Project", () => {
     ]);
   });
 
-  test("accepts every blocker with the active run it names (ruling 5)", () => {
+  test("accepts every blocker with the active run it names", () => {
     const project = {
       ...validProject,
       requiredChecks: [],
@@ -223,7 +223,7 @@ describe("Project", () => {
 });
 
 describe("InstanceConfig", () => {
-  test("plugins is required and holds any sections, parsed later by each plugin (S9-18)", () => {
+  test("plugins is required and holds any sections, parsed later by each plugin", () => {
     const withoutPlugins = Object.fromEntries(
       Object.entries(validConfig).filter(([key]) => key !== "plugins"),
     );
@@ -233,7 +233,7 @@ describe("InstanceConfig", () => {
     ).toBe(true);
   });
 
-  test("delivery.executor is a non-empty name (S9-22)", () => {
+  test("delivery.executor is a non-empty name", () => {
     const config = { ...validConfig, delivery: { ...validConfig.delivery, executor: "" } };
     expect(InstanceConfig.safeParse(config).success).toBe(false);
   });
@@ -702,7 +702,7 @@ describe("PlanningRunFailureCode", () => {
     }
   });
 
-  test("carries slice 7's output refusals and a missing skill", () => {
+  test("carries the spec and ticket outputs' refusals and a missing skill", () => {
     for (const code of [
       "agent_skill_missing",
       "spec_content_invalid",
@@ -715,7 +715,7 @@ describe("PlanningRunFailureCode", () => {
 });
 
 describe("decision refusals", () => {
-  test("spec.approve's refusals are in S7-11's order", () => {
+  test("spec.approve's refusals are in the order they are checked", () => {
     expect(SpecDecisionErrorCode.options).toEqual([
       "spec_revision_not_found",
       "spec_revision_decided",
@@ -725,7 +725,7 @@ describe("decision refusals", () => {
     ]);
   });
 
-  test("ticketSet.approve's refusals are in S7c-6's order", () => {
+  test("ticketSet.approve's refusals are in the order they are checked", () => {
     expect(TicketSetDecisionErrorCode.options).toEqual([
       "ticket_set_not_found",
       "ticket_set_decided",
@@ -939,7 +939,7 @@ describe("QuestionRound and WayfindingWaypoint", () => {
   });
 });
 
-describe("the slice 7c overview fields", () => {
+describe("the tickets review overview fields", () => {
   const at = "2026-10-09T12:00:00.000Z";
   const finding = {
     kind: "untraced_criterion",
@@ -952,7 +952,7 @@ describe("the slice 7c overview fields", () => {
   };
   const failed = { state: "findings", summary: "One finding.", reviewedAt: at };
 
-  test("a review is held exactly when a finding escalated (S7c-5)", () => {
+  test("a review is held exactly when a finding escalated", () => {
     const escalated = { ...finding, escalated: true };
     const unescalated = { ...finding, escalated: false };
     const parse = (review: unknown) => TicketSetReview.safeParse(review).success;
@@ -974,14 +974,14 @@ describe("the slice 7c overview fields", () => {
     expect(review.safeParse(undefined).success).toBe(false);
   });
 
-  test("map.overview carries each spec stage's default spec, null with none (D9)", () => {
+  test("map.overview carries each spec stage's default spec, null with none", () => {
     const defaults = MapOverviewDetail.shape.defaultSpecs;
     expect(defaults.safeParse({ spec: 1, tickets: 2, delivery: null }).success).toBe(true);
     expect(defaults.safeParse({ spec: 1, tickets: 2 }).success).toBe(false);
     expect(defaults.safeParse({ spec: 0, tickets: null, delivery: null }).success).toBe(false);
   });
 
-  test("the held row's label is a next-action label (D6)", () => {
+  test("the held row's label is a next-action label", () => {
     expect(NextActionLabel.options).toContain("Tell the agent how to fix it");
   });
 });

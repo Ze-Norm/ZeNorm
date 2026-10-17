@@ -1,6 +1,6 @@
 /**
- * Cleanup after a run ends (slice 8 S8-12, D8; L126 (c)): its worktrees and ticket branches are
- * removed, its run branch and run folder's files are kept.
+ * Cleanup after a run ends: its worktrees and ticket branches are removed, its run branch and run
+ * folder's files are kept.
  */
 import { existsSync } from "node:fs";
 import { readdir } from "node:fs/promises";
@@ -42,9 +42,9 @@ function gitMessage(stderr: string, exitCode: number): string {
 }
 
 /**
- * Cleans up an ended run (D8), in its project folder `checkedOut`: the folder the run's start
- * resolved while the runner holds the run, else the checkout seam's answer now (after a restart,
- * CR9b-3); a checkout failure is the folder being gone. `git worktree remove --force` on the run
+ * Cleans up an ended run, in its project folder `checkedOut`: the folder the run's start
+ * resolved while the runner holds the run, else the checkout seam's answer now (after a restart);
+ * a checkout failure is the folder being gone. `git worktree remove --force` on the run
  * worktree (when it is on disk; a run that failed before `git worktree add` has none) and on each
  * entry of `<runDir>/tickets`, then `git worktree prune`, then `git branch -D` on each
  * `refs/heads/<run branch>-t*`. Each failing step becomes a ZeNorm line naming its path or branch
@@ -82,7 +82,7 @@ export async function cleanUpDelivery(
   if (ticketRows.length === 0) {
     return { cleaned: false };
   }
-  /** Exactly the pinned tickets' branches: `-t*` alone would also match a `…-tweak` (L197 item 8). */
+  /** Exactly the pinned tickets' branches: `-t*` alone would also match a `…-tweak`. */
   const ticketBranches = new Set(ticketRows.map((row) => ticketBranchName(run.branch, row.ticket)));
 
   const removedWorktrees: string[] = [];
@@ -90,7 +90,7 @@ export async function cleanUpDelivery(
   const failures: CleanupFailure[] = [];
   const fail = (target: string, message: string, text: string): void => {
     failures.push({ target, message });
-    // Each line is its own write, between the git steps' awaits (S9-13 Async paths).
+    // Each line is its own write, between the git steps' awaits.
     appendRunEvent(actor, db, { runId, who: "zenorm", ticket: null, text });
   };
 

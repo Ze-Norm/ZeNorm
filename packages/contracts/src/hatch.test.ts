@@ -15,7 +15,7 @@ import {
 const MAP_ID = "0199a1b2-c3d4-7e5f-8a9b-0c1d2e3f4a5b";
 const AT = "2026-10-08T12:00:00.000Z";
 
-describe("SendHatchMessageInput (S7b-2)", () => {
+describe("SendHatchMessageInput", () => {
   test("names a spec only from Spec or Tickets; blank text reaches core", () => {
     const input = { mapId: MAP_ID, specNumber: null, text: "  " };
     for (const stage of ["idea", "wayfinding", "spec", "tickets"]) {
@@ -40,7 +40,7 @@ describe("SendHatchMessageInput (S7b-2)", () => {
   });
 });
 
-describe("HatchMessageView (D6)", () => {
+describe("HatchMessageView", () => {
   const message = { id: MAP_ID, stage: "spec", spec: 1, text: "Any depth?", sentAt: AT };
 
   test("reads queued, working, stopped with its run, or replied with an optional refusal", () => {
@@ -68,8 +68,8 @@ describe("HatchMessageView (D6)", () => {
   });
 });
 
-describe("the slice 7b codes", () => {
-  test("D4's refusals, hatch.send's codes and hatch_change_invalid are domain codes", () => {
+describe("the hatch codes", () => {
+  test("the hatch refusals, hatch.send's codes and hatch_change_invalid are domain codes", () => {
     expect(HatchRefusal.options).toEqual([
       "spec_in_flight",
       "map_uncleared",
@@ -94,7 +94,7 @@ describe("the slice 7b codes", () => {
     expect(PlanningRunCancelReason.options).toEqual(["replaced", "reopened"]);
   });
 
-  test("a next action's label is one of the demo's buttons, or null", () => {
+  test("a next action's label is one of the action buttons, or null", () => {
     const action = {
       who: "you",
       stage: "spec",
@@ -111,7 +111,7 @@ describe("the slice 7b codes", () => {
     expect(NextAction.safeParse({ ...action, label: "Open Spec" }).success).toBe(false);
   });
 
-  test("a hatch waypoint carries its report exactly when it waits on an unanswered one (L162 (4))", () => {
+  test("a hatch waypoint carries its report exactly when it waits on an unanswered one", () => {
     const waypoint = {
       number: 1,
       kind: "research",

@@ -10,7 +10,7 @@ import type { ClosingMark } from "@/pages/stages/delivery/steps";
 import { StatusBadge, StatusLine } from "@/pages/stages/delivery/ticket-status";
 import { plural } from "@/pages/stages/delivery/words";
 
-/** Where a run's ticket rows link: the ticket's execution page in the shown run (D10). */
+/** Where a run's ticket rows link: the ticket's execution page in the shown run. */
 export interface RunTicketLinks {
   mapId: string;
   specNumber: number;
@@ -18,8 +18,8 @@ export interface RunTicketLinks {
 }
 
 /**
- * A ticket in the run (the demo's `RunTicket`): where it stands, as core derives it, and the line
- * that says why. The row opens the ticket's execution page in the shown run (`?run=`, deviation 9).
+ * A ticket in the run: where it stands, as core derives it, and the line that says why. The row
+ * opens the ticket's execution page in the shown run (`?run=`).
  */
 function RunTicketRow({
   ticket,
@@ -31,7 +31,7 @@ function RunTicketRow({
   ticket: TicketContent;
   row: RunTicket;
   runState: SpecRun["state"];
-  /** The run's executor, which names its own latest line (CR9b-6). */
+  /** The run's executor, which names its own latest line. */
   executor: string;
   links: RunTicketLinks;
 }) {
@@ -88,7 +88,7 @@ function ticketOf(tickets: readonly TicketContent[], id: string): TicketContent 
 }
 
 /**
- * The run's tickets grouped by where they stand (the demo's `RunTickets`): live work first, merged
+ * The run's tickets grouped by where they stand: live work first, merged
  * last; merged tickets fold into one line in a wide set while the run works.
  */
 export function RunTickets({
@@ -217,7 +217,7 @@ function ClosingBadge({ mark }: { mark: ClosingMark }) {
   }
 }
 
-/** A run from before `0010` (D9): its tickets without status, under the note that says why. */
+/** A run from before `0010`: its tickets without status, under the note that says why. */
 export function UnrecordedTickets({ tickets }: { tickets: readonly TicketContent[] }) {
   return (
     <>

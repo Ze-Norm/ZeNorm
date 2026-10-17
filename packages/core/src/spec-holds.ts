@@ -1,5 +1,5 @@
 /**
- * What holds a spec against a map's change (slice 8b D3, S8b-4): read only, derived from the latest
+ * What holds a spec against a map's change: read only, derived from the latest
  * revision, the spec's planning runs on every map and its delivery runs; nothing stores it.
  */
 import type { Actor, PlanningRun, SpecHold, SpecHoldKind } from "@zenorm/contracts";
@@ -36,7 +36,7 @@ function holdOf(db: Reader, kind: SpecHoldKind, mapId: string, revision: number)
 }
 
 /**
- * The latest spec-scoped run of `specificationId` on `mapId` while it counts (as 7b's `specWork`):
+ * The latest spec-scoped run of `specificationId` on `mapId` while it counts:
  * running, awaiting its retry, or stopped and not superseded; null otherwise.
  */
 function countingRun(db: Reader, mapId: string, specificationId: string): PlanningRun | null {
@@ -65,10 +65,10 @@ function otherMaps(db: Reader, specificationId: string, mapId: string): string[]
 }
 
 /**
- * The hold on the spec seen from `mapId` (S8b-4), the first of: `revision` (the latest revision is
+ * The hold on the spec seen from `mapId`, the first of: `revision` (the latest revision is
  * unapproved and another map wrote it), `revising` (another map's `to_spec` on the spec counts),
  * `tickets` (another map's `to_tickets` or `tickets_review` counts; this map's own are replaced by
- * its next revision, S8b-9), `delivering` (an active delivery run of the spec, `interrupted`
+ * its next revision), `delivering` (an active delivery run of the spec, `interrupted`
  * included, on any map); null when nothing holds it.
  */
 export function specHold(db: Reader, specificationId: string, mapId: string): SpecHold | null {
@@ -121,12 +121,12 @@ function openWait(db: Reader, mapId: string, specificationId: string) {
     .get();
 }
 
-/** Whether the map has an open wait on the spec (S8b-7's `spec_waiting`). */
+/** Whether the map has an open wait on the spec (a note is refused `spec_waiting`). */
 export function waitsOn(db: Reader, mapId: string, specificationId: string): boolean {
   return openWait(db, mapId, specificationId) !== undefined;
 }
 
-/** Whether the map has an open wait on any spec (S8b-5). */
+/** Whether the map has an open wait on any spec. */
 export function waitsOnAny(db: Reader, mapId: string): boolean {
   return (
     db
@@ -138,10 +138,9 @@ export function waitsOnAny(db: Reader, mapId: string): boolean {
 }
 
 /**
- * Records the map's wait on a held spec with its note (S8b-5, D3): a new open wait stores `hold`
- * (the spec's `specHold` now, written once; tickets review B3) and `since` = `at`; when the map
- * already waits on the spec, only the note is replaced (its `since` and stored hold kept, L202
- * ruling (3)).
+ * Records the map's wait on a held spec with its note: a new open wait stores `hold`
+ * (the spec's `specHold` now, written once) and `since` = `at`; when the map
+ * already waits on the spec, only the note is replaced (its `since` and stored hold kept).
  */
 export function recordWait(
   tx: Tx,
@@ -177,7 +176,7 @@ export function recordWait(
 }
 
 /**
- * Closes the map's open wait on the spec, if any, when the map writes a revision of it (S8b-5):
+ * Closes the map's open wait on the spec, if any, when the map writes a revision of it:
  * `released_at` = `at` and `released_by_run` the writing run.
  */
 export function closeWait(
@@ -201,7 +200,7 @@ export function releasedWaitOf(db: Reader, runId: string) {
 }
 
 /**
- * Reopens a released wait (S8b-6): `released_at` and `released_by_run` cleared, its `since`, note
+ * Reopens a released wait: `released_at` and `released_by_run` cleared, its `since`, note
  * and stored hold kept. A wait that is not released is a programmer error.
  */
 export function reopenWait(tx: Tx, waitId: string): void {
@@ -217,7 +216,7 @@ export function reopenWait(tx: Tx, waitId: string): void {
 
 /**
  * Moves a release from `fromRunId` to the run that starts again in its scope (a retry, or Try
- * again's fresh run; tickets review B6): the wait stays released, by the new run.
+ * again's fresh run): the wait stays released, by the new run.
  */
 export function followRelease(tx: Tx, fromRunId: string, toRunId: string): void {
   tx.update(specWaits)
@@ -227,14 +226,14 @@ export function followRelease(tx: Tx, fromRunId: string, toRunId: string): void 
 }
 
 /**
- * Reopens each of the map's released waits whose release run ended before it wrote (S8b-6): the
+ * Reopens each of the map's released waits whose release run ended before it wrote: the
  * run was cancelled (a reopen, a re-clear), or it is stopped and superseded (the map was
  * un-cleared, or a map-scope run started after it). `planNext` calls it last, so every
  * transaction that cancels or supersedes a release run reopens its wait.
  */
 export function reopenStaleReleases(tx: Tx, mapId: string): void {
   // Only waits whose release run has not completed can be stale: a completed run wrote its
-  // revision, so its long-closed waits are never rescanned (CR-7).
+  // revision, so its long-closed waits are never rescanned.
   const released = tx
     .select({ id: specWaits.id, releasedByRun: specWaits.releasedByRun })
     .from(specWaits)
@@ -260,7 +259,7 @@ export function reopenStaleReleases(tx: Tx, mapId: string): void {
   }
 }
 
-/** Whether any map runs a planning run on the spec (one running run per spec, S8b-4). */
+/** Whether any map runs a planning run on the spec (one running run per spec). */
 function specRunning(db: Reader, specificationId: string): boolean {
   return (
     db
@@ -274,13 +273,13 @@ function specRunning(db: Reader, specificationId: string): boolean {
 }
 
 /**
- * Releases the spec's oldest open wait it can (S8b-6, D3): by `since`, then id, the first whose
+ * Releases the spec's oldest open wait it can: by `since`, then id, the first whose
  * map's writes are open (cleared, no map-scope `to_spec` working or due), whose spec scope on its
  * map is idle and on which nothing holds the spec (`specHold`), while no map runs a run on the
  * spec. It marks the wait released by a new release run, a spec-scoped `to_spec` on the waiting
- * map carrying the wait's `hatch_message_id` (so a note-born wait's revision is note-directed,
- * S7b-11); the request's feedback is the wait's note. The other waits stay open: the release run
- * now holds the spec (`revising`).
+ * map carrying the wait's `hatch_message_id` (so a note-born wait's revision is note-directed);
+ * the request's feedback is the wait's note. The other waits stay open: the release run now
+ * holds the spec (`revising`).
  */
 export function releaseWaits(actor: Actor, tx: Tx, specificationId: string): void {
   const open = tx
@@ -361,12 +360,11 @@ function specMapIds(db: Reader, specificationId: string): string[] {
 }
 
 /**
- * Inserts what a write on the map made due, then settles the holds it may have ended (S8b-6, D3;
- * tickets review B1): `planNext` of the map first, so a holder's own due `to_tickets` starts and
- * holds (issue 24 item 4); then, per spec the map wrote, runs on or waits on, `planNext` of every
- * other map on that spec (a run the cross-map idle gate held back starts once the run on the spec
- * ends), and `releaseWaits` last. Every transaction that can end a hold calls it in place of
- * `planNext`.
+ * Inserts what a write on the map made due, then settles the holds it may have ended: `planNext` of
+ * the map first, so a holder's own due `to_tickets` starts and holds; then, per spec the map wrote,
+ * runs on or waits on, `planNext` of every other map on that spec (a run the cross-map idle gate
+ * held back starts once the run on the spec ends), and `releaseWaits` last. Every transaction that
+ * can end a hold calls it in place of `planNext`.
  */
 export function planAndRelease(actor: Actor, tx: Tx, mapId: string): void {
   planNext(actor, tx, mapId);

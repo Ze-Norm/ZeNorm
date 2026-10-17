@@ -229,11 +229,11 @@ const TAGS = [
 const SPLIT_FROM_NULLS = { split_from_map_id: null, split_from_run_id: null };
 
 /**
- * 0020 gives every map, planning run and delivery run the one User (spec D8), and every delivery
- * run the executor `local` (CR9b-6); 0024 starts every delivery run at its base commit, resuming
- * none; 0026 gives every map its null split-from columns; 0030 gives every delivery run no pull
- * request; 0033 pins no repair settings on every delivery run; 0034 gives every resolved waypoint
- * no agent-decided calls.
+ * 0020 gives every map, planning run and delivery run the one User, and every delivery run the
+ * executor `local`; 0024 starts every delivery run at its base commit, resuming none; 0026 gives
+ * every map its null split-from columns; 0030 gives every delivery run no pull request; 0033 pins
+ * no repair settings on every delivery run; 0034 gives every resolved waypoint no agent-decided
+ * calls.
  */
 function withUser(table: string, row: Record<string, unknown>): Record<string, unknown> {
   if (table === "waypoints") {
@@ -320,7 +320,7 @@ function migrationRows(): unknown[] {
   return db.$client.prepare("select * from zenorm_migrations order by id").all();
 }
 
-describe("a database newer than the build (5.2, 5.3)", () => {
+describe("a database newer than the build", () => {
   test("migrateDatabase refuses database_newer_than_build and leaves the rows as they were", async () => {
     expect(migrateDatabase(db, await newerMigrations()).ok).toBe(true);
     const before = migrationRows();
@@ -368,8 +368,8 @@ describe("a database newer than the build (5.2, 5.3)", () => {
   });
 });
 
-describe("migrations that rebuild a table (L162 (7))", () => {
-  /** Rebuilt before `migrateDatabase` turned keys off (S7b-04) and already applied: left as they are. */
+describe("migrations that rebuild a table", () => {
+  /** Rebuilt before `migrateDatabase` turned keys off and already applied: left as they are. */
   const BEFORE_THE_GUARD = ["0005_wayfinding.sql", "0007_specs_and_reviews.sql"];
   const folder = fileURLToPath(new URL("../migrations/", import.meta.url));
 
@@ -933,7 +933,7 @@ describe("the Wayfinding tables", () => {
   });
 
   describe("question_rounds", () => {
-    test("refuses a final map-level round 1, not a final map-level round 2 or waypoint round (DR-9)", () => {
+    test("refuses a final map-level round 1, not a final map-level round 2 or waypoint round", () => {
       expect(
         constraintOf(() => {
           round({ final: 1 });
@@ -1166,7 +1166,7 @@ describe("the Wayfinding tables", () => {
     });
 
     test("accepts every CONTEXT.md purpose and state, and nothing else", () => {
-      // A `hatch` run needs its message: the slice 7b tables.
+      // A `hatch` run needs its message: the hatch tables' tests cover it.
       for (const purpose of ["consistency", "to_spec"]) {
         expect(
           constraintOf(() => {
@@ -1250,7 +1250,7 @@ describe("the Wayfinding tables", () => {
     });
   });
 
-  describe("the slice 6b tables", () => {
+  describe("the fog, Out of scope, research, task and consistency tables", () => {
     const otherRunId = "0199a1b2-c3d4-7e5f-8a9b-0c1d2e3f4a70";
     const researchRunId = "0199a1b2-c3d4-7e5f-8a9b-0c1d2e3f4a71";
     const passId = "0199a1b2-c3d4-7e5f-8a9b-0c1d2e3f4a72";
@@ -1487,7 +1487,7 @@ describe("the Wayfinding tables", () => {
       ).toBe("SQLITE_CONSTRAINT_PRIMARYKEY");
     });
 
-    test("every other new check and foreign key rejects a violating insert (D1)", () => {
+    test("every other new check and foreign key rejects a violating insert", () => {
       const reject = (table: string, row: Record<string, unknown>) =>
         check(() => {
           insert(table, row);
@@ -1728,7 +1728,7 @@ describe("migration 0007", () => {
   });
 });
 
-describe("the slice 7 tables", () => {
+describe("the spec, ticket set, review and delivery run tables", () => {
   const at = "2026-10-08T12:00:00.000Z";
   const projectId = "0199a1b2-c3d4-7e5f-8a9b-0c1d2e3f4d00";
   const mapId = "0199a1b2-c3d4-7e5f-8a9b-0c1d2e3f4d01";
@@ -1971,7 +1971,7 @@ describe("the slice 7 tables", () => {
     ).toBe("SQLITE_CONSTRAINT_UNIQUE");
   });
 
-  test("keeps a review per rewrite of a draft (L241) and a waypoint exactly on an escalated finding", () => {
+  test("keeps a review per rewrite of a draft and a waypoint exactly on an escalated finding", () => {
     const draft = revision({ revision: 1 });
     const reviewId = review(draft);
     // A draft rewritten in place gathers one review per rewrite; each review run reviews once.
@@ -2014,7 +2014,7 @@ describe("the slice 7 tables", () => {
     ).toBeUndefined();
   });
 
-  test("tickets_review_findings: a known route and a question on every finding (slice 7c D1)", () => {
+  test("tickets_review_findings: a known route and a question on every finding", () => {
     const approved = revision({ revision: 1, approved_at: at });
     const set = ticketSet(approved);
     version(set, 1);
@@ -2198,7 +2198,7 @@ describe("delivery_runs", () => {
     }).not.toThrow();
   });
 
-  test("rejects a second active run in a project (L98), even of another spec", () => {
+  test("rejects a second active run in a project, even of another spec", () => {
     insertRun(ACTIVE);
     const otherSpecId = "0199a1b2-c3d4-7e5f-8a9b-0c1d2e3f4a61";
     db.$client
@@ -2215,7 +2215,7 @@ describe("delivery_runs", () => {
     ).toBe("SQLITE_CONSTRAINT_UNIQUE");
   });
 
-  test("rejects merged_at without a verdict, and accepts it with one (S8-5)", () => {
+  test("rejects merged_at without a verdict, and accepts it with one", () => {
     expect(
       constraintCode(() => {
         insertRun(CANCELLED, { phase: "implementing", mergedAt: at });
@@ -2546,7 +2546,7 @@ describe("migration 0008", () => {
   });
 });
 
-describe("the slice 7b tables", () => {
+describe("the hatch tables", () => {
   const at = "2026-10-08T12:00:00.000Z";
   const projectId = "0199a1b2-c3d4-7e5f-8a9b-0c1d2e3f4f00";
   const mapId = "0199a1b2-c3d4-7e5f-8a9b-0c1d2e3f4f01";
@@ -2824,8 +2824,8 @@ describe("migration 0009", () => {
   }
 
   /**
-   * A `0008` database (Existing Records): an approved set and an unapproved one with a rejection and
-   * a note rewrite, hatch messages naming specs, spec runs of every kind, a stopped one retried.
+   * A `0008` database: an approved set and an unapproved one with a rejection and a note rewrite,
+   * hatch messages naming specs, spec runs of every kind, a stopped one retried.
    */
   function seed0008(): void {
     const ended = { state: "completed", started_at: at, ended_at: at };
@@ -3271,7 +3271,7 @@ describe("migration 0010", () => {
     ).toEqual(["delivery_runs", "projects", "specifications", "ticket_sets", "users"]);
   });
 
-  test("keeps the newest active run per project, and on equal start times the higher id (L197 N-Std-3)", async () => {
+  test("keeps the newest active run per project, and on equal start times the higher id", async () => {
     await migrateUpTo("0009_tickets_review_routes");
     seed0009();
     // Project 1's two active runs start at once: the higher id stays active.
@@ -3426,9 +3426,9 @@ describe("migration 0011", () => {
   }
 
   /**
-   * A `0010` database (Existing Records): an approved spec with its set and a tickets review with
-   * two findings, three hatch messages (a `spec_approved` refusal, an applied change, one pending),
-   * a waypoint and a `to_spec` run referencing hatch messages.
+   * A `0010` database: an approved spec with its set and a tickets review with two findings, three
+   * hatch messages (a `spec_approved` refusal, an applied change, one pending), a waypoint and a
+   * `to_spec` run referencing hatch messages.
    */
   function seed0010(): void {
     const ended = { state: "completed", started_at: at, ended_at: at };
@@ -3590,7 +3590,7 @@ describe("migration 0011", () => {
     await migrateUpTo("0011_revising_delivered_spec");
     db.$client.pragma("foreign_keys = ON");
 
-    // The stored slice 7 ticket set is left as it was; 0014 gives its tickets pointers so it parses.
+    // The stored ticket set is left as it was; 0014 gives its tickets pointers so it parses.
     expect(dumpAll()).toEqual(before);
     expect(db.$client.prepare("select count(*) from waypoint_touches").pluck().get()).toBe(0);
     expect(db.$client.prepare("select count(*) from spec_waits").pluck().get()).toBe(0);
@@ -3703,7 +3703,7 @@ describe("migration 0011", () => {
       expect(() => {
         touch({ specification_id: otherSpec, revision: 0 });
       }).toThrow(SqliteError);
-      // The touched revision must be a stored revision of the spec (CR-6).
+      // The touched revision must be a stored revision of the spec.
       const twelve = thirteen.replace(',"1.13"', "");
       expect(() => {
         touch({ specification_id: otherSpec, criteria: twelve });
@@ -3751,7 +3751,7 @@ describe("migration 0011", () => {
       expect(() => {
         wait({ hold_revision: 0 });
       }).toThrow(SqliteError);
-      // The hold's revision must be a stored revision of the spec (CR-6).
+      // The hold's revision must be a stored revision of the spec.
       expect(() => {
         wait({ hold_revision: 2 });
       }).toThrow(SqliteError);
@@ -3764,7 +3764,7 @@ describe("migration 0011", () => {
       wait({ note: "x".repeat(4000), hold_kind: "delivering" });
     });
 
-    test("a second unapproved revision of one spec still fails to insert (S7-3)", () => {
+    test("a second unapproved revision of one spec still fails to insert", () => {
       const draft = (revisionNumber: number) => {
         insert("spec_revisions", {
           id: `0199a1b2-c3d4-7e5f-8a9b-0c1d2e3f8e0${String(revisionNumber)}`,
@@ -4877,7 +4877,7 @@ describe("migration 0030", () => {
     nextNumber = 0;
   });
 
-  test("every run before it keeps its columns and opened no pull request (1.3)", async () => {
+  test("every run before it keeps its columns and opened no pull request", async () => {
     await migrateUpTo("0029_map_proposal_kinds");
     seed();
     run({ verdict })();
@@ -4939,7 +4939,7 @@ describe("migration 0031", () => {
       .pluck()
       .all();
 
-  test("a revision's reviews are indexed, no longer one per revision (L241)", async () => {
+  test("a revision's reviews are indexed, no longer one per revision", async () => {
     await migrateUpTo("0030_delivery_pull_requests");
     expect(indexes()).toEqual(["spec_reviews_spec_revision_uq"]);
     expect(migrateDatabase(db, MIGRATIONS_FOLDER).ok).toBe(true);
@@ -5113,7 +5113,7 @@ describe("migration 0033", () => {
   });
 });
 
-describe("migration 0034 (DR-11)", () => {
+describe("migration 0034", () => {
   const at = "2026-10-16T12:00:00.000Z";
   const ids = Array.from(
     { length: 14 },

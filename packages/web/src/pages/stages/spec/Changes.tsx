@@ -20,7 +20,7 @@ import { changeTally, clauseChange, clauseChangeLine, revisionBefore } from "@/l
 import { cn } from "@/lib/utils";
 import { scrollToSection } from "@/pages/stages/planning/StageParts";
 
-/** A clause's or criterion's change, as the demo's `ChangeBadge` marks it; none when unchanged. */
+/** A clause's or criterion's change as a badge; none when unchanged. */
 export function ChangeBadge({ change }: { change: ClauseChange | CriterionChange | "removed" }) {
   switch (change) {
     case "unchanged":
@@ -36,7 +36,7 @@ export function ChangeBadge({ change }: { change: ClauseChange | CriterionChange
   }
 }
 
-/** The map's waypoints that name the spec among their touches (S8b-2), with the criteria named. */
+/** The map's waypoints that name the spec among their touches, with the criteria named. */
 export function touchesOf(
   waypoints: readonly WayfindingWaypoint[],
   specNumber: number,
@@ -49,8 +49,8 @@ export function touchesOf(
 }
 
 /**
- * On a spec a later map revised (the demo's `RevisedLater`): where that revision is, and how far
- * it has got, from that map's first next action's headline as core derives it.
+ * On a spec a later map revised: where that revision is, and how far it has got, from that map's
+ * first next action's headline as core derives it.
  */
 export function RevisedLater({ spec, later }: { spec: MapSpec; later: RevisedLaterView }) {
   return (
@@ -78,15 +78,15 @@ export function RevisedLater({ spec, later }: { spec: MapSpec; later: RevisedLat
   );
 }
 
-/** A delta panel row: a shadcn ghost `Button` laid out as the demo's full-width grid row (CR-8). */
+/** A delta panel row: a shadcn ghost `Button` laid out as a full-width grid row. */
 const rowClass =
   "grid h-auto w-full grid-cols-[36px_minmax(0,1fr)_auto] items-baseline justify-items-start gap-2 border-t border-border px-4 py-2 text-left text-[13.5px] font-normal whitespace-normal text-foreground has-[>svg]:px-4";
 
 /**
- * The text delta (the demo's `ChangesPanel`): where the revision before came from and whether it
- * was delivered, which decisions on this map touch the spec, then each changed, new or removed
- * behaviour with its criteria in a line, the clauses kept word for word, and Out of scope added
- * and dropped. The code's side is the Tickets page's: it never counts tickets.
+ * The text delta: where the revision before came from and whether it was delivered, which decisions
+ * on this map touch the spec, then each changed, new or removed behaviour with its criteria in a
+ * line, the clauses kept word for word, and Out of scope added and dropped. The code's side is the
+ * Tickets page's: it never counts tickets.
  */
 export function ChangesPanel({
   mapId,
@@ -171,7 +171,7 @@ export function ChangesPanel({
         )}
         {touched.map((clause) => {
           const change = clauseChange(delta, clause.id);
-          // Empty when only the clause's own wording changed (the demo's "wording").
+          // Empty when only the clause's own wording changed.
           const line = clauseChangeLine(clause, delta);
           return (
             <Button
@@ -212,7 +212,7 @@ export function ChangesPanel({
           </Button>
         ))}
         {unchanged.length > 0 && (
-          // The clauses kept as they were, one chip each that opens the clause (UX audit C5).
+          // The clauses kept as they were, one chip each that opens the clause.
           <div className="grid gap-1.5 border-t border-border px-4 py-2.5 text-[13px] text-muted-foreground">
             <p className="flex items-center gap-1.5">
               <Check className="size-3.5 text-ok" aria-hidden />
@@ -257,7 +257,7 @@ export function ChangesPanel({
   );
 }
 
-/** "Removed in this revision" (the demo's): each clause the revision drops, struck through. */
+/** "Removed in this revision": each clause the revision drops, struck through. */
 export function RemovedClauses({ delta }: { delta: TextDelta }) {
   if (delta.removedClauses.length === 0) {
     return null;

@@ -17,7 +17,7 @@ import {
   TextDelta,
 } from "./index.ts";
 
-describe("the revision reads (slice 8b D2)", () => {
+describe("the revision reads", () => {
   test("a hold is one of four kinds on a map's revision", () => {
     expect(SpecHoldKind.options).toEqual(["revision", "revising", "tickets", "delivering"]);
     const hold = {
@@ -69,11 +69,11 @@ describe("the revision reads (slice 8b D2)", () => {
   });
 });
 
-describe("the view and request contract (slice 8b D2, D6)", () => {
+describe("the view and request contract", () => {
   const MAP = "0199a1b2-c3d4-7e5f-8a9b-0c1d2e3f4a01";
   const AT = "2026-10-09T12:00:00.000Z";
 
-  test("Q1: a line carries its spec link's words exactly when it carries a spec", () => {
+  test("a line carries its spec link's words exactly when it carries a spec", () => {
     const line = { stage: "spec", text: "Spec written: “Slugs”.", waypoint: null, at: AT };
     expect(
       ActivityLine.safeParse({ ...line, spec: 1, specLabel: "Open the revision" }).success,
@@ -93,7 +93,7 @@ describe("the view and request contract (slice 8b D2, D6)", () => {
     ]);
   });
 
-  test("S8b-16: a wait's action names the map it waits on; every other action names none", () => {
+  test("a wait's action names the map it waits on; every other action names none", () => {
     const action = {
       who: "another-map",
       label: null,
@@ -113,7 +113,7 @@ describe("the view and request contract (slice 8b D2, D6)", () => {
     expect(NextAction.safeParse({ ...action, who: "agent", onMap: null }).success).toBe(true);
   });
 
-  test("S8b-6 / B4: an open wait may have no hold; a released one has a run and no hold", () => {
+  test("an open wait may have no hold; a released one has a run and no hold", () => {
     const wait = {
       specNumber: 1,
       specTitle: "Slugs",
@@ -159,7 +159,7 @@ describe("the view and request contract (slice 8b D2, D6)", () => {
     expect(SpecWaitView.safeParse({ ...wait, hold, released: true, run: "working" }).success).toBe(
       false,
     );
-    // E-1: the waited spec's latest revision is required, never left out.
+    // The waited spec's latest revision is required, never left out.
     const bare = Object.fromEntries(Object.entries(wait).filter(([key]) => key !== "latest"));
     expect(SpecWaitView.safeParse({ ...bare, hold, released: false, run: null }).success).toBe(
       false,
@@ -171,11 +171,11 @@ describe("the view and request contract (slice 8b D2, D6)", () => {
     expect(SpecFeedback.safeParse(wait).success).toBe(true);
     expect(SpecFeedback.safeParse({ ...wait, noteDirected: true }).success).toBe(true);
     expect(SpecFeedback.safeParse({ ...wait, note: "" }).success).toBe(false);
-    // Whether the wait came from a note is required (S8b-16, N-1).
+    // Whether the wait came from a note is required.
     expect(SpecFeedback.safeParse({ kind: "wait", note: "Cap at 60." }).success).toBe(false);
   });
 
-  test("S8b-18: a project spec lists every revision, its active run and its merged run", () => {
+  test("a project spec lists every revision, its active run and its merged run", () => {
     const spec = {
       number: 1,
       title: "Slugs",

@@ -1,14 +1,13 @@
--- Slice 6a spec D1 and Existing Records: drops the pre-6a maps and everything that hangs off them
--- (question rounds, spec revisions, ticket sets, delivery runs) and creates the Wayfinding tables.
--- Projects are kept unchanged. Waypoints, blockers and planning runs start empty. A delivery run's
--- branch and worktree stay on disk untouched; only its row goes.
+-- Drops the maps of the earlier shape and everything that hangs off them (question rounds, spec
+-- revisions, ticket sets, delivery runs) and creates the Wayfinding tables. Projects are kept
+-- unchanged. Waypoints, blockers and planning runs start empty. A delivery run's branch and
+-- worktree stay on disk untouched; only its row goes.
 --
--- Departure from the domain model (section 3): `agent_runs` is merged into `planning_runs` (no
--- separate shared run record, no `manifest`); the new tables drop `version`, and `waypoints` drops
--- `context`. The only run rows this slice stores are planning runs (delivery keeps
--- `delivery_runs`, and model and usage recording is not in this slice); `version` serves
--- `version_conflict` and the change feed, which come with slice 9; nothing in this slice writes
--- `context`. The slices that need them add them.
+-- `agent_runs` is merged into `planning_runs` (no separate shared run record, no `manifest`); the
+-- new tables drop `version`, and `waypoints` drops `context`. The only run rows this migration
+-- stores are planning runs (delivery keeps `delivery_runs`, and model and usage recording is not
+-- here); `version` serves `version_conflict` and the change feed, which come later; nothing here
+-- writes `context`. The migrations that need them add them.
 DROP TABLE `delivery_runs`;
 --> statement-breakpoint
 DROP TABLE `ticket_sets`;

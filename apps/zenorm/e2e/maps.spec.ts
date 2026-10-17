@@ -169,7 +169,7 @@ test.describe("the chart flow", () => {
     await page.keyboard.press("ControlOrMeta+Enter");
 
     // Plain choices on a final round start the agent's turn, which writes the resolution and its
-    // gist as a sentence (S7b-14); the page polls until it lands (L123).
+    // gist as a sentence; the page polls until it lands.
     await expect(round).toHaveCount(0);
     await expect(resolution(page)).toContainText(AGENT_GIST);
     await expect(page.getByText(/^resolved /)).toBeVisible();
@@ -197,7 +197,7 @@ test.describe("the chart flow", () => {
 
   test("a second submission of a round is refused by its code", async ({ page, context }) => {
     // Two tabs hold waypoint 2's round; the first sends it, then the second tries. The second tab
-    // is kept stale by refusing its change stream: a live tab would drop the sent round (S9-16).
+    // is kept stale by refusing its change stream: a live tab would drop the sent round.
     const stale = await context.newPage();
     await stale.route("**/events", (route) => route.abort());
     await openWaypoint(stale, mapId, 2);
@@ -330,7 +330,7 @@ function waypointArticle(page: Page, number: number) {
   return page.getByRole("article", { name: `Waypoint ${String(number)}` });
 }
 
-/** The badges in the waypoint page's head, above the index (UX review P1-3). */
+/** The badges in the waypoint page's head, above the index. */
 function waypointState(page: Page, number: number) {
   return page.getByRole("group", { name: `Waypoint ${String(number)} state` });
 }
@@ -393,7 +393,7 @@ test("[fake:kinds]: research resolves by itself, the task is answered in words, 
   await expect(task.getByRole("region", { name: "What was done" })).toBeVisible();
   await expect(task.getByRole("region", { name: "Decided", exact: true })).toBeVisible();
 
-  // Grilling 3 is last and fog remains: its final round starts the agent's turn (S7b-14), whose
+  // Grilling 3 is last and fog remains: its final round starts the agent's turn, whose
   // resolution moves the fog out of scope.
   await acceptWaypointRound(page, id, 3, 1);
   await expect(resolution(page)).toContainText(AGENT_GIST);
@@ -489,7 +489,7 @@ test("[fake:fog-run]: the last resolutions leave the fog, and the map's fog run 
   await confirmDestination(page, id);
   await answerDefaultWaypoints(page, id);
 
-  // Waypoint 3 resolves leaving the fog; the fog run moves it out of scope (harness change #4).
+  // Waypoint 3 resolves leaving the fog; the fog run moves it out of scope.
   await expect(resolution(page)).toContainText(AGENT_GIST);
   await page.goto(`/maps/${id}/wayfinding`);
   await expect(indexGroup(page, "Decisions so far")).toHaveCount(3);
@@ -541,7 +541,7 @@ test("[fake:states]: a waypoint ruled out of scope, and Research and Task waitin
   await expect(region(page, "Not yet specified")).toContainText("fog · 1");
   const ruledOut = region(page, "Out of scope").getByRole("link");
   await expect(ruledOut).toHaveCount(1);
-  // An out-of-scope waypoint is in the index's own Out of scope group (UX audit E1), in no other,
+  // An out-of-scope waypoint is in the index's own Out of scope group, in no other,
   // and not counted under Decisions so far.
   await expect(indexGroup(page, "Out of scope waypoints")).toHaveCount(1);
   await expect(
@@ -788,7 +788,7 @@ test("[fake:split]: the first chart offers to split the idea; the answers wait u
   );
 });
 
-/** The open destination round's footer lines (spec D9, DR-18). */
+/** The open destination round's footer lines. */
 const LAST_ROUND_FOOTER = "Sending these answers confirms the destination.";
 const FOOTER =
   "The agent confirms the destination from your answers, or asks a short follow-up if they change the scope.";

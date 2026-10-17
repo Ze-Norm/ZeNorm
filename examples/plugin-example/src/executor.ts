@@ -18,10 +18,10 @@ export interface ExecutorCalls {
   review: number;
 }
 
-/** The folder of the worktree each ticket's one file is committed under (D17). */
+/** The folder of the worktree each ticket's one file is committed under. */
 export const EXECUTOR_FOLDER = "example-executor";
 
-/** The fixed body the example executor writes for every pull request (C3's headings). */
+/** The fixed body the example executor writes for every pull request. */
 export const EXAMPLE_PULL_REQUEST_BODY = [
   "## Why",
   "",
@@ -85,16 +85,16 @@ function git(request: ImplementRequest, args: readonly string[]): Promise<GitRes
 }
 
 /**
- * The file a repair attempt commits on the run branch, relative to the worktree (C2): a test check
- * that looks for it fails before the attempt and passes after it.
+ * The file a repair attempt commits on the run branch, relative to the worktree: a test check that
+ * looks for it fails before the attempt and passes after it.
  */
 export function repairFile(attempt: number): string {
   return join(EXECUTOR_FOLDER, `repair-${String(attempt)}.txt`);
 }
 
 /**
- * A repair attempt (C2): merges no ticket, and commits `repairFile(attempt)`, naming the failing
- * checks, on the run branch.
+ * A repair attempt: merges no ticket, and commits `repairFile(attempt)`, naming the failing checks,
+ * on the run branch.
  */
 async function repair(
   request: ImplementRequest,
@@ -123,14 +123,13 @@ async function repair(
 }
 
 /**
- * The `example` executor (S9-22, D17): a deterministic stand-in that runs no agent and no process
- * of its own beyond `git`. Per pinned ticket not already merged (a resumed run's are) it commits
- * one file on the ticket branch, made at the
- * run branch's head, and merges that branch into the run branch with `--no-ff`, keeping it; the
- * runner then verifies the work from git as it does for `"local"`. Given a repair attempt, it
- * merges nothing and commits one file for the attempt on the run branch (`repairFile`). Its review
- * passes the final commit with no findings, and its pull request writer returns a fixed body. The
- * first two count their calls into `calls`.
+ * The `example` executor: a deterministic stand-in that runs no agent and no process of its own
+ * beyond `git`. Per pinned ticket not already merged (a resumed run's are) it commits one file on
+ * the ticket branch, made at the run branch's head, and merges that branch into the run branch with
+ * `--no-ff`, keeping it; the runner then verifies the work from git as it does for `"local"`. Given
+ * a repair attempt, it merges nothing and commits one file for the attempt on the run branch
+ * (`repairFile`). Its review passes the final commit with no findings, and its pull request writer
+ * returns a fixed body. The first two count their calls into `calls`.
  */
 export function exampleExecutor(calls: ExecutorCalls): DeliveryExecutor {
   return {

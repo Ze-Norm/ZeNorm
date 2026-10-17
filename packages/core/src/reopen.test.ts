@@ -154,8 +154,8 @@ function passAndApprove(mapId: string, specRevisionId: string): void {
 }
 
 /**
- * A reopened waypoint decided again (S7b-7, L156 (1)): its fresh run asks a new round, the person answers
- * it, and the next run resolves it.
+ * A reopened waypoint decided again: its fresh run asks a new round, the person answers it, and the
+ * next run resolves it.
  */
 function regrill(mapId: string, number: number): void {
   ask(context, mapId, number, false);
@@ -165,7 +165,7 @@ function regrill(mapId: string, number: number): void {
 
 /** After a reopen of waypoint 1: asks, answers and re-resolves 1–3, then passes cleanly. */
 async function reresolve(mapId: string): Promise<void> {
-  // Let the clock move so every re-resolution has a later `resolved_at` (S7b-7).
+  // Let the clock move so every re-resolution has a later `resolved_at`.
   await new Promise((done) => setTimeout(done, 5));
   regrill(mapId, 1);
   regrill(mapId, 2);
@@ -173,7 +173,7 @@ async function reresolve(mapId: string): Promise<void> {
   cleanPass(context, mapId);
 }
 
-/** Whether the map's one ticket set reads held through `map.overview` (S7c-5). */
+/** Whether the map's one ticket set reads held through `map.overview`. */
 async function heldOf(mapId: string): Promise<boolean> {
   const overview = await getMapOverview(context.db, mapId, RUNNERS);
   if (!overview.ok) throw new Error(overview.error.code);
@@ -197,7 +197,7 @@ async function grillRequest(runId: string): Promise<GrillWaypointRequest> {
   return work.request;
 }
 
-describe("reopen (S7b-6, S7b-10)", () => {
+describe("reopen", () => {
   test("reopening 1 reopens its two-deep resolved dependents in one write; rounds stay; each records the message", async () => {
     const { mapId } = await draftedChain();
     const rounds = readRounds(context.db, mapId).length;
@@ -347,7 +347,7 @@ describe("reopen (S7b-6, S7b-10)", () => {
     });
   });
 
-  test("a running to_tickets continues and saves its set (D4: a reopen is applied whatever is in flight)", async () => {
+  test("a running to_tickets continues and saves its set (a reopen is applied whatever is in flight)", async () => {
     const { mapId, revision } = await draftedChain();
     passAndApprove(mapId, revision.id);
     const tickets = runningSpecRun(context, mapId, "to_tickets");
@@ -358,13 +358,13 @@ describe("reopen (S7b-6, S7b-10)", () => {
     expect(message.refusal).toBeNull();
     expect(runById(mapId, tickets.id).state).toBe("running");
     expect(recordTicketSet(context.user, context.db, tickets.id, TICKETS).ok).toBe(true);
-    // S7c-9 (L127 (1)): the set's tickets review starts on the un-cleared map.
+    // The set's tickets review starts on the un-cleared map.
     const map = readMap(context.db, mapId);
     expect(isCleared(readClearing(context.db, map, readMapRuns(context.db, mapId)))).toBe(false);
     expect(runningSpecRun(context, mapId, "tickets_review").state).toBe("running");
   });
 
-  test("S7c-9: a failed review recorded on the un-cleared map starts its repair; a reopen during the repair leaves it running", async () => {
+  test("a failed review recorded on the un-cleared map starts its repair; a reopen during the repair leaves it running", async () => {
     const { mapId, revision } = await draftedChain();
     passAndApprove(mapId, revision.id);
     recordRunningTicketSet(context, mapId);
@@ -378,7 +378,7 @@ describe("reopen (S7b-6, S7b-10)", () => {
 
     await reopen(mapId, 2);
     expect(runById(mapId, repair.id).state).toBe("running");
-    // N-Spec-4: the overview reads the running repair, never failed-but-unheld (L175 (1)).
+    // N-Spec-4: the overview reads the running repair, never failed-but-unheld.
     const shown = await getMapOverview(context.db, mapId, RUNNERS);
     if (!shown.ok) throw new Error(shown.error.code);
     expect(shown.value.specs[0]?.stages[1]).toMatchObject({
@@ -389,7 +389,7 @@ describe("reopen (S7b-6, S7b-10)", () => {
     expect(runningSpecRun(context, mapId, "tickets_review").state).toBe("running");
   });
 
-  test("S7c-8: a reopen and the map's re-clear leave a held set held; nothing starts on it", async () => {
+  test("a reopen and the map's re-clear leave a held set held; nothing starts on it", async () => {
     const { mapId, revision } = await draftedChain();
     passAndApprove(mapId, revision.id);
     recordRunningTicketSet(context, mapId);
@@ -420,7 +420,7 @@ describe("reopen (S7b-6, S7b-10)", () => {
     ).toBe(false);
   });
 
-  test("L155 (d): an active delivery run continues through a reopen (S7b-6)", async () => {
+  test("an active delivery run continues through a reopen", async () => {
     const { mapId, revision } = await draftedChain();
     passAndApprove(mapId, revision.id);
     const tickets = runningSpecRun(context, mapId, "to_tickets");
@@ -485,7 +485,7 @@ describe("reopen (S7b-6, S7b-10)", () => {
   });
 });
 
-describe("after a reopen (S7b-7)", () => {
+describe("after a reopen", () => {
   test("the frontier grills the reopened waypoint again: a new round, the pass due again, a new review source set", async () => {
     const { mapId } = await draftedChain();
     const reviewed = recordSpecReview(
@@ -501,7 +501,7 @@ describe("after a reopen (S7b-7)", () => {
     const fresh = grillingRun(context, mapId, 1);
     const request = await grillRequest(fresh.id);
     expect(request.afterFinal).toBe(false);
-    // The round answered before the reopen is superseded context, not a live answer (L156 (1)).
+    // The round answered before the reopen is superseded context, not a live answer.
     expect(request.waypoint.reopened).toBe(true);
     expect(request.waypoint.rounds).toEqual([]);
     expect(request.waypoint.supersededRounds).toHaveLength(1);
@@ -533,7 +533,7 @@ describe("after a reopen (S7b-7)", () => {
     expect(review.ok).toBe(true);
     const [before, after] = context.db.select().from(specReviews).all();
     if (before === undefined || after === undefined) throw new Error("Two reviews expected");
-    // Every waypoint closed again later, so S7-8's count reads a new source set.
+    // Every waypoint closed again later, so the second review reads a new source set.
     expect(after.sources).toHaveLength(before.sources.length);
     for (const [index, source] of after.sources.entries()) {
       const earlier = before.sources[index];
@@ -559,7 +559,7 @@ describe("after a reopen (S7b-7)", () => {
   });
 });
 
-describe("a reopened grilling waypoint asks a new round (S7b-7, L156 (1))", () => {
+describe("a reopened grilling waypoint asks a new round", () => {
   const RESOLUTION = {
     round: null,
     resolution: { resolution: "Same as before.", gist: "Same as before", agentDecided: [] },
@@ -643,7 +643,7 @@ describe("a reopened grilling waypoint asks a new round (S7b-7, L156 (1))", () =
   });
 });
 
-describe("a waypoint resolved by a plain choice before S7b-03 is reopened (L156 (1))", () => {
+describe("a waypoint resolved by a plain choice with no run is reopened", () => {
   const RESOLUTION = {
     round: null,
     resolution: { resolution: "Same as before.", gist: "Same as before", agentDecided: [] },
@@ -659,7 +659,8 @@ describe("a waypoint resolved by a plain choice before S7b-03 is reopened (L156 
 
   /**
    * A map whose waypoint 1 is stored as resolved by a plain choice on its final round with no
-   * completed run (the data from before S7b-03), then reopened by a message.
+   * completed run (the data from when a plain choice resolved the waypoint itself), then reopened
+   * by a message.
    */
   async function plainChoiceReopened(): Promise<string> {
     const mapId = await newMap(context, project, "Export data");
@@ -668,7 +669,7 @@ describe("a waypoint resolved by a plain choice before S7b-03 is reopened (L156 
     confirm(context, mapId, CHAIN);
     ask(context, mapId, 1, true);
     answer(context, mapId, 1, PLAIN_ANSWERS);
-    // Before S7b-03 the plain choice resolved the waypoint itself: no run after the final round.
+    // A plain choice once resolved the waypoint itself: no run after the final round.
     const after = grillingRun(context, mapId, 1);
     writeTestData(context, (tx) =>
       tx.delete(planningRuns).where(eq(planningRuns.id, after.id)).run(),
@@ -696,7 +697,7 @@ describe("a waypoint resolved by a plain choice before S7b-03 is reopened (L156 
       (run) => run.waypointId === waypointOf(context, mapId, 1).id,
     );
     expect(scope.map((run) => run.state)).toEqual(["asked"]);
-    // Let the clock move so the reopen's reply is later than every earlier round (L156 (1)).
+    // Let the clock move so the reopen's reply is later than every earlier round.
     await new Promise((done) => setTimeout(done, 5));
     const { recorded } = await reopen(mapId, 1);
     if (!recorded.ok) throw new Error(recorded.error.code);
@@ -761,7 +762,7 @@ describe("a waypoint resolved by a plain choice before S7b-03 is reopened (L156 
     expect(grillingRun(context, mapId, 1).retryOfRunId).toBe(fresh.id);
   }
 
-  test("L162 (1): a reword after the reopen keeps the reopen; a resolution with no new round is refused", async () => {
+  test("a reword after the reopen keeps the reopen; a resolution with no new round is refused", async () => {
     const mapId = await plainChoiceReopened();
     // The fresh run asks round 2; the person rewords the waypoint before answering it.
     ask(context, mapId, 1, false);
@@ -782,7 +783,7 @@ describe("a waypoint resolved by a plain choice before S7b-03 is reopened (L156 
     await expectStillReopened(mapId, message);
   });
 
-  test("L162 (1): run_waypoint after the reopened run stopped keeps the reopen; a resolution with no new round is refused", async () => {
+  test("run_waypoint after the reopened run stopped keeps the reopen; a resolution with no new round is refused", async () => {
     const mapId = await plainChoiceReopened();
     const failure = { code: "agent_timed_out", message: "The agent timed out" } as const;
     const first = grillingRun(context, mapId, 1);
@@ -798,7 +799,7 @@ describe("a waypoint resolved by a plain choice before S7b-03 is reopened (L156 
     await expectStillReopened(mapId, message);
   });
 
-  test("L162 (1): a claimed dependent with a round answered before its blocker's reopen is reopened too", async () => {
+  test("a claimed dependent with a round answered before its blocker's reopen is reopened too", async () => {
     const mapId = await newMap(context, project, "Export data");
     propose(context, mapId);
     answerDestination(context, mapId);
@@ -823,7 +824,7 @@ describe("a waypoint resolved by a plain choice before S7b-03 is reopened (L156 
     expect(refused.ok ? null : refused.error.code).toBe("agent_output_invalid");
   });
 
-  test("L162 (1): a dependent with nothing answered before its blocker's reopen is not reopened", async () => {
+  test("a dependent with nothing answered before its blocker's reopen is not reopened", async () => {
     const mapId = await plainChoiceReopened();
     regrill(mapId, 1);
 
@@ -838,7 +839,7 @@ describe("a waypoint resolved by a plain choice before S7b-03 is reopened (L156 
   });
 });
 
-describe("re-clear (S7b-8, S7b-15)", () => {
+describe("re-clear", () => {
   test("a re-resolution makes to_spec due; its request lists the approved spec and the draft", async () => {
     const mapId = await resolvedChain(context, project);
     const drafted = recordSpecs(context.user, context.db, runningMapRun(context, mapId).id, {
@@ -883,7 +884,7 @@ describe("re-clear (S7b-8, S7b-15)", () => {
       }).ok,
     ).toBe(true);
 
-    // The approved spec stands; the draft is rewritten in place (L241).
+    // The approved spec stands; the draft is rewritten in place.
     const firstLatest = latestOf(readSpecRevisions(context.db, first.specificationId));
     expect(firstLatest.id).toBe(first.id);
     expect(firstLatest.approvedAt).not.toBeNull();
@@ -902,7 +903,7 @@ describe("re-clear (S7b-8, S7b-15)", () => {
     const revisions = readMapRevisions(context.db, mapId);
 
     await reopen(mapId, 1);
-    // S7c-9: the reopen leaves the tickets review of the approved revision running.
+    // The reopen leaves the tickets review of the approved revision running.
     expect(runById(mapId, review.id).state).toBe("running");
     await reresolve(mapId);
 
@@ -945,7 +946,7 @@ describe("re-clear (S7b-8, S7b-15)", () => {
     expect((await mapRequest(fresh.id)).refusedAttempt).not.toBeNull();
   });
 
-  test("a running spec-scoped repair is replaced by the re-clear (L125 (1))", async () => {
+  test("a running spec-scoped repair is replaced by the re-clear", async () => {
     const { mapId, revision } = await draftedChain();
     await reopen(mapId, 1);
     await new Promise((done) => setTimeout(done, 5));

@@ -16,7 +16,7 @@ import { readSetVersion } from "./specs.ts";
 
 type Reader = Pick<ZeNormDatabase, "select">;
 
-/** A run's stored ticket row (S8-7). */
+/** A run's stored ticket row. */
 export type StoredRunTicket = typeof deliveryRunTickets.$inferSelect;
 
 /** A run's ticket rows in pinned order; none for a run from before `0010`. */
@@ -39,10 +39,10 @@ function pinnedTickets(db: Reader, run: StoredDeliveryRun): TicketContent[] {
 }
 
 /**
- * One ticket's status in a run (D6, the demo's `runTicketStatus`): `merged` once it has a merged
- * record; else, on an ended run, `not_delivered`; on an active run `implementing` once it is
- * started (the started record decides, never a line; `latest` is its latest line or null),
- * `waiting` on its unmerged blockers, or `starting`.
+ * One ticket's status in a run: `merged` once it has a merged record; else, on an ended run,
+ * `not_delivered`; on an active run `implementing` once it is started (the started record decides,
+ * never a line; `latest` is its latest line or null), `waiting` on its unmerged blockers, or
+ * `starting`.
  */
 function ticketStatus(
   run: StoredDeliveryRun,
@@ -86,7 +86,7 @@ function latestLine(latest: ReadonlyMap<string, RunEvent>, ticket: string): RunE
 }
 
 /**
- * Each pinned ticket's status in a run, in pinned order (D6), with `failing`: the criterion ids
+ * Each pinned ticket's status in a run, in pinned order, with `failing`: the criterion ids
  * the run's blocking findings name that the ticket carries. Null for a run with no ticket rows
  * (from before `0010`).
  */
@@ -122,7 +122,7 @@ export function runTickets(db: Reader, run: StoredDeliveryRun): RunTicket[] | nu
 }
 
 /**
- * A spec's runs as `map.overview` carries them (D2), newest first: each run's state (`held` says
+ * A spec's runs as `map.overview` carries them, newest first: each run's state (`held` says
  * whether the delivery runner holds an active run) and its tickets' statuses.
  */
 export function specRunViews(

@@ -87,8 +87,8 @@ export type Log = (message: string, error: unknown) => void;
 export interface AppOptions {
   readonly db: ZeNormDatabase;
   /**
-   * The after-commit bus every `write` on `db` publishes to (slice 9 spec D11); `apps/zenorm`
-   * creates it with `createChangeBus`. The SSE route and plugin subscribers subscribe to it.
+   * The after-commit bus every `write` on `db` publishes to; `apps/zenorm` creates it with
+   * `createChangeBus`. The SSE route and plugin subscribers subscribe to it.
    */
   readonly bus: ChangeBus;
   /** Absolute path of the built web app; must hold `index.html`. */
@@ -127,9 +127,9 @@ export interface AppOptions {
   /** The planning agent's reply to a hatch message; `apps/zenorm` builds it from the instance config. */
   readonly replyThroughHatch: ReplyThroughHatch;
   /**
-   * The composition's server plugins (S9-18), checked by `checkPlugins` before the database was
-   * opened (QA-1), with the executor `delivery.executor` chose from the app's (`"local"` in
-   * `apps/zenorm`) and the plugins' (S9-22, D18).
+   * The composition's server plugins, checked by `checkPlugins` before the database was opened,
+   * with the executor `delivery.executor` chose from the app's (`"local"` in `apps/zenorm`) and the
+   * plugins'.
    */
   readonly plugins: CheckedPlugins;
   readonly delivery: {
@@ -165,12 +165,12 @@ function refusal<E extends CodedFailure>(errors: ErrorConstructors<E>, error: E)
   return make({ message: error.message, data: error.data });
 }
 
-/** A stored run with its derived state: `running` while the delivery runner holds it (D7, D11). */
+/** A stored run with its derived state: `running` while the delivery runner holds it. */
 function deliveryRunOf(run: StoredDeliveryRun, deliveryRunner: DeliveryRunner): DeliveryRun {
   return toDeliveryRun(run, deliveryRunner.held(run.id));
 }
 
-/** What every RPC call carries: the incoming request, for the identity seam (S9-17). */
+/** What every RPC call carries: the incoming request, for the identity seam. */
 interface RpcContext {
   readonly request: Request;
 }
@@ -189,22 +189,22 @@ function createRouter(
   runner: PlanningRunner,
   deliveryRunner: DeliveryRunner,
   delivery: { runsDir: string; executor: string },
-  /** Aborted on shutdown: stops a Check now's gh call (C4). */
+  /** Aborted on shutdown: stops a Check now's gh call. */
   pullRequestSignal: AbortSignal,
   log: Log,
 ) {
   const { runsDir, executor } = delivery;
   const os = implement(contract).$context<RpcContext>();
 
-  /** What `mapStatus` reads of the delivery runner: a held run is `running` (D4). */
+  /** What `mapStatus` reads of the delivery runner: a held run is `running`. */
   const runnerStates: RunnerStates = {
     deliveryHeld: (runId) => deliveryRunner.held(runId),
   };
 
   /**
-   * The RPC boundary (S9-17): `identify` names the User; the input's record resolves to its
-   * project; `checkAccess` admits the action or the procedure answers `access_denied`. Returns the
-   * User the procedure acts as (S9-13).
+   * The RPC boundary: `identify` names the User; the input's record resolves to its project;
+   * `checkAccess` admits the action or the procedure answers `access_denied`. Returns the User the
+   * procedure acts as.
    */
   function guard(
     context: RpcContext,
@@ -220,15 +220,15 @@ function createRouter(
     return userId;
   }
 
-  /** A list with no project filter keeps the projects the User may read (S9-17). */
+  /** A list with no project filter keeps the projects the User may read. */
   function readable(context: RpcContext): (projectId: string) => boolean {
     const userId = seams.identify(context.request);
     return (projectId) => seams.checkAccess(userId, projectId, "read");
   }
 
   /**
-   * Launches what a write on the map made due, on any map (a write may end a hold another map
-   * waits on, slice 8b D3), and returns the map's overview (L103).
+   * Launches what a write on the map made due, on any map (a write may end a hold another map waits
+   * on), and returns the map's overview.
    */
   async function overviewAfter(mapId: string) {
     runner.launch(null);
@@ -262,7 +262,7 @@ function createRouter(
         const { error } = result;
         throw refusal(errors, error);
       }),
-      // A new project names no stored project yet: identity only, no access check (S9-17).
+      // A new project names no stored project yet: identity only, no access check.
       create: os.project.create.handler(async ({ input, errors, context }) => {
         const userId = seams.identify(context.request);
         const result = await createProject({ kind: "user", userId }, db, input);
@@ -296,7 +296,7 @@ function createRouter(
         const userId = guard(context, errors, { projectId: input.projectId }, "write");
         const result = await createMap({ kind: "user", userId }, db, input);
         if (result.ok) {
-          // The first chart runs in the background; the request does not wait on it (S6a-2).
+          // The first chart runs in the background; the request does not wait on it.
           runner.launch(null);
           return result.value;
         }
@@ -334,7 +334,7 @@ function createRouter(
           const { error } = result;
           throw refusal(errors, error);
         }
-        // The new map's first chart runs in the background, as `map.create`'s does (S6a-2).
+        // The new map's first chart runs in the background, as `map.create`'s does.
         return await overviewAfter(result.value.mapId);
       }),
       dismissProposal: os.map.dismissProposal.handler(async ({ input, errors, context }) => {
@@ -433,7 +433,7 @@ function createRouter(
       }),
     },
     hatch: {
-      /** Stores the message (S7b-2); launches what the map has running, as every write does. */
+      /** Stores the message; launches what the map has running, as every write does. */
       send: os.hatch.send.handler(async ({ input, errors, context }) => {
         const userId = guard(context, errors, { mapId: input.mapId }, "write");
         const result = await sendHatchMessage({ kind: "user", userId }, db, input, runnerStates);
@@ -454,7 +454,7 @@ function createRouter(
           executor,
         });
         if (result.ok) {
-          // The run works in the folder its start resolved, until it ends (CR9b-3).
+          // The run works in the folder its start resolved, until it ends.
           deliveryRunner.launch(result.value.run, result.value.folder);
           return deliveryRunOf(result.value.run, deliveryRunner);
         }
@@ -477,10 +477,10 @@ function createRouter(
         throw refusal(errors, error);
       }),
       /**
-       * Spec D9: refuse a run that had ended before the request; write the cancelled end
-       * (guarded); then abort the held run, or clean up a run the runner does not hold (slice 8
-       * D8, S8-12). If the driver's own end landed between the read and the write, that stored
-       * end is the answer, not a refusal, and the driver cleans up.
+       * Refuse a run that had ended before the request; write the cancelled end (guarded); then
+       * abort the held run, or clean up a run the runner does not hold. If the driver's own end
+       * landed between the read and the write, that stored end is the answer, not a refusal, and
+       * the driver cleans up.
        */
       cancel: os.delivery.cancel.handler(async ({ input, errors, context }) => {
         const userId = guard(context, errors, { deliveryRunId: input.runId }, "write");
@@ -498,7 +498,7 @@ function createRouter(
         }
         const cancelled = await cancelDelivery({ kind: "user", userId }, db, runId);
         if (cancelled.ok) {
-          // The cancel ends the run's `delivering` hold: what it started on any map runs (D3).
+          // The cancel ends the run's `delivering` hold: what it started on any map runs.
           runner.launch(null);
           // Aborts a held run (cleaned up once the abort settles), or cleans up an interrupted one.
           await deliveryRunner.cancelled(runId);
@@ -526,7 +526,7 @@ function createRouter(
         const { error } = result;
         throw refusal(errors, error);
       }),
-      /** Check now (C4): reads the run's pull request's state on GitHub and records it. */
+      /** Check now: reads the run's pull request's state on GitHub and records it. */
       checkPullRequest: os.delivery.checkPullRequest.handler(async ({ input, errors, context }) => {
         const userId = guard(context, errors, { deliveryRunId: input.runId }, "write");
         const result = await checkPullRequest(
@@ -554,7 +554,7 @@ function createRouter(
   });
 }
 
-/** The pull request checks' timer (C4): started by `launch`, stopped on shutdown. */
+/** The pull request checks' timer: started by `launch`, stopped on shutdown. */
 interface PullRequestChecks {
   /** Aborted by `stop`: ends a check in flight, the timer's or a Check now's. */
   readonly signal: AbortSignal;
@@ -564,9 +564,9 @@ interface PullRequestChecks {
 }
 
 /**
- * Every `PULL_REQUEST_CHECK_INTERVAL_MS` (a fixed constant, C4), checks the pull request of each
- * passed run whose pull request is recorded open, one run after another; a round still running
- * when the next is due is not overlapped. A failed check is logged and changes nothing.
+ * Every `PULL_REQUEST_CHECK_INTERVAL_MS` (a fixed constant), checks the pull request of each passed
+ * run whose pull request is recorded open, one run after another; a round still running when the
+ * next is due is not overlapped. A failed check is logged and changes nothing.
  */
 function createPullRequestChecks(db: ZeNormDatabase, log: Log): PullRequestChecks {
   const controller = new AbortController();
@@ -627,25 +627,25 @@ function createPullRequestChecks(db: ZeNormDatabase, log: Log): PullRequestCheck
 }
 
 /**
- * The Hono app, with the lifecycle steps the app entry calls (L197 item 12, spec D2, D16):
- * `startPlugins`, then `launch`, before it listens; on shutdown, the two run stops (each aborts its active sessions
- * and resolves once their drivers have settled), then `stopPlugins`.
+ * The Hono app, with the lifecycle steps the app entry calls: `startPlugins`, then `launch`, before
+ * it listens; on shutdown, the two run stops (each aborts its active sessions and resolves once
+ * their drivers have settled), then `stopPlugins`.
  */
 export type ZeNormApp = Hono & {
-  /** Starts each plugin in order; a rejection is `plugin_start_failed` (SDK §3.12). */
+  /** Starts each plugin in order; a rejection is `plugin_start_failed`. */
   readonly startPlugins: () => Promise<Result<null, StartupError>>;
   /**
-   * After `startPlugins` succeeded (CR9b-2): subscribes the plugins' subscribers, runs the startup
-   * sweep of the planning runs (S6a-13) and launches what is due, so no plugin seam or subscriber
-   * is called before its plugin's `start`. Called before then, or twice, it throws.
+   * After `startPlugins` succeeded: subscribes the plugins' subscribers, runs the startup sweep of
+   * the planning runs and launches what is due, so no plugin seam or subscriber is called before
+   * its plugin's `start`. Called before then, or twice, it throws.
    */
   readonly launch: () => void;
   readonly stopPlanningRuns: () => Promise<void>;
-  /** Stops the delivery runs and the pull request checks' timer, aborting a check in flight (C4). */
+  /** Stops the delivery runs and the pull request checks' timer, aborting a check in flight. */
   readonly stopDeliveryRuns: () => Promise<void>;
-  /** Stops the started plugins in reverse order, each bounded at 5 s (D16). */
+  /** Stops the started plugins in reverse order, each bounded at 5 s. */
   readonly stopPlugins: () => Promise<void>;
-  /** Ends every open `/events` stream, so the server's close never waits on one (S9-15). */
+  /** Ends every open `/events` stream, so the server's close never waits on one. */
   readonly closeStreams: () => void;
 };
 
@@ -653,10 +653,10 @@ export type ZeNormApp = Hono & {
  * The Hono app, behind the request guard (Host on every route; Origin and JSON on `/rpc`):
  * `/rpc/*` (oRPC), `/healthz`, `/events`, `GET /plugins`, each plugin's raw routes
  * under `/plugins/<id>/`, and the web build with an `index.html` fallback. The checked plugin set
- * is composed with the database first (D16): a refusal is the coded `StartupError`, before
- * anything is set. Nothing is swept, subscribed or launched until `launch`: then every planning
- * run left running ends `planning_run_interrupted` and is retried per S6a-12 (S6a-13), and the
- * runner launches what is running.
+ * is composed with the database first: a refusal is the coded `StartupError`, before anything is
+ * set. Nothing is swept, subscribed or launched until `launch`: then every planning run left
+ * running ends `planning_run_interrupted` and is retried once, and the runner launches what is
+ * running.
  */
 export function createApp({
   db,
@@ -680,7 +680,7 @@ export function createApp({
   plugins,
   delivery,
 }: AppOptions): Result<ZeNormApp, StartupError> {
-  // Writes on a database without the feed's triggers would publish nothing (D10): refuse it.
+  // Writes on a database without the feed's triggers would publish nothing: refuse it.
   if (!changeFeedInstalled(db)) {
     return err({
       code: "change_feed_missing",
@@ -721,8 +721,8 @@ export function createApp({
     reviewDelivery: chosen.reviewDelivery,
     writePullRequest: chosen.writePullRequest,
     checkTimeoutMinutes: delivery.checkTimeoutMinutes,
-    // A run's end may start planning work on any map (slice 8b D3): a release run, or a run the
-    // spec's hold kept back.
+    // A run's end may start planning work on any map: a release run, or a run the spec's hold kept
+    // back.
     onEnd: () => {
       runner.launch(null);
     },
@@ -766,7 +766,7 @@ export function createApp({
 
   app.get("/healthz", (c) => c.text("ok"));
 
-  // The instance's change stream (S9-15, D12), filtered per row by the access check (S9-17).
+  // The instance's change stream, filtered per row by the access check.
   const events = createEventStreams({
     db,
     bus,
@@ -776,7 +776,7 @@ export function createApp({
   });
   app.get("/events", (c) => events.handle(c.req.raw));
 
-  // The server's plugin set, which the web compares with its own (S9-18).
+  // The server's plugin set, which the web compares with its own.
   const list = prepared.value.list;
   app.get("/plugins", (c) => c.json(list));
   for (const { id, router: pluginRouter } of prepared.value.routes) {
@@ -813,7 +813,7 @@ export function createApp({
           throw new Error("launch() called twice");
         }
         launched = true;
-        // In this order: the sweep's writes reach the plugins' subscribers (CR9b-2).
+        // In this order: the sweep's writes reach the plugins' subscribers.
         subscribePlugins(prepared.value, bus);
         sweepInterruptedRuns(db);
         runner.launch(null);

@@ -32,13 +32,13 @@ import type { SweepLog } from "./sweeps.ts";
 
 export const CONFIG_ENV_VAR = "ZENORM_CONFIG";
 export const DATABASE_FILE = "zenorm.sqlite";
-/** `<dataDir>/sessions`: the `claude` session records (spec D3), a folder ZeNorm owns. */
+/** `<dataDir>/sessions`: the `claude` session records, a folder ZeNorm owns. */
 export const SESSIONS_DIR = "sessions";
 /** `<dataDir>/runs`: one folder per delivery run, named by its id. */
 export const RUNS_DIR = "runs";
 
 /**
- * Where an entry's assets are (1.3): the repository's for the entries that run from source
+ * Where an entry's assets are: the repository's for the entries that run from source
  * (`./source-assets.ts`), the package's own copies for the built `zenorm` command.
  */
 export interface ZeNormAssets {
@@ -60,7 +60,7 @@ export interface StartupInput extends ZeNormAssets {
    * of the two (`config_path_missing`).
    */
   readonly standardConfigPath: string | null;
-  /** Where the startup sweeps (S9-4, S9-5) write one line per thing they removed or killed. */
+  /** Where the startup sweeps write one line per thing they removed or killed. */
   readonly log: SweepLog;
 }
 
@@ -165,7 +165,7 @@ async function readConfigText(path: string): Promise<Result<string, StartupError
   }
 }
 
-/** Whether `path` names a key its parent object in `json` does not have (QA-2). */
+/** Whether `path` names a key its parent object in `json` does not have. */
 function isMissingKey(json: unknown, path: readonly PropertyKey[]): boolean {
   const key = path.at(-1);
   if (key === undefined || typeof key === "symbol") return false;
@@ -302,7 +302,7 @@ export async function checkWebBuild(webDistDir: string): Promise<Result<null, St
 
 /**
  * A sign-in status read's or login's failure as a refusal: a CLI that cannot be run is
- * `agent_cli_missing`; a status call that fails any other way is `agent_not_logged_in` (C5).
+ * `agent_cli_missing`; a status call that fails any other way is `agent_not_logged_in`.
  */
 export function signInError(error: PlanningAgentError, claudePath: string): StartupError {
   switch (error.code) {
@@ -334,7 +334,7 @@ export async function readSignIn(
 }
 
 /**
- * Claude Code must be signed in, by any method (C5): a status call that exits non-zero or reports
+ * Claude Code must be signed in, by any method: a status call that exits non-zero or reports
  * signed out is `agent_not_logged_in`. Returns the sign-in method.
  */
 export async function checkSignIn(
@@ -405,8 +405,8 @@ async function checkStartup(input: StartupInput): Promise<Result<InstanceConfig,
 /**
  * Opens what the checked config names: the session records' folder, and the migrated database,
  * refused `database_newer_than_build` before migrating when it holds a migration this build does
- * not ship; then sweeps what an earlier server left behind (every change feed row, CR9b-17; surviving
- * `claude` sessions, S9-4; orphaned run folders, S9-5).
+ * not ship; then sweeps what an earlier server left behind (every change feed row, surviving
+ * `claude` sessions, orphaned run folders).
  */
 async function openStartup(
   input: StartupInput,
@@ -432,7 +432,7 @@ async function openStartup(
     db.$client.close();
     return migrated;
   }
-  // The instance has exactly one User (S9-10); the 9b migration creates it.
+  // The instance has exactly one User; `0020_users_actor_change_feed.sql` creates it.
   const userCount = db.select({ id: users.id }).from(users).all().length;
   if (userCount !== 1) {
     db.$client.close();
@@ -442,9 +442,9 @@ async function openStartup(
       subject: db.$client.name,
     });
   }
-  // The change feed and the `user_id` refusals are TEMP triggers, rebuilt on every open (D8, D10).
+  // The change feed and the `user_id` refusals are TEMP triggers, rebuilt on every open.
   installChangeFeed(db);
-  // No stream is open before the server listens, so no feed row is needed (CR9b-17).
+  // No stream is open before the server listens, so no feed row is needed.
   pruneChangeFeed(db, "all");
   await sweepSessions(sessionsDir, input.log);
   await sweepRunFolders(db, join(dataDir, RUNS_DIR), input.log);
@@ -466,13 +466,13 @@ export async function startup(input: StartupInput): Promise<Result<Started, Star
   return await openStartup(input, config.value);
 }
 
-/** The name the app registers the Claude Code pair under (S9-22, D18); it lives in contracts. */
+/** The name the app registers the Claude Code pair under; it lives in contracts. */
 export { LOCAL_EXECUTOR };
 
 /**
- * The `"local"` delivery executor (S9-22, D18): the Claude Code orchestrator, reviewer and pull
- * request writer with 9a's session records, built from the config as before, following the skills
- * in `skillsDir`. The writer runs under the reviewer's settings, so no config key is added (C3).
+ * The `"local"` delivery executor: the Claude Code orchestrator, reviewer and pull
+ * request writer with their session records, built from the config as before, following the skills
+ * in `skillsDir`. The writer runs under the reviewer's settings, so no config key is added.
  * `delivery.executor` only selects it, so the sessions never see that key.
  */
 export function localExecutor(
@@ -504,7 +504,7 @@ export function localExecutor(
 }
 
 export interface ZeNormInput extends StartupInput {
-  /** The composition's server plugins, in order (S9-18); `apps/zenorm` passes `[]`. */
+  /** The composition's server plugins, in order; `apps/zenorm` passes `[]`. */
   readonly plugins: readonly ServerPlugin[];
   /** Where the app's unexpected errors and plain lines (`error` null) go. */
   readonly logError: Log;
@@ -516,13 +516,13 @@ export interface StartedZeNorm extends Started {
 
 /**
  * `startup`'s checks; then `plugins` checked with the `"local"` executor, before the database is
- * opened or migrated (QA-1: the manifests, every plugin's config section, the executor registry);
- * then `startup`'s opening, the app composed with the planning agent and the plugins (the rest of
- * the D16 codes) and each plugin's `start` (`plugin_start_failed`). A failure closes what was
- * opened and is the coded `StartupError`. The app is returned unlaunched: the caller calls
- * `app.launch()` (CR9b-2) once it is ready to serve, which for `startAndListen` is once the port is
- * bound, so a refused bind marks no run interrupted and relaunches none. `apps/zenorm-example` composes its plugin
- * through this too.
+ * opened or migrated (the manifests, every plugin's config section, the executor registry); then
+ * `startup`'s opening, the app composed with the planning agent and the plugins (the rest of the
+ * plugin startup codes) and each plugin's `start` (`plugin_start_failed`). A failure closes what
+ * was opened and is the coded `StartupError`. The app is returned unlaunched: the caller calls
+ * `app.launch()` once it is ready to serve, which for `startAndListen` is once the port is bound,
+ * so a refused bind marks no run interrupted and relaunches none. `apps/zenorm-example` composes
+ * its plugin through this too.
  */
 export async function startZeNorm(
   input: ZeNormInput,
@@ -549,7 +549,7 @@ export async function startZeNorm(
   const { db, sessionsDir } = started.value;
   const created = createApp({
     db,
-    // The after-commit bus every write publishes to (slice 9 spec D11).
+    // The after-commit bus every write publishes to.
     bus: createChangeBus(input.logError),
     webDistDir: input.webDistDir,
     log: input.logError,
@@ -568,7 +568,7 @@ export async function startZeNorm(
   const app = created.value;
   const pluginsStarted = await app.startPlugins();
   if (!pluginsStarted.ok) {
-    // Nothing was launched or subscribed (CR9b-2); the started plugins were stopped.
+    // Nothing was launched or subscribed; the started plugins were stopped.
     db.$client.close();
     return pluginsStarted;
   }
@@ -583,15 +583,15 @@ export interface ShutdownSteps {
   readonly stopPlanningRuns: () => Promise<void>;
   /** Aborts the active delivery sessions; resolves once their drivers have settled. */
   readonly stopDeliveryRuns: () => Promise<void>;
-  /** Stops each plugin in reverse order, each bounded at 5 s (D16). */
+  /** Stops each plugin in reverse order, each bounded at 5 s. */
   readonly stopPlugins: () => Promise<void>;
   readonly closeDatabase: () => void;
 }
 
 /**
- * Shuts ZeNorm down (L197 item 12, spec D2; `node --watch` sends SIGTERM on every save): it stops
+ * Shuts ZeNorm down (`node --watch` sends SIGTERM on every save): it stops
  * accepting connections, stops the planning and delivery runs together (their agent process
- * groups are killed and awaited), then stops the plugins (D16), and closes the database only after
+ * groups are killed and awaited), then stops the plugins, and closes the database only after
  * all of them, so no write hits a closed connection. The stopped runs read interrupted after the
  * restart.
  */

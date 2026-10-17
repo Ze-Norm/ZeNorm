@@ -1,9 +1,8 @@
--- Slice 7c spec D1 and Existing Records: rebuilds `tickets_review_findings` with `route` (`revise |
--- decision`, checked) and `question` (not null), as `spec_review_findings` has them (domain model
--- 3.5). The table is empty on every instance (no code before 7c records a tickets review), so the
--- rebuild copies nothing, and it refuses a table with any row rather than drop it. The rebuild runs
--- with foreign keys off (`migrateDatabase`) and ends by refusing any foreign key violation, so a
--- broken database rolls the migration back (L163).
+-- Rebuilds `tickets_review_findings` with `route` (`revise | decision`, checked) and `question`
+-- (not null), as `spec_review_findings` has them. The table is empty on every instance (no earlier
+-- code records a tickets review), so the rebuild copies nothing, and it refuses a table with any
+-- row rather than drop it. The rebuild runs with foreign keys off (`migrateDatabase`) and ends by
+-- refusing any foreign key violation, so a broken database rolls the migration back.
 CREATE TABLE `__new_tickets_review_findings` (
 	`review_id` text NOT NULL,
 	`position` integer NOT NULL,

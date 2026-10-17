@@ -1,4 +1,4 @@
-// Fails `no-restricted-syntax`: a `??` fallback to each literal kind (spec D6).
+// Fails `no-restricted-syntax`: a `??` fallback to each literal kind.
 export function fallbacks(value: string | number | boolean | null | undefined) {
   return [
     value ?? "unnamed",

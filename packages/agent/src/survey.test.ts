@@ -133,7 +133,7 @@ function flag(argv: string[], name: string): string {
   return value;
 }
 
-describe("the code survey (harness change #1)", () => {
+describe("the code survey", () => {
   test("its --json-schema roots are entries, identifiers, unverifiable and lifecycles", () => {
     const schema = z
       .object({ properties: z.record(z.string(), z.unknown()) })
@@ -146,7 +146,7 @@ describe("the code survey (harness change #1)", () => {
     ]);
   });
 
-  test("its prompt asks for each touched record's lifecycle, cited at the code that decides it (RC2)", () => {
+  test("its prompt asks for each touched record's lifecycle, cited at the code that decides it", () => {
     const prompt = buildSurveyPrompt(REQUEST, LIMITS, 48);
     expect(prompt).toContain(
       "- lifecycles: up to 10, one per stateful record the destination creates",
@@ -261,7 +261,7 @@ describe("the code survey's lengths follow the model's limits (agent.models)", (
   });
 });
 
-describe("the survey prompt reads no destination round (DR-16)", () => {
+describe("the survey prompt reads no destination round", () => {
   test("renders no map-level round", () => {
     expect(buildSurveyPrompt(REQUEST, LIMITS, 36)).not.toContain("MAP-ROUND-");
   });

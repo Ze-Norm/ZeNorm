@@ -4,11 +4,11 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 /**
- * Vitest global setup (CR-1, CR-10): a test worker killed mid-test (an aborted gate, a cancelled
- * turbo task, an OOM) leaves its TERM-ignoring stand-ins and its temp folder behind, because their
- * cleanup runs inside the worker. Before and after the run this removes leftovers older than
- * STALE_MS: processes whose command line carries MARKER and temp folders named with it. Younger
- * ones may belong to a run in another worktree and are left alone.
+ * Vitest global setup: a test worker killed mid-test (an aborted gate, a cancelled turbo task, an
+ * OOM) leaves its TERM-ignoring stand-ins and its temp folder behind, because their cleanup runs
+ * inside the worker. Before and after the run this removes leftovers older than STALE_MS: processes
+ * whose command line carries MARKER and temp folders named with it. Younger ones may belong to a
+ * run in another worktree and are left alone.
  */
 const MARKER = "zenorm-core-delivery-";
 const STALE_MS = 10 * 60 * 1000;

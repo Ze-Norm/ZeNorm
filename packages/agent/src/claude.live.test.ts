@@ -96,11 +96,11 @@ if (claudePath === undefined || claudePath === "") {
 }
 
 const projectFolder = realpathSync(mkdtempSync(join(tmpdir(), "zenorm-agent-live-")));
-/** Every live call's session records (spec D3). */
+/** Every live call's session records. */
 const sessionsDir = realpathSync(mkdtempSync(join(tmpdir(), "zenorm-agent-live-sessions-")));
 
 afterAll(() => {
-  // Every call removed its session record once its process was gone (spec D3).
+  // Every call removed its session record once its process was gone.
   const left = readdirSync(sessionsDir);
   rmSync(projectFolder, { recursive: true, force: true });
   rmSync(sessionsDir, { recursive: true, force: true });
@@ -116,7 +116,7 @@ function git(...args: string[]): void {
 /** How long the live status read may take. */
 const AUTH_STATUS_TIMEOUT_MS = 30_000;
 
-test("a Claude Code set up for Bedrock reports loggedIn true with authMethod third_party (4.3)", async () => {
+test("a Claude Code set up for Bedrock reports loggedIn true with authMethod third_party", async () => {
   // Claude Code's documented Bedrock setup: the switch and a region; the AWS credentials are the
   // person's own, which `auth status` does not check.
   const status = await readAuthStatus(
@@ -197,8 +197,8 @@ const CHARTED_PROJECT = {
 };
 
 /**
- * Runs one chart and prints what DR-25's report needs: the duration, the outcome's kind, the
- * destination and, for a follow-up, its intro, `final` and questions. A failed call throws.
+ * Runs one chart and prints what the over-asking report needs: the duration, the outcome's kind,
+ * the destination and, for a follow-up, its intro, `final` and questions. A failed call throws.
  */
 async function chart(
   chartConfig: PlanningRunConfig,
@@ -227,8 +227,8 @@ async function chart(
 }
 
 /**
- * An over-asking check (DR-25): the idea is clear and its round answered with the recommendations,
- * so the chart must confirm; a follow-up fails the case.
+ * An over-asking check: the idea is clear and its round answered with the recommendations, so the
+ * chart must confirm; a follow-up fails the case.
  */
 function confirmed(outcome: ChartOutcome): ChartConfirmation {
   expect(outcome.kind).toBe("confirmation");
@@ -279,13 +279,13 @@ test("ChartMap: the real CLI confirms the destination and charts waypoints with 
     refusedAttempt: null,
   });
 
-  // Over-asking check (DR-25): a clear idea answered with the recommendations confirms.
+  // Over-asking check: a clear idea answered with the recommendations confirms.
   const confirmation = confirmed(outcome);
   process.stdout.write(`${JSON.stringify(confirmation, null, 2)}\n`);
 });
 
-// L118: an idea that needs a Research waypoint (a platform fact only the web settles) and a Task
-// waypoint (mechanical reading across many files), so the live chart shows whether kinds are used.
+// An idea that needs a Research waypoint (a platform fact only the web settles) and a Task waypoint
+// (mechanical reading across many files), so the live chart shows whether kinds are used.
 const kindsFolder = realpathSync(mkdtempSync(join(tmpdir(), "zenorm-agent-live-kinds-")));
 
 afterAll(() => {
@@ -378,7 +378,7 @@ const kindsRound = {
   final: false,
 };
 
-test("ChartMap: the real CLI charts a Research waypoint for an idea that needs one (L118)", async () => {
+test("ChartMap: the real CLI charts a Research waypoint for an idea that needs one", async () => {
   const outcome = await chart(config, {
     projectName: "reports",
     projectFolder: kindsFolder,
@@ -397,7 +397,7 @@ test("ChartMap: the real CLI charts a Research waypoint for an idea that needs o
     refusedAttempt: null,
   });
 
-  // Over-asking check (DR-25): a clear idea answered with the recommendations confirms.
+  // Over-asking check: a clear idea answered with the recommendations confirms.
   const confirmation = confirmed(outcome);
   process.stdout.write(
     `${JSON.stringify(
@@ -422,8 +422,8 @@ test("ChartMap: the real CLI charts a Research waypoint for an idea that needs o
   expect(kinds.has("research")).toBe(true);
 });
 
-// DR-25: the chart confirms when it should and follows up only when an answer moves the scope.
-// A tiny tasks tool where an own-words answer can widen "delete" into an archive.
+// The chart confirms when it should and follows up only when an answer moves the scope. A tiny
+// tasks tool where an own-words answer can widen "delete" into an archive.
 const tasksFolder = realpathSync(mkdtempSync(join(tmpdir(), "zenorm-agent-live-tasks-")));
 /** Where the argv-recording wrapper of the real CLI writes the last call's argv. */
 const argvFolder = realpathSync(mkdtempSync(join(tmpdir(), "zenorm-agent-live-argv-")));
@@ -495,15 +495,15 @@ function tasksRound(notes: readonly [string, string]) {
   };
 }
 
-/** The distinctive term the widening answer carries (DR-25). */
+/** The distinctive term the widening answer carries. */
 const WIDENING_TERM =
   /\b(old(er)?|in one go|at once|bulk|several|multiple|batch|clear\w*|finished|completed)\b/i;
 
-/** Widens the scope to a bulk clear and leaves which tasks are old open (L1, the diagnostic's E2). */
+/** Widens the scope to a bulk clear and leaves which tasks are old open. */
 const wideningNote =
   "Also, I'd like a way to clear out old tasks I no longer need in one go, not just one at a time.";
 
-test("ChartMap DR-25: a clear idea answered with the recommendations confirms after round 1", async () => {
+test("ChartMap: a clear idea answered with the recommendations confirms after round 1", async () => {
   const outcome = await chart(config, {
     projectName: "tasks",
     projectFolder: tasksFolder,
@@ -520,7 +520,7 @@ test("ChartMap DR-25: a clear idea answered with the recommendations confirms af
   confirmed(outcome);
 });
 
-test("ChartMap DR-25: an own-words answer that widens the scope gets a follow-up on it, then a confirmation", async () => {
+test("ChartMap: an own-words answer that widens the scope gets a follow-up on it, then a confirmation", async () => {
   const first = tasksRound([wideningNote, ""]);
   const asked = await chart(config, {
     projectName: "tasks",
@@ -546,7 +546,7 @@ test("ChartMap DR-25: an own-words answer that widens the scope gets a follow-up
   ).toBe(true);
 
   // The person answers the follow-up with its recommendations; the follow-up replaced the map's
-  // title, summary and proposed destination (DR-7).
+  // title, summary and proposed destination.
   const outcome = await chart(config, {
     projectName: "tasks",
     projectFolder: tasksFolder,
@@ -574,7 +574,7 @@ test("ChartMap DR-25: an own-words answer that widens the scope gets a follow-up
   expect(WIDENING_TERM.test(confirmed(outcome).destination)).toBe(true);
 });
 
-test("ChartMap DR-25: wrap up in the person's words confirms", async () => {
+test("ChartMap: wrap up in the person's words confirms", async () => {
   const outcome = await chart(config, {
     projectName: "tasks",
     projectFolder: tasksFolder,
@@ -596,7 +596,7 @@ test("ChartMap DR-25: wrap up in the person's words confirms", async () => {
   confirmed(outcome);
 });
 
-test("ChartMap DR-25: after a final follow-up the port sends the confirm schema and confirms", async () => {
+test("ChartMap: after a final follow-up the port sends the confirm schema and confirms", async () => {
   // The real CLI behind a wrapper that records each call's argv (the pid stays the CLI's: `exec`).
   const wrapper = join(argvFolder, "claude");
   writeFileSync(
@@ -756,7 +756,7 @@ test("GrillWaypoint: after a final round answered with words, the real CLI resol
   process.stdout.write(`${JSON.stringify(result.value, null, 2)}\n`);
 });
 
-test("SettleFog: the map's fog run settles every fog item once (harness change #4)", async () => {
+test("SettleFog: the map's fog run settles every fog item once", async () => {
   const result = await claudeCodeSettleFog(config)(
     {
       projectName: grillBase.projectName,
@@ -803,7 +803,7 @@ test("SettleFog: the map's fog run settles every fog item once (harness change #
   expect(settled).toEqual([1]);
 });
 
-test("S7b-12 live GrillWaypoint reopened: old answered rounds and a note ask a new round", async () => {
+test("live GrillWaypoint reopened: old answered rounds and a note ask a new round", async () => {
   const result = await claudeCodeGrillWaypoint(config)(
     {
       survey: null,
@@ -988,7 +988,7 @@ test("CheckConsistency: the real CLI compares resolutions that conflict", async 
   process.stdout.write(`${JSON.stringify(result.value, null, 2)}\n`);
 });
 
-test("CheckConsistency: the real CLI does not suggest again a map suggestion the project already has (C2)", async () => {
+test("CheckConsistency: the real CLI does not suggest again a map suggestion the project already has", async () => {
   // Waypoint 2's resolution leaves JSON output to another effort, which a pass would suggest as a
   // map; the project's list already holds that suggestion, pending, so the pass must not repeat it.
   const result = await claudeCodeCheckConsistency(config)(
@@ -1050,7 +1050,7 @@ test("CheckConsistency: the real CLI does not suggest again a map suggestion the
   expect(repeats).toEqual([]);
 });
 
-/** Strings in `value` whose backticks nest or don't pair (L126 b): reported, and asserted none. */
+/** Strings in `value` whose backticks nest or don't pair: reported, and asserted none. */
 function badBackticks(value: unknown): string[] {
   const strings: string[] = [];
   JSON.stringify(value, (_key, item: unknown) => {
@@ -1143,7 +1143,7 @@ const unitsRevision: SpecRevisionContent = {
   outOfScope: ["Counting several units at once."],
 };
 
-test("S7 live DraftSpecs: the real CLI writes the specs of a two-part idea", async () => {
+test("live DraftSpecs: the real CLI writes the specs of a two-part idea", async () => {
   const result = await claudeCodeDraftSpecs(config)(
     {
       survey: null,
@@ -1170,7 +1170,7 @@ test("S7 live DraftSpecs: the real CLI writes the specs of a two-part idea", asy
   expect(badBackticks(result.value)).toEqual([]);
 });
 
-test("S7 live ReviseSpec: the real CLI repairs a spec after a rejection, keeping its ids", async () => {
+test("live ReviseSpec: the real CLI repairs a spec after a rejection, keeping its ids", async () => {
   const result = await claudeCodeReviseSpec(config)(
     {
       survey: null,
@@ -1199,7 +1199,7 @@ test("S7 live ReviseSpec: the real CLI repairs a spec after a rejection, keeping
   expect(badBackticks(result.value)).toEqual([]);
 });
 
-test("S7 live ReviewSpec: the real CLI finds a planted untraced clause", async () => {
+test("live ReviewSpec: the real CLI finds a planted untraced clause", async () => {
   const planted: SpecRevisionContent = {
     ...unitsRevision,
     clauses: [
@@ -1242,7 +1242,7 @@ test("S7 live ReviewSpec: the real CLI finds a planted untraced clause", async (
   ).toBe(true);
 });
 
-/** The person's note overriding waypoint 1's "both refused" resolution (S7b-11). */
+/** The person's note overriding waypoint 1's "both refused" resolution. */
 const bothNote =
   "Passing both -l and -c should be refused with exit code 1, not 2, so it matches wordcount's other usage errors.";
 
@@ -1282,7 +1282,7 @@ const jsonRevision: SpecRevisionContent = {
   outOfScope: [],
 };
 
-test("S7b live notes ReviseSpec: the real CLI follows a note over an earlier resolution and cites it", async () => {
+test("live notes ReviseSpec: the real CLI follows a note over an earlier resolution and cites it", async () => {
   const result = await claudeCodeReviseSpec(config)(
     {
       survey: null,
@@ -1310,7 +1310,7 @@ test("S7b live notes ReviseSpec: the real CLI follows a note over an earlier res
   expect(badBackticks(result.value)).toEqual([]);
 });
 
-test("S7b live notes ReviewSpec: the real CLI accepts the change a note asked for", async () => {
+test("live notes ReviewSpec: the real CLI accepts the change a note asked for", async () => {
   const result = await claudeCodeReviewSpec(config)(
     {
       survey: null,
@@ -1339,7 +1339,7 @@ test("S7b live notes ReviewSpec: the real CLI accepts the change a note asked fo
   expect(againstNote).toEqual([]);
 });
 
-test("S7b live notes DraftSpecs: a re-clear with every spec approved and nothing changed writes no spec", async () => {
+test("live notes DraftSpecs: a re-clear with every spec approved and nothing changed writes no spec", async () => {
   const result = await claudeCodeDraftSpecs(config)(
     {
       survey: null,
@@ -1369,7 +1369,7 @@ test("S7b live notes DraftSpecs: a re-clear with every spec approved and nothing
   expect(result.value.specs).toEqual([]);
 });
 
-test("S7 live DraftTicketSet: the real CLI writes tickets for an approved revision", async () => {
+test("live DraftTicketSet: the real CLI writes tickets for an approved revision", async () => {
   const result = await claudeCodeDraftTicketSet(config)(
     {
       survey: null,
@@ -1424,8 +1424,8 @@ const nestedRevision: SpecRevisionContent = {
   outOfScope: ["Moving an existing project to another folder."],
 };
 
-/** The demo's nested-folders map (screen 14), its spec 1 a draft whose review passed. */
-/** The hatch map's destination round, answered with its recommendation (DR-14). */
+/** The nested-folders map, its spec 1 a draft whose review passed. */
+/** The hatch map's destination round, answered with its recommendation. */
 const nestingRound = {
   questions: [
     {
@@ -1515,14 +1515,14 @@ async function liveHatch(request: ReplyThroughHatchRequest): Promise<z.infer<typ
   return result.value;
 }
 
-test("S7b live hatch reply only: a question about the spec gets a reply and no change", async () => {
+test("live hatch reply only: a question about the spec gets a reply and no change", async () => {
   const outcome = await liveHatch(
     hatchRequest("spec", 1, "Does “nested” mean any depth, or only a direct child?"),
   );
   expect(outcome.change).toBeNull();
 });
 
-test("S7b live hatch reopen: a message saying a decision was wrong reopens its waypoint", async () => {
+test("live hatch reopen: a message saying a decision was wrong reopens its waypoint", async () => {
   const outcome = await liveHatch(
     hatchRequest(
       "wayfinding",
@@ -1533,7 +1533,7 @@ test("S7b live hatch reopen: a message saying a decision was wrong reopens its w
   expect(outcome.change).toEqual({ kind: "reopen", waypoint: 2 });
 });
 
-test("S7b-12 live hatch reopen, every spec approved: the reply says the approved spec stands", async () => {
+test("live hatch reopen, every spec approved: the reply says the approved spec stands", async () => {
   const base = hatchRequest(
     "wayfinding",
     null,
@@ -1543,11 +1543,11 @@ test("S7b-12 live hatch reopen, every spec approved: the reply says the approved
     ...base,
     specs: base.specs.map((spec) => ({ ...spec, state: "approved" as const })),
   });
-  // The reply is judged by eye (L151): it says the approved spec stands and promises no revision.
+  // The reply is judged by eye: it says the approved spec stands and promises no revision.
   expect(outcome.change).toEqual({ kind: "reopen", waypoint: 2 });
 });
 
-test("S7b live hatch revise_spec: a statement of what the spec should say revises it", async () => {
+test("live hatch revise_spec: a statement of what the spec should say revises it", async () => {
   const outcome = await liveHatch(
     hatchRequest(
       "spec",
@@ -1588,20 +1588,20 @@ function waitingReportRequest(text: string): ReplyThroughHatchRequest {
   };
 }
 
-test("S7b-13 live hatch run_waypoint with a note: the reply does not deny passing the note on", async () => {
+test("live hatch run_waypoint with a note: the reply does not deny passing the note on", async () => {
   const outcome = await liveHatch(
     waitingReportRequest(
       "Run the research on waypoint 3 again; this time read Node's fs.realpath documentation and libuv's Windows notes instead of executing code.",
     ),
   );
   expect(outcome.change).toEqual({ kind: "run_waypoint", waypoint: 3 });
-  // The reply is also judged by eye (L151); this catches the QA wording (L162 (3)).
+  // The reply is also judged by eye; this catches the wording an earlier reply used.
   expect(outcome.reply).not.toMatch(
     /(can(no|')t|unable to|no way to) (attach|pass|carry|tell|include|give|send|forward)/i,
   );
 });
 
-test("S7b-13 live hatch accept_report: the gist reflects the report", async () => {
+test("live hatch accept_report: the gist reflects the report", async () => {
   const outcome = await liveHatch(
     waitingReportRequest(
       "Accept the report on waypoint 3 as it stands; we don't support Windows, so the junction question doesn't matter.",
@@ -1610,11 +1610,11 @@ test("S7b-13 live hatch accept_report: the gist reflects the report", async () =
   expect(outcome.change?.kind).toBe("accept_report");
   if (outcome.change?.kind !== "accept_report") throw new Error("not accept_report");
   expect(outcome.change.waypoint).toBe(3);
-  // The gist restates the report's finding, not only the message (L162 (4)).
+  // The gist restates the report's finding, not only the message.
   expect(outcome.change.gist).toMatch(/realpath|real path|symlink/i);
 });
 
-test("S7c live ReviewTicketSet: the real CLI finds a ticket adding detail its clause does not state", async () => {
+test("live ReviewTicketSet: the real CLI finds a ticket adding detail its clause does not state", async () => {
   // T2 adds a --format csv option that no criterion of C1 states: an untraced criterion, expected
   // `revise` (the approved revision settles that the output is the count alone).
   const tickets: TicketSetContent = {
@@ -1690,11 +1690,11 @@ test("S7c live ReviewTicketSet: the real CLI finds a ticket adding detail its cl
   expect(badBackticks(result.value)).toEqual([]);
 });
 
-test("S7c-10 live ReviewTicketSet: a function and option a rejection reason asked for are traced, not untraced", async () => {
-  // Version 1 was rejected with a reason asking for a --format csv option built by a function
-  // named toCsv; version 2 follows it. No criterion of C1 states either (the S7c live case above
-  // flags the same option as untraced); with the reason, the person's most recent word counts as
-  // traced (L180 (2), L141).
+test("live ReviewTicketSet: a function and option a rejection reason asked for are traced, not untraced", async () => {
+  // Version 1 was rejected with a reason asking for a --format csv option built by a function named
+  // toCsv; version 2 follows it. No criterion of C1 states either (the live ReviewTicketSet case
+  // above flags the same option as untraced); with the reason, the person's most recent word counts
+  // as traced.
   const tickets: TicketSetContent = {
     tickets: [
       {
@@ -1769,7 +1769,7 @@ test("S7c-10 live ReviewTicketSet: a function and option a rejection reason aske
   expect(badBackticks(result.value)).toEqual([]);
 });
 
-test("S7c live hatch stopped waypoint: a question about a stopped Grilling waypoint points at Try again", async () => {
+test("live hatch stopped waypoint: a question about a stopped Grilling waypoint points at Try again", async () => {
   const base = hatchRequest(
     "wayfinding",
     null,
@@ -1795,8 +1795,8 @@ test("S7c live hatch stopped waypoint: a question about a stopped Grilling waypo
       },
     ],
   });
-  // The reply is judged by eye (L151, L164): no change, and it points at Try again or a note
-  // rather than promising a run.
+  // The reply is judged by eye: no change, and it points at Try again or a note rather than
+  // promising a run.
   expect(outcome.change).toBeNull();
   expect(outcome.reply).toMatch(/try again|note/i);
   expect(outcome.reply).not.toMatch(/\b(I'll|I will|will now|I've started|I'm) (re)?run/i);
@@ -1829,7 +1829,10 @@ const ToolUse = z.looseObject({
   input: z.unknown(),
 });
 
-/** Prints what the D5 unknowns need from the orchestrator's stream, with 1-based line numbers. */
+/**
+ * Prints the orchestrator stream's init tools, denials, tool uses and result, with 1-based line
+ * numbers.
+ */
 function reportStream(streamFile: string): void {
   const lines = readFileSync(streamFile, "utf8").split("\n");
   const report: string[] = [`orchestrator.jsonl: ${String(lines.length - 1)} lines`];
@@ -1980,7 +1983,7 @@ test(
         throw new Error(`${implemented.error.code}: ${implemented.error.message}`);
       }
 
-      // ZeNorm's verification (spec D6), replayed with git.
+      // ZeNorm's verification, replayed with git.
       expect(gitIn(worktreePath, "rev-parse", "--abbrev-ref", "HEAD")).toBe(branch);
       expect(gitIn(worktreePath, "status", "--porcelain")).toBe("");
       const finalCommit = gitIn(worktreePath, "rev-parse", branch);
@@ -2035,7 +2038,7 @@ test(
       expect(gitIn(worktreePath, "rev-parse", branch)).toBe(finalCommit);
       process.stdout.write(`${JSON.stringify(reviewed.value, null, 2)}\n`);
 
-      // C3, 3.2: the real claude writes the pull request body with the vendored PR skill.
+      // The real claude writes the pull request body with the vendored PR skill.
       const writeStarted = Date.now();
       const written = await claudeCodeWritePullRequest(deliveryConfig)(
         {
@@ -2078,7 +2081,9 @@ test(
   },
 );
 
-/** The chained set of the S8 live test: each ticket is blocked by the one before it. */
+/**
+ * The chained set of the live ImplementTicketSet test: each ticket is blocked by the one before it.
+ */
 const S8_LIVE_TICKETS = [
   { id: "T1", title: "Add `add(a, b)` in `add.js`" },
   { id: "T2", title: "Add `sum(numbers)` in `sum.js` on top of `add`" },
@@ -2086,7 +2091,7 @@ const S8_LIVE_TICKETS = [
 ] as const;
 
 test(
-  "S8 live ImplementTicketSet: a 3-ticket chained set emits lines, starts and merges for every ticket",
+  "live ImplementTicketSet: a 3-ticket chained set emits lines, starts and merges for every ticket",
   { timeout: 1_800_000 },
   async () => {
     const model = requiredEnv("ZENORM_LIVE_DELIVERY_MODEL");
@@ -2266,8 +2271,8 @@ test(
         expect(lines.length).toBeGreaterThan(0);
         expect(startedEvents).toHaveLength(1);
         expect(mergedEvents).toHaveLength(1);
-        // L197 items 1 and 7: the implementer's own report, without the CLI's hand-back frame,
-        // its `agentId … <usage>` trailer or an absolute path into the run folder.
+        // The implementer's own report, without the CLI's hand-back frame, its `agentId … <usage>`
+        // trailer or an absolute path into the run folder.
         for (const event of mergedEvents) {
           if (event.kind !== "ticket_merged" || event.summary === null) continue;
           expect(event.summary).not.toContain("[Subagent hand-back]");
@@ -2318,11 +2323,11 @@ function subagentBashCommands(stdout: string): string[] {
   return commands;
 }
 
-// C4, assumption 4.2: the orchestrator's `--allowedTools` carry the run's fix commands, and the
-// implementers fixing work in the run worktree are its subagents. If this fails, the skill and the
-// orchestrator prompt move the fix commands to the orchestrator only.
+// The orchestrator's `--allowedTools` carry the run's fix commands, and the implementers fixing
+// work in the run worktree are its subagents. If this fails, the skill and the orchestrator prompt
+// move the fix commands to the orchestrator only.
 test(
-  "C4 live: an implementer subagent runs a named fix command with an extra argument and is refused an unnamed command",
+  "live fix commands: an implementer subagent runs a named fix command with an extra argument and is refused an unnamed command",
   { timeout: 600_000 },
   () => {
     const model = requiredEnv("ZENORM_LIVE_DELIVERY_MODEL");
@@ -2421,11 +2426,11 @@ test(
   },
 );
 
-// Slice 8b D15: a later map revises a delivered spec. The temp repo's wordcount.js is what spec 1
-// revision 1 (`unitsRevision`) delivered in run 1: T1 built 1.1 and 1.2, T2 built 1.3 (both flags
-// refused). The later map's idea changes 1.3 without changing what it is about: the refusal also
-// says why. (A first fixture reversed 1.3 into printing both counts; the agent then rightly gave the
-// new behaviour new ids, since a kept id keeps its meaning.)
+// A later map revises a delivered spec. The temp repo's wordcount.js is what spec 1 revision 1
+// (`unitsRevision`) delivered in run 1: T1 built 1.1 and 1.2, T2 built 1.3 (both flags refused).
+// The later map's idea changes 1.3 without changing what it is about: the refusal also says why. (A
+// first fixture reversed 1.3 into printing both counts; the agent then rightly gave the new
+// behaviour new ids, since a kept id keeps its meaning.)
 const revisedFolder = realpathSync(mkdtempSync(join(tmpdir(), "zenorm-agent-live-revise-")));
 let deliveredCommit = "";
 
@@ -2634,7 +2639,7 @@ function touchingWaypoints() {
   return [{ number: 1, title: "Refusal message", resolution: bothResolution }];
 }
 
-test("S8b live ChartMap: a confirming chart touches the delivered spec it changes", async () => {
+test("live ChartMap: a confirming chart touches the delivered spec it changes", async () => {
   const outcome = await chart(config, {
     projectName: "wordcount",
     projectFolder: revisedFolder,
@@ -2668,7 +2673,7 @@ test("S8b live ChartMap: a confirming chart touches the delivered spec it change
     refusedAttempt: null,
   });
 
-  // Over-asking check (DR-25) first, so a follow-up and a missing touch fail apart.
+  // Over-asking check first, so a follow-up and a missing touch fail apart.
   const confirmation = confirmed(outcome);
   const touches = confirmation.waypoints.flatMap((waypoint) => waypoint.touches);
   process.stdout.write(
@@ -2677,7 +2682,7 @@ test("S8b live ChartMap: a confirming chart touches the delivered spec it change
   expect(touches.some((touch) => touch.specNumber === 1 && touch.revision === 1)).toBe(true);
 });
 
-test("S8b live GrillWaypoint: a waypoint touching a delivered spec is grilled", async () => {
+test("live GrillWaypoint: a waypoint touching a delivered spec is grilled", async () => {
   const started = Date.now();
   const result = await claudeCodeGrillWaypoint(config)(
     {
@@ -2713,7 +2718,7 @@ test("S8b live GrillWaypoint: a waypoint touching a delivered spec is grilled", 
   expect(GrillOutcome.safeParse(result.value).success).toBe(true);
 });
 
-test("S8b live ResearchWaypoint: research reads the delivered code a touch names", async () => {
+test("live ResearchWaypoint: research reads the delivered code a touch names", async () => {
   const started = Date.now();
   const result = await claudeCodeResearchWaypoint(researchConfig)(
     {
@@ -2758,7 +2763,7 @@ test("S8b live ResearchWaypoint: research reads the delivered code a touch names
   expect(result.value.report?.answered).toBe(true);
 });
 
-test("S8b live DraftSpecs: To Spec writes revision 2 of the touched delivered spec with kept ids", async () => {
+test("live DraftSpecs: To Spec writes revision 2 of the touched delivered spec with kept ids", async () => {
   const started = Date.now();
   const result = await claudeCodeDraftSpecs(config)(
     {
@@ -2785,7 +2790,7 @@ test("S8b live DraftSpecs: To Spec writes revision 2 of the touched delivered sp
   expect(written[0]?.ids).toEqual(expect.arrayContaining(["1.1", "1.2", "1.3"]));
 });
 
-test("S8b live ReviewSpec: revision 2 of a delivered spec that carries its touch passes", async () => {
+test("live ReviewSpec: revision 2 of a delivered spec that carries its touch passes", async () => {
   const started = Date.now();
   const result = await claudeCodeReviewSpec(config)(
     {
@@ -2832,7 +2837,7 @@ const coloredClause = {
   sources: [{ kind: "destination" as const }],
 };
 
-test("S8b live ReviewSpec: clauses carried unchanged from another map's approved revision are context (L213 D-6)", async () => {
+test("live ReviewSpec: clauses carried unchanged from another map's approved revision are context", async () => {
   const started = Date.now();
   const result = await claudeCodeReviewSpec(config)(
     {
@@ -2871,7 +2876,8 @@ test("S8b live ReviewSpec: clauses carried unchanged from another map's approved
     `${JSON.stringify({ seconds })}\n${JSON.stringify(result.value, null, 2)}\n`,
   );
   expect(SpecReviewOutcome.safeParse(result.value).success).toBe(true);
-  // The same clause on a first revision is a planted untraced clause (S7 live ReviewSpec above).
+  // The same clause on a first revision is a planted untraced clause (the live ReviewSpec test
+  // above).
   expect(
     result.value.findings.filter((finding) =>
       finding.elementIds.some((id) => id === "C2" || id === "2.1"),
@@ -2879,7 +2885,7 @@ test("S8b live ReviewSpec: clauses carried unchanged from another map's approved
   ).toEqual([]);
 });
 
-test("S8b live hatch revise_spec on an approved spec: a change to what it says revises it (L213 D-3)", async () => {
+test("live hatch revise_spec on an approved spec: a change to what it says revises it", async () => {
   const base = hatchRequest(
     "spec",
     1,
@@ -2892,7 +2898,7 @@ test("S8b live hatch revise_spec on an approved spec: a change to what it says r
   expect(outcome.change).toEqual({ kind: "revise_spec" });
 });
 
-test("S8b live hatch open wait: a note on a held waited spec gets no change and is not called saved (L220 E-4)", async () => {
+test("live hatch open wait: a note on a held waited spec gets no change and is not called saved", async () => {
   const base = hatchRequest(
     "spec",
     2,
@@ -2905,16 +2911,17 @@ test("S8b live hatch open wait: a note on a held waited spec gets no change and 
     ],
   });
   expect(outcome.change).toBeNull();
-  // The reply is judged by eye too (L151): it says another map holds spec 2 and the person can send this again.
-  // Saying the message is not saved is fine; claiming it was saved, recorded or added is not.
+  // The reply is judged by eye too: it says another map holds spec 2 and the person can send this
+  // again. Saying the message is not saved is fine; claiming it was saved, recorded or added is
+  // not.
   expect(outcome.reply).not.toMatch(
     /\b(is|was|has been|have|I've|I have|I'll|I will)\s+(saved|recorded|added|kept|noted)\b/i,
   );
 });
 
-// S8b-16 (N-1): a release of a wait To Spec recorded on a map that charted no waypoint, on a spec
-// with no note-directed revision: core accepts no note source, so the change cites the destination.
-test("S8b live ReviseSpec release: a decision-born wait on a map with no waypoints cites the destination, not a note", async () => {
+// A release of a wait To Spec recorded on a map that charted no waypoint, on a spec with no
+// note-directed revision: core accepts no note source, so the change cites the destination.
+test("live ReviseSpec release: a decision-born wait on a map with no waypoints cites the destination, not a note", async () => {
   const fromDestination = (clause: SpecRevisionContent["clauses"][number]) => ({
     ...clause,
     sources: [{ kind: "destination" as const }],
@@ -2963,7 +2970,7 @@ test("S8b live ReviseSpec release: a decision-born wait on a map with no waypoin
   expect(changed?.sources).toContainEqual({ kind: "destination" });
 });
 
-test("S8b live DraftTicketSet: unchanged criteria are delivered and the changed one follows up its ticket", async () => {
+test("live DraftTicketSet: unchanged criteria are delivered and the changed one follows up its ticket", async () => {
   const started = Date.now();
   const result = await claudeCodeDraftTicketSet(config)(
     {
@@ -3000,7 +3007,7 @@ test("S8b live DraftTicketSet: unchanged criteria are delivered and the changed 
   expect(result.value.tickets.map((ticket) => ticket.id)[0]).toBe("T3");
 });
 
-test("S8b live ReviewTicketSet: a reasonless departure gets a disposition_without_reason finding", async () => {
+test("live ReviewTicketSet: a reasonless departure gets a disposition_without_reason finding", async () => {
   const readings = bothReadings();
   const departing = {
     ...readings,

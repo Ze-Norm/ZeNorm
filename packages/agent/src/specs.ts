@@ -40,13 +40,13 @@ import {
   type PlanningSkill,
 } from "./spec-prompt.ts";
 
-// Each output is checked against the full D2 schema here, so content the schema refuses (zero
+// Each output is checked against the full content schema here, so content the schema refuses (zero
 // tickets, a 13th clause, a bad disposition) fails the run as a retried `agent_output_invalid`, and
-// core's `spec_content_invalid` and `ticket_set_content_invalid` (S7-4, S7-13) are reached only by
-// what the schema cannot check (ids across revisions, ticket numbering) and by core's own tests.
-// The outputs are built once per port, from the run's model's limits (`agent.models`).
+// core's `spec_content_invalid` and `ticket_set_content_invalid` are reached only by what the
+// schema cannot check (ids across revisions, ticket numbering) and by core's own tests. The outputs
+// are built once per port, from the run's model's limits (`agent.models`).
 
-/** The `--json-schema` of a map-scope To Spec run; root property `specs` (L107). */
+/** The `--json-schema` of a map-scope To Spec run; root property `specs`. */
 export function draftSpecsJsonSchema(limits: ModelLimits): string {
   return structuredOutput(draftSpecsOutcome(limits)).jsonSchema;
 }
@@ -67,8 +67,8 @@ export function draftTicketSetJsonSchema(limits: ModelLimits): string {
 }
 
 /**
- * The `--json-schema` of a tickets review; root properties `summary, findings`, shared with the spec
- * review, so the stand-in tells them apart by the prompt line `Review of: tickets` (L107, slice 7c D2).
+ * The `--json-schema` of a tickets review; root properties `summary, findings`, shared with the
+ * spec review, so the stand-in tells them apart by the prompt line `Review of: tickets`.
  */
 export function reviewTicketSetJsonSchema(limits: ModelLimits): string {
   return structuredOutput(ticketsReviewOutcome(limits)).jsonSchema;
@@ -77,10 +77,10 @@ export function reviewTicketSetJsonSchema(limits: ModelLimits): string {
 export type { PlanningSkill } from "./spec-prompt.ts";
 
 /**
- * One planning call that follows a product skill (L51, spec D4): a missing SKILL.md refuses
- * `agent_skill_missing` before the CLI starts; otherwise the run gets the skills folder with
- * `--add-dir` and a system-prompt file naming the SKILL.md by absolute path. The file sits in a
- * temporary folder, removed when the call ends, as the project's checkout is read-only.
+ * One planning call that follows a product skill: a missing SKILL.md refuses `agent_skill_missing`
+ * before the CLI starts; otherwise the run gets the skills folder with `--add-dir` and a
+ * system-prompt file naming the SKILL.md by absolute path. The file sits in a temporary folder,
+ * removed when the call ends, as the project's checkout is read-only.
  */
 async function runWithSkill<S extends z.ZodType>(
   config: PlanningRunConfig,
@@ -171,7 +171,7 @@ export function draftTicketSetWith(
 
 /**
  * `claudeCodeReviewTicketSet` with its skill named: read-only tools in the project folder, as the
- * spec review, since `unsupported_evidence` checks a disposition's evidence against the code (D2).
+ * spec review, since `unsupported_evidence` checks a disposition's evidence against the code.
  */
 export function reviewTicketSetWith(
   config: PlanningRunConfig,
@@ -204,7 +204,7 @@ function toTickets(skillsDir: string): PlanningSkill {
   return { name: "Product To Tickets", path: planningSkills(skillsDir).toTickets };
 }
 
-/** A map-scope To Spec run through the Claude Code CLI at `config.claudePath` (spec D3). */
+/** A map-scope To Spec run through the Claude Code CLI at `config.claudePath`. */
 export function claudeCodeDraftSpecs(config: SpecRunConfig): DraftSpecs {
   return draftSpecsWith(config, toSpec(config.skillsDir));
 }
@@ -214,17 +214,17 @@ export function claudeCodeReviseSpec(config: SpecRunConfig): ReviseSpec {
   return reviseSpecWith(config, toSpec(config.skillsDir));
 }
 
-/** A spec review through the Claude Code CLI (spec D3, D5). */
+/** A spec review through the Claude Code CLI. */
 export function claudeCodeReviewSpec(config: SpecRunConfig): ReviewSpec {
   return reviewSpecWith(config, planningReview(config.skillsDir));
 }
 
-/** A To Tickets run through the Claude Code CLI (spec D3). */
+/** A To Tickets run through the Claude Code CLI. */
 export function claudeCodeDraftTicketSet(config: SpecRunConfig): DraftTicketSet {
   return draftTicketSetWith(config, toTickets(config.skillsDir));
 }
 
-/** A tickets review through the Claude Code CLI (slice 7c D2, D3); it follows the planning review skill. */
+/** A tickets review through the Claude Code CLI; it follows the planning review skill. */
 export function claudeCodeReviewTicketSet(config: SpecRunConfig): ReviewTicketSet {
   return reviewTicketSetWith(config, planningReview(config.skillsDir));
 }

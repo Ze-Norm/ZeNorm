@@ -28,7 +28,7 @@ import {
 type HatchWaypoint = ReplyThroughHatchRequest["waypoints"][number];
 type HatchSpec = ReplyThroughHatchRequest["specs"][number];
 
-/** The plain line before the message the agent replies to; the e2e stand-in keys its role on it (L107). */
+/** The plain line before the message the agent replies to; the e2e stand-in keys its role on it. */
 export const MESSAGE_LINE = "Message from the person:";
 
 /** The plain line naming the stage on screen when the message was sent. */
@@ -42,8 +42,8 @@ export function specOnScreenLine(specNumber: number | null): string {
 }
 
 /**
- * The plain line giving one waypoint's number and status, `, stopped` when its scope stopped after a
- * failed retry (L164); the stand-in reads the map from these.
+ * The plain line giving one waypoint's number and status, `, stopped` when its scope stopped after
+ * a failed retry; the stand-in reads the map from these.
  */
 export function waypointStatusLine(waypoint: HatchWaypoint): string {
   const waiting = waypoint.waiting === null ? "" : `, waiting: ${waypoint.waiting}`;
@@ -66,7 +66,7 @@ export function specStateLine(spec: HatchSpec): string {
   return `Spec ${String(spec.latest.specNumber)}: revision ${String(spec.latest.revision)} ${spec.state}; ticket set: ${ticketSet}; in flight: ${inFlight}`;
 }
 
-/** The plain line before a held ticket set's escalated findings (slice 7c D8). */
+/** The plain line before a held ticket set's escalated findings. */
 export function heldFindingsLine(specNumber: number, count: number): string {
   return `Spec ${String(specNumber)} ticket set held, findings: ${String(count)}`;
 }
@@ -88,7 +88,7 @@ function sentFrom(stage: HatchStage, specNumber: number | null): string {
     : `sent from ${stage}, spec ${String(specNumber)}`;
 }
 
-/** D5's rules: when a message gets a change and which one (slice 7b spec D5, L145 (3), (4)). */
+/** The hatch's rules: when a message gets a change and which one. */
 export const HATCH_JUDGMENT_RULES = [
   "How to judge the message:",
   "- A question, or anything asking what the records say, gets a reply and no change (change null), even",
@@ -112,8 +112,8 @@ export const HATCH_JUDGMENT_RULES = [
 ];
 
 /**
- * The plain line naming the specs whose latest revision is approved (S7b-8, L156 (2)): the re-clear
- * after a reopen writes no revision of those, and none at all when every spec is approved.
+ * The plain line naming the specs whose latest revision is approved: the re-clear after a reopen
+ * writes no revision of those, and none at all when every spec is approved.
  */
 export function approvedSpecsLine(specs: readonly HatchSpec[]): string {
   const approved = specs
@@ -124,8 +124,8 @@ export function approvedSpecsLine(specs: readonly HatchSpec[]): string {
 
 /**
  * After a reopen the map's re-clear writes the next revision of each spec that is not approved by
- * itself (S7b-8, L149 (a)), so the reply never asks the person to send a revision or a note for it; an
- * approved spec stands and gets no revision (L125 (3), L156 (2)), so the reply promises none for it.
+ * itself, so the reply never asks the person to send a revision or a note for it; an approved spec
+ * stands and gets no revision, so the reply promises none for it.
  */
 export const REOPEN_RECLEAR_RULE = [
   "  Once it is decided again, the map clears again, and its re-clear writes the next revision of each spec",
@@ -140,9 +140,9 @@ export const REOPEN_RECLEAR_RULE = [
 ];
 
 /**
- * An approved or delivered spec is changed through `revise_spec` (slice 8b S8b-7, L213 D-3): ZeNorm
- * writes its next revision from this map through a note run, or records a wait when another map
- * holds the spec. Placed before `revise_spec`'s own line, so the rule reads with it.
+ * An approved or delivered spec is changed through `revise_spec`: ZeNorm writes its next revision
+ * from this map through a note run, or records a wait when another map holds the spec. Placed
+ * before `revise_spec`'s own line, so the rule reads with it.
  */
 export const REVISE_APPROVED_SPEC_RULE = [
   "- An approved or delivered spec can be changed from here: when the message asks to change what the",
@@ -154,8 +154,8 @@ export const REVISE_APPROVED_SPEC_RULE = [
 ];
 
 /**
- * A message that reopens, rewords or reruns a waypoint is that waypoint's note (S7b-10, L162 (3)):
- * its next run reads the message's text, so the reply never says the message cannot reach it.
+ * A message that reopens, rewords or reruns a waypoint is that waypoint's note: its next run reads
+ * the message's text, so the reply never says the message cannot reach it.
  */
 export const WAYPOINT_NOTE_RULE = [
   "- Your message travels with the change: after reopen, reword or run_waypoint, the waypoint's next run",
@@ -165,8 +165,8 @@ export const WAYPOINT_NOTE_RULE = [
 ];
 
 /**
- * A stopped waypoint the reply does not rerun (L164, slice 7c D8): the reply points at Try again or a
- * note and never promises a run.
+ * A stopped waypoint the reply does not rerun: the reply points at Try again or a note and never
+ * promises a run.
  */
 export const STOPPED_WAYPOINT_RULE = [
   "- A waypoint marked stopped had its run fail twice, and nothing runs it until the person acts. When your",
@@ -176,8 +176,8 @@ export const STOPPED_WAYPOINT_RULE = [
 ];
 
 /**
- * A held ticket set (slice 7c D8, issue 21 item 4): a statement of how to fix the tickets is
- * `rewrite_tickets`; a question about the hold gets a reply naming the held findings.
+ * A held ticket set: a statement of how to fix the tickets is `rewrite_tickets`; a question about
+ * the hold gets a reply naming the held findings.
  */
 export const HELD_TICKET_SET_RULES = [
   "- A ticket set whose review is held waits on the person: its tickets review found problems only they can",
@@ -206,7 +206,7 @@ export const PROPOSE_MAP_RULE = [
   "  reply names that suggestion or map and its state or stage.",
 ];
 
-/** The shape of each change and when it fits (slice 7b spec D3, D4), its lengths the model's. */
+/** The shape of each change and when it fits, its lengths the model's. */
 function changeRules(limits: ModelLimits): string[] {
   return [
     "The changes (set change to exactly one of these, or null):",
@@ -311,11 +311,11 @@ function renderSpec(spec: HatchSpec, nonce: string): string[] {
 }
 
 /**
- * The planning agent's prompt for replying to one message through the escape hatch (spec D2, D5).
- * The idea, every record and every message sit in blocks under one fresh nonce per call (L63); plain
- * lines carry what the e2e stand-in keys on: `Message from the person:`, the stage and spec on screen, each
- * waypoint's status, the fog positions, each spec's state and whether a previous attempt was refused.
- * The lengths are the run's model's (`limits`).
+ * The planning agent's prompt for replying to one message through the escape hatch. The idea, every
+ * record and every message sit in blocks under one fresh nonce per call; plain lines carry what the
+ * e2e stand-in keys on: `Message from the person:`, the stage and spec on screen, each waypoint's
+ * status, the fog positions, each spec's state and whether a previous attempt was refused. The
+ * lengths are the run's model's (`limits`).
  */
 export function buildHatchPrompt(request: ReplyThroughHatchRequest, limits: ModelLimits): string {
   const nonce = randomUUID();

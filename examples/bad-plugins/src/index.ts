@@ -17,8 +17,8 @@ import { pluginStartFailed } from "./plugin-start-failed.ts";
 export type { BadCase, BadServerCase, BadWebCase } from "./case.ts";
 
 /**
- * One bad composition per D16 plugin code, in D16's order. `executor_unknown` is a config
- * failure, not a plugin: `bad-plugins.test.ts` covers it with the example plugin.
+ * One bad composition per plugin startup code, in `PluginStartupCode`'s order. `executor_unknown`
+ * is a config failure, not a plugin: `bad-plugins.test.ts` covers it with the example plugin.
  */
 export const BAD_CASES: readonly BadCase[] = [
   pluginIdInvalid,

@@ -17,14 +17,14 @@ import { accessDeniedSentence } from "@/lib/access";
 import { stageName } from "@/lib/map";
 
 /**
- * What the route error page says (audit A6): a sentence a person can act on, the thrown message
+ * What the route error page says: a sentence a person can act on, the thrown message
  * as a detail line, and the places the address was near. The throw sites are the pages' own
  * (`viewedDraft`, `shownRun`, `checkStageSearch`, …) and their messages are free text, so the
  * sentence is read from the address, never from the message: which params parsed, which search
  * key is present, and whether the error is a parse failure at all.
  */
 
-/** A search key of a stage page and the stage it belongs to (router `SEARCH_KEY_STAGE`, D1). */
+/** A search key of a stage page and the stage it belongs to (router `SEARCH_KEY_STAGE`). */
 const SEARCH_KEYS = [
   { key: "revision", stage: "spec", record: "spec revision", short: "revision" },
   { key: "version", stage: "tickets", record: "ticket set version", short: "version" },
@@ -33,7 +33,7 @@ const SEARCH_KEYS = [
 
 type SearchKey = (typeof SEARCH_KEYS)[number]["key"];
 
-/** A stage page's search: the record's number under its key (D1). */
+/** A stage page's search: the record's number under its key. */
 export type StageSearch = Partial<Record<SearchKey, number>>;
 
 const RecordNumber = z.int().positive();
@@ -148,7 +148,7 @@ function gist(text: string): string {
 }
 
 /**
- * The view with its detail dropped when it only repeats the sentence (UX audit P2-19): the pages'
+ * The view with its detail dropped when it only repeats the sentence: the pages'
  * throw sites word their message as the sentence does ("This map has no spec revision 9").
  */
 function withoutRepeat(view: Omit<RouteErrorView, "title">): RouteErrorView {
@@ -186,9 +186,9 @@ function queryRefusalOf(
 }
 
 /**
- * The page for a read the server refused (slice 9 CR9b-5; UX audit P2-19): a map or project that
- * does not exist, or one the access check denied. The same page as a route error, with the
- * record's id as the detail line and the places near it.
+ * The page for a read the server refused: a map or project that does not exist, or one the access
+ * check denied. The same page as a route error, with the record's id as the detail line and the
+ * places near it.
  */
 export function describeQueryRefusal(
   error: MapNotFoundError | ProjectNotFoundError | AccessDeniedError,

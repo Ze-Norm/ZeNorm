@@ -57,8 +57,8 @@ import { eq } from "drizzle-orm";
 import type { Log } from "./app.ts";
 
 /**
- * How long `stop` awaits the executor after aborting `signal` (D18; orchestrator, L228):
- * `"local"`'s 10 s SIGKILL grace plus margin. Past it the run stays `running` for the startup sweep.
+ * How long `stop` awaits the executor after aborting `signal`: `"local"`'s 10 s SIGKILL grace plus
+ * margin. Past it the run stays `running` for the startup sweep.
  */
 export const EXECUTOR_STOP_BOUND_MS = 15_000;
 
@@ -68,30 +68,29 @@ export interface DeliveryRunnerOptions {
   readonly executorName: string;
   readonly implementTicketSet: ImplementTicketSet;
   readonly reviewDelivery: ReviewDelivery;
-  /** Writes the body of a passing run's pull request on a GitHub project (C3). */
+  /** Writes the body of a passing run's pull request on a GitHub project. */
   readonly writePullRequest: WritePullRequest;
   /** Each check's bound. */
   readonly checkTimeoutMinutes: number;
   /**
    * Called after each landed end write: the end may have started planning work on any map (a
-   * release run, slice 8b D3), which the planning runner launches.
+   * release run), which the planning runner launches.
    */
   readonly onEnd: () => void;
   readonly log: Log;
 }
 
 /**
- * Drives delivery runs in the background, never inside a request (spec D8, D9). It stores the
- * run's phase at each transition (slice 8 S8-10), the orchestrator's events as ticket records and
- * lines, and ZeNorm's and the reviewer's own lines (D5); after every end it cleans the run up
- * (D8). It holds, in memory only, the abort controller; after a restart an active run is held by
- * no runner and reads as `interrupted`.
+ * Drives delivery runs in the background, never inside a request. It stores the run's phase at each
+ * transition, the orchestrator's events as ticket records and lines, and ZeNorm's and the
+ * reviewer's own lines; after every end it cleans the run up. It holds, in memory only, the abort
+ * controller; after a restart an active run is held by no runner and reads as `interrupted`.
  */
 export interface DeliveryRunner {
   /**
    * Holds the started run (stored in `preparing`) and starts its driver without awaiting it.
    * `folder` is the one `startDelivery` resolved through the checkout seam: the run's worktree,
-   * merge records, verification and cleanup all work in it (CR9b-3).
+   * merge records, verification and cleanup all work in it.
    */
   launch(run: StoredDeliveryRun, folder: string): void;
   /** Whether this runner holds the run. */
@@ -100,22 +99,22 @@ export interface DeliveryRunner {
    * Called once the cancel's end write has landed: writes ZeNorm's cancel line (not on a run
    * from before `0010`). A held run is aborted and cleaned up once the abort settles, or, when the
    * executor has not settled `EXECUTOR_STOP_BOUND_MS` after the abort, logged, cleaned up and no
-   * longer held, its later events ignored (CR9b-12). A run this runner does not hold (an
-   * interrupted run) is cleaned up before this resolves.
+   * longer held, its later events ignored. A run this runner does not hold (an interrupted run) is
+   * cleaned up before this resolves.
    */
   cancelled(runId: string): Promise<void>;
   /**
-   * ZeNorm is shutting down (L197 item 12): aborts every held run that is not already cancelled,
-   * killing its session, and resolves once each driver has settled, so the database can close
-   * after the last write. A stopped run keeps no end and no cleanup: after the restart it reads
-   * `interrupted`, and its Cancel cleans it up. A run started after this is not driven. A driver
-   * still unsettled `EXECUTOR_STOP_BOUND_MS` after the abort is logged and left (D18).
+   * ZeNorm is shutting down: aborts every held run that is not already cancelled, killing its
+   * session, and resolves once each driver has settled, so the database can close after the last
+   * write. A stopped run keeps no end and no cleanup: after the restart it reads `interrupted`, and
+   * its Cancel cleans it up. A run started after this is not driven. A driver still unsettled
+   * `EXECUTOR_STOP_BOUND_MS` after the abort is logged and left.
    */
   stop(): Promise<void>;
 }
 
 interface HeldRun {
-  /** What the runner's writes on the run are made as (S9-13): the run, with its User. */
+  /** What the runner's writes on the run are made as: the run, with its User. */
   readonly actor: Actor;
   phase: DeliveryPhase;
   readonly controller: AbortController;
@@ -124,13 +123,13 @@ interface HeldRun {
   /** True when the abort came from `stop`, not from a cancel. */
   stopped: boolean;
   /**
-   * True once a cancel's bound passed with the driver unsettled (CR9b-12): the run was cleaned up
-   * and let go, and whatever its executor still does is ignored.
+   * True once a cancel's bound passed with the driver unsettled: the run was cleaned up and let go,
+   * and whatever its executor still does is ignored.
    */
   abandoned: boolean;
   /** The run as it was launched. */
   readonly run: StoredDeliveryRun;
-  /** The folder the run's start resolved through the checkout seam (CR9b-3). */
+  /** The folder the run's start resolved through the checkout seam. */
   readonly folder: string;
 }
 
@@ -148,7 +147,7 @@ function plural(count: number, noun: string): string {
 
 /**
  * What a cancel stopped, by the phase the run was in. `"local"`'s sessions are sent SIGTERM;
- * another executor is told through `signal`, however it stops (CR9b-6). The checks run here.
+ * another executor is told through `signal`, however it stops. The checks run here.
  */
 function cancelLine(phase: DeliveryPhase, executor: string): string {
   const local = executor === LOCAL_EXECUTOR;
@@ -167,12 +166,12 @@ function cancelLine(phase: DeliveryPhase, executor: string): string {
         : "You cancelled the run. The reviewer was told to stop.";
     case "publishing":
       // Whatever was pushed or opened stays: ZeNorm never deletes a branch or closes a pull
-      // request (C2).
+      // request.
       return "You cancelled the run while ZeNorm was opening its pull request. Anything already pushed or opened stays on GitHub.";
   }
 }
 
-/** ZeNorm's line naming what the implementing step starts: the run's executor (CR9b-6). */
+/** ZeNorm's line naming what the implementing step starts: the run's executor. */
 function startingExecutor(executor: string): string {
   return executor === LOCAL_EXECUTOR
     ? "Starting Claude Code."
@@ -193,7 +192,7 @@ function resumedFromLine(resumedFrom: ResumedFrom): string {
   return `The executor is given what run ${String(resumedFrom.number)} left to fix: ${left.join(", ")}.`;
 }
 
-/** ZeNorm's line for a check that finished (D5). */
+/** ZeNorm's line for a check that finished. */
 function checkLine(result: CheckResult): string {
   const command = `\`${result.command}\``;
   if (checkPassed(result)) {
@@ -208,7 +207,7 @@ function checkLine(result: CheckResult): string {
   return `${command} failed with exit ${String(result.exitCode)}.`;
 }
 
-/** The reviewer's verdict line (D5). */
+/** The reviewer's verdict line. */
 function verdictLine(verdict: Verdict): string {
   const blocking = verdict.findings.filter((finding) => finding.severity === "blocking").length;
   return blocking > 0
@@ -225,9 +224,8 @@ function passes(verdict: Verdict): boolean {
 }
 
 /**
- * Cleans up an ended run (D8) in `checkedOut`, its project folder (CR9b-3), and writes ZeNorm's
- * cleanup line when every step worked (core writes a line per failed step). A run from before
- * `0010` gets neither.
+ * Cleans up an ended run in `checkedOut`, its project folder, and writes ZeNorm's cleanup line when
+ * every step worked (core writes a line per failed step). A run from before `0010` gets neither.
  */
 async function cleanUp(
   actor: Actor,
@@ -246,7 +244,7 @@ async function cleanUp(
   }
 }
 
-/** What the runner and its cleanup write as on a run (S9-13): the run, with its User. */
+/** What the runner and its cleanup write as on a run: the run, with its User. */
 function deliveryRunActor(run: StoredDeliveryRun): Actor {
   return { kind: "delivery_run", runId: run.id, userId: run.userId };
 }
@@ -285,7 +283,7 @@ export function createDeliveryRunner({
     }
   }
 
-  /** A failure end; the run's stored phase says where it failed (L44), and so does its line. */
+  /** A failure end; the run's stored phase says where it failed, and so does its line. */
   async function fail(
     runId: string,
     entry: HeldRun,
@@ -355,9 +353,9 @@ export function createDeliveryRunner({
     }
 
     /**
-     * The orchestrator's events (D3, D4): lines are stored at once, in emission order; a merge
-     * records its commit through git, so merges queue behind each other. Every write is skipped
-     * once the run is cancelled, and core's records are guarded on the run being active too.
+     * The orchestrator's events: lines are stored at once, in emission order; a merge records its
+     * commit through git, so merges queue behind each other. Every write is skipped once the run is
+     * cancelled, and core's records are guarded on the run being active too.
      */
     let merges: Promise<void> = Promise.resolve();
     // A failed merge record is kept here, not left as a rejected promise, and thrown after the port.
@@ -392,7 +390,7 @@ export function createDeliveryRunner({
                   folder: entry.folder,
                 });
                 // The orchestrator deleted the branch after merging it: verifying fails the run
-                // `delivery_ticket_unmerged` naming the ticket (L197 item 10).
+                // `delivery_ticket_unmerged` naming the ticket.
                 if (!recorded.recorded && recorded.reason === "branch_missing") {
                   say(
                     "zenorm",
@@ -429,7 +427,7 @@ export function createDeliveryRunner({
       resumedFrom,
       repair: null,
       checks: run.checks,
-      // Pinned at start; every call, first and repair, carries the same (C4).
+      // Pinned at start; every call, first and repair, carries the same.
       fixCommands: run.fixCommands,
       gitIdentity,
     };
@@ -438,7 +436,7 @@ export function createDeliveryRunner({
     let finalCommit: string;
     let checkResults: CheckResult[];
 
-    // Implementing, verifying and the checks; again on each repair attempt while checks fail (C2).
+    // Implementing, verifying and the checks; again on each repair attempt while checks fail.
     for (;;) {
       enter("implementing");
       const implemented = await implementTicketSet(request, signal, onEvent);
@@ -537,7 +535,7 @@ export function createDeliveryRunner({
       repairedFrom = finalCommit;
       request = {
         ...request,
-        // Every ticket merged so far: the executor merges none again (C2).
+        // Every ticket merged so far: the executor merges none again.
         merged: readRunTicketRows(db, run.id)
           .filter((row) => row.mergedAt !== null)
           .map((row) => row.ticket),
@@ -598,8 +596,8 @@ export function createDeliveryRunner({
       return;
     }
 
-    // A passing run on a project whose origin is on github.com ends by opening its pull request
-    // (C1); a blocked run, or one with no such origin, ends here as before (1.1).
+    // A passing run on a project whose origin is on github.com ends by opening its pull request; a
+    // blocked run, or one with no such origin, ends here as before.
     const origin = passes(verdict) ? await githubOrigin(entry.folder) : null;
     if (aborted()) return;
     if (origin === null) {
@@ -669,11 +667,11 @@ export function createDeliveryRunner({
   }
 
   /**
-   * The publishing step (C1, C2, C3) of a passing run on a GitHub project: the pull request writer
-   * writes the body, ZeNorm adds its footer, then gh's sign-in is checked, the run branch is pushed to origin and the pull
-   * request is opened on origin's repository against the pinned base, titled with the spec's
-   * title. The first failure is the run's; nothing pushed or opened is ever undone. Each step
-   * stops once the run is aborted, and the driver then stores nothing.
+   * The publishing step of a passing run on a GitHub project: the pull request writer writes the
+   * body, ZeNorm adds its footer, then gh's sign-in is checked, the run branch is pushed to origin
+   * and the pull request is opened on origin's repository against the pinned base, titled with the
+   * spec's title. The first failure is the run's; nothing pushed or opened is ever undone. Each
+   * step stops once the run is aborted, and the driver then stores nothing.
    */
   async function publish(input: {
     readonly run: StoredDeliveryRun;
@@ -737,7 +735,7 @@ export function createDeliveryRunner({
 
   /**
    * After the driver settles: cleans up a run whose end this runner wrote or whose cancel it
-   * aborted (D8). A run another runner ended (a cancel from a restarted app) is left to it.
+   * aborted. A run another runner ended (a cancel from a restarted app) is left to it.
    */
   async function settle(run: StoredDeliveryRun, entry: HeldRun): Promise<void> {
     if (!entry.ended && !entry.controller.signal.aborted) return;
@@ -753,9 +751,9 @@ export function createDeliveryRunner({
   }
 
   /**
-   * A person's Cancel is bounded like a stop (CR9b-12): when the driver has not settled
-   * `EXECUTOR_STOP_BOUND_MS` after the abort, the run is logged, let go and cleaned up. Its end
-   * is the cancel's, already stored.
+   * A person's Cancel is bounded like a stop: when the driver has not settled
+   * `EXECUTOR_STOP_BOUND_MS` after the abort, the run is logged, let go and cleaned up. Its end is
+   * the cancel's, already stored.
    */
   function boundCancel(run: StoredDeliveryRun, entry: HeldRun, driver: Promise<void>): void {
     let timer: NodeJS.Timeout | undefined;
@@ -822,7 +820,7 @@ export function createDeliveryRunner({
           entry.controller.abort();
         }
       }
-      // The executor gets a bound, so one that ignores `signal` cannot hold the shutdown (D18).
+      // The executor gets a bound, so one that ignores `signal` cannot hold the shutdown.
       let timer: NodeJS.Timeout | undefined;
       const bound = new Promise<"bound">((resolve) => {
         timer = setTimeout(() => {
@@ -867,8 +865,8 @@ export function createDeliveryRunner({
       if (!found.ok) {
         throw new Error(`Cancelled delivery run ${runId} vanished`);
       }
-      // The runner's line and cleanup on the run are the run's own writes (S9-13); the Cancel's
-      // end write was the person's.
+      // The runner's line and cleanup on the run are the run's own writes; the Cancel's end write
+      // was the person's.
       const actor = deliveryRunActor(found.value);
       appendRunEvent(actor, db, {
         runId,
@@ -876,7 +874,7 @@ export function createDeliveryRunner({
         ticket: null,
         text: "You cancelled the interrupted run.",
       });
-      // Not held (after a restart): the folder is resolved again through the checkout seam (CR9b-3).
+      // Not held (after a restart): the folder is resolved again through the checkout seam.
       const project = db
         .select()
         .from(projects)

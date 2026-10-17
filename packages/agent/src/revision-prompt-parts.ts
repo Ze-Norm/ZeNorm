@@ -12,10 +12,10 @@ import { specPagePath } from "@zenorm/contracts";
 
 import { block } from "./prompt-parts.ts";
 
-// The prompt parts a later map's revision reads (slice 8b D6, D8): the project's other specs and
-// their holds, waypoint touches, the map's open waits, the text delta, the criterion readings, the
-// earlier tickets and the waypoints touching a spec. Each plain line here is one the e2e stand-in
-// may key on (L107); `apps/zenorm/e2e/fake-claude.ts` names the ones it does.
+// The prompt parts a later map's revision reads: the project's other specs and their holds,
+// waypoint touches, the map's open waits, the text delta, the criterion readings, the earlier
+// tickets and the waypoints touching a spec. Each plain line here is one the e2e stand-in may key
+// on; `apps/zenorm/e2e/fake-claude.ts` names the ones it does.
 
 /** The plain line counting the project's other specs a chart or To Spec run reads. */
 export function projectSpecsLine(count: number): string {
@@ -47,7 +47,7 @@ export function specPageLine(spec: ProjectSpecContext): string {
   return `Project spec ${String(spec.latest.specNumber)} page: ${specPagePath(spec.writerMapId, spec.latest.specNumber)}`;
 }
 
-/** The plain line naming a project spec's latest approved revision, the one a touch names (S8b-2). */
+/** The plain line naming a project spec's latest approved revision, the one a touch names. */
 export function latestApprovedLine(spec: ProjectSpecContext): string {
   return `Project spec ${String(spec.latest.specNumber)} latest approved revision: ${
     spec.approved === null ? "none" : String(spec.approved.revision)
@@ -61,7 +61,7 @@ function criterionIds(ref: {
 }
 
 /**
- * The plain line naming a spec's retired ids (E-3): the ids an earlier revision used and its latest
+ * The plain line naming a spec's retired ids: the ids an earlier revision used and its latest
  * drops, which no revision may use again.
  */
 export function retiredLine(prefix: string, ids: readonly string[]): string {
@@ -71,7 +71,7 @@ export function retiredLine(prefix: string, ids: readonly string[]): string {
 /**
  * Each project spec: its line, its criterion ids and its latest revision in a nonce block, then its
  * latest approved revision; while another map's draft is latest, that approved revision's criterion
- * ids and text too, so a chart can touch it (L213 D-5).
+ * ids and text too, so a chart can touch it.
  */
 export function projectSpecLines(specs: readonly ProjectSpecContext[], nonce: string): string[] {
   return [
@@ -163,7 +163,7 @@ export function openWaitLines(
   ];
 }
 
-/** The plain line naming the id the set's first ticket takes (S8b-12). */
+/** The plain line naming the id the set's first ticket takes. */
 export function firstTicketNumberLine(number: number): string {
   return `First ticket number: ${String(number)}`;
 }
@@ -182,8 +182,7 @@ export function removedCriterionLine(entry: TextDelta["removedCriteria"][number]
 
 /**
  * The text delta: its line, the line of each criterion the revision takes out (core's, the delta's
- * and any dropped in a middle revision no approved set took out, L213 D-1) and the delta in a nonce
- * block.
+ * and any dropped in a middle revision no approved set took out) and the delta in a nonce block.
  */
 export function textDeltaLines(
   delta: TextDelta | null,

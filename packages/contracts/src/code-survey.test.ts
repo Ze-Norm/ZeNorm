@@ -17,7 +17,7 @@ const SURVEY = {
   unverifiable: [],
 };
 
-describe("CodeSurvey (harness change #1)", () => {
+describe("CodeSurvey", () => {
   test("accepts a survey whose facts and identifiers each carry a path and line", () => {
     expect(CodeSurvey.safeParse(SURVEY).success).toBe(true);
     expect(CodeSurvey.safeParse({ ...SURVEY, entries: [{ ...ENTRY, area: "." }] }).success).toBe(

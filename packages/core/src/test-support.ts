@@ -121,7 +121,7 @@ export const PROPOSAL: ChartProposal = {
   split: [],
 };
 
-/** A follow-up on the destination (DR-7), not final; its round has `ROUND`'s questions. */
+/** A follow-up on the destination, not final; its round has `ROUND`'s questions. */
 export const FOLLOW_UP: ChartFollowUp = {
   title: "Data export and archive",
   summary: "People want to take their records elsewhere, archived ones too.",
@@ -182,7 +182,7 @@ export const ANSWERS: Answers = [
   { optionIndex: 1, note: "The whole team", accepted: false },
 ];
 
-/** A first revision (D2): one clause from the destination, two criteria. */
+/** A first revision: one clause from the destination, two criteria. */
 /** A revision's content as To Spec writes it: every clause declares reliesOn and adds. */
 export type DraftContent = DraftSpecsOutcome["specs"][number]["content"];
 
@@ -207,7 +207,7 @@ export const SPEC: DraftContent = {
   outOfScope: ["Excel files."],
 };
 
-/** A ticket set (D2) for SPEC: two tickets, T2 blocked by T1. */
+/** A ticket set for SPEC: two tickets, T2 blocked by T1. */
 export const TICKETS: TicketSetContent = {
   tickets: [
     {
@@ -241,7 +241,7 @@ export const TICKETS: TicketSetContent = {
   execution: "Both verify with the package tests.",
 };
 
-/** A review with no finding: it passes (S7-6). */
+/** A review with no finding: it passes. */
 export const PASSED_REVIEW: SpecReviewOutcome = {
   summary: "Every clause traces.",
   findings: [],
@@ -262,7 +262,7 @@ export const REVISE_FINDING: SpecReviewFinding = {
 export interface TestContext {
   readonly root: string;
   readonly db: ZeNormDatabase;
-  /** The instance's one User as the `user` actor: what a procedure-style write is made as (S9-13). */
+  /** The instance's one User as the `user` actor: what a procedure-style write is made as. */
   readonly user: UserActor;
 }
 
@@ -290,14 +290,14 @@ export function testContextOf(root: string, db: ZeNormDatabase): TestContext {
       throw new Error(message, { cause: error });
     }),
   );
-  // Core's own seams (S9-17), as an app with no plugins composes them.
+  // Core's own seams, as an app with no plugins composes them.
   setSeams(db, coreSeams(db));
   return { root, db, user: { kind: "user", userId: localUser(db).id } };
 }
 
 /**
  * Writes fixture rows as `system`. This is test data, not ZeNorm acting on its own: `system` is
- * reserved for the startup sweep in the app (domain model §3.8), and a fixture is the one place
+ * reserved for the startup sweep in the app, and a fixture is the one place
  * a write may borrow it, so the installed feed triggers accept the rows. A test that asserts an
  * actor writes through the core function with the actor it checks.
  */
@@ -369,7 +369,7 @@ export function allRuns(context: TestContext): PlanningRun[] {
     .all();
 }
 
-/** The one running run of the map's own scope (hatch runs are each message's own, 7b D1). */
+/** The one running run of the map's own scope (hatch runs are each message's own). */
 export function runningMapRun(context: TestContext, mapId: string): PlanningRun {
   const running = runsOf(context, mapId).filter(
     (run) =>
@@ -414,7 +414,7 @@ export function answerDestination(context: TestContext, mapId: string): void {
   if (!submitted.ok) throw new Error(submitted.error.code);
 }
 
-/** Saves the running chart's follow-up (DR-7); the next map-level round is then pending. */
+/** Saves the running chart's follow-up; the next map-level round is then pending. */
 export function followUp(context: TestContext, mapId: string, content: ChartFollowUp): void {
   const chart = runningMapRun(context, mapId);
   const recorded = recordChart(context.user, context.db, chart.id, {
@@ -426,7 +426,7 @@ export function followUp(context: TestContext, mapId: string, content: ChartFoll
 
 /**
  * Answers map-level round `number`, which must be the pending one, with `ANSWERS`; the chart is
- * then running (DR-10).
+ * then running.
  */
 export function answerMapRound(context: TestContext, mapId: string, number: number): void {
   const round = readRounds(context.db, mapId).find(
@@ -481,7 +481,7 @@ export function survey(context: TestContext, mapId: string, content: CodeSurvey)
   if (!recorded.ok) throw new Error(recorded.error.code);
 }
 
-/** Saves the confirming chart's outcome, then the code survey it starts (harness change #1). */
+/** Saves the confirming chart's outcome, then the code survey it starts. */
 export function confirm(
   context: TestContext,
   mapId: string,
@@ -551,7 +551,7 @@ export async function reviewedSpec(
 
 /**
  * A passed, approved spec with ticket set version 1 written, awaiting review, its tickets review
- * running (S7c-2); returns its ids.
+ * running; returns its ids.
  */
 export async function draftedTicketSet(
   context: TestContext,
@@ -572,7 +572,7 @@ export async function draftedTicketSet(
   return { mapId, specificationId, ticketSetId: set.id };
 }
 
-/** A passed tickets review's outcome (S7c-2: no finding). */
+/** A passed tickets review's outcome (no finding). */
 export const PASSED_TICKETS_REVIEW: TicketsReviewOutcome = {
   summary: "Every criterion traces to its clause.",
   findings: [],
@@ -604,7 +604,7 @@ export async function reviewedTicketSet(
 }
 
 /**
- * `draftedTicketSet` as slice 7 left a set (Existing Records): its tickets review run deleted, so the
+ * `draftedTicketSet` as a set from before tickets reviews: its tickets review run deleted, so the
  * test inserts the review runs and records it reads.
  */
 export async function unreviewedTicketSet(
@@ -618,7 +618,7 @@ export async function unreviewedTicketSet(
 
 /**
  * Deletes the map's running `tickets_review` row, so a test inserts the review runs it reads; the
- * next write on the map starts the review again (D5).
+ * next write on the map starts the review again.
  */
 export function deleteRunningTicketsReview(context: TestContext, mapId: string): void {
   writeTestData(context, (tx) =>
@@ -801,7 +801,7 @@ export function insertTicketSet(
   return id;
 }
 
-/** A tickets review finding the approved revision settles (slice 7c D3: revise). */
+/** A tickets review finding the approved revision settles (revise). */
 export const TICKETS_REVISE_FINDING: TicketsReviewFinding = {
   kind: "untraced_criterion",
   route: "revise",
@@ -812,7 +812,7 @@ export const TICKETS_REVISE_FINDING: TicketsReviewFinding = {
   criterionIds: ["1.1"],
 };
 
-/** A tickets review finding only the person can settle (slice 7c D3: decision). */
+/** A tickets review finding only the person can settle (decision). */
 export const TICKETS_DECISION_FINDING: TicketsReviewFinding = {
   kind: "contradiction",
   route: "decision",
@@ -823,7 +823,7 @@ export const TICKETS_DECISION_FINDING: TicketsReviewFinding = {
   criterionIds: ["1.1"],
 };
 
-/** A failed tickets review's outcome with one `revise` finding: its repair is due (S7c-4). */
+/** A failed tickets review's outcome with one `revise` finding: its repair is due. */
 export const FAILED_TICKETS_REVIEW: TicketsReviewOutcome = {
   summary: "One criterion is not traced.",
   findings: [TICKETS_REVISE_FINDING],
@@ -831,7 +831,7 @@ export const FAILED_TICKETS_REVIEW: TicketsReviewOutcome = {
 
 /**
  * Records the spec's running `to_tickets` (a first version, a rewrite or a review repair) with
- * TICKETS; throws on a refusal. Its version's tickets review then starts (S7c-2).
+ * TICKETS; throws on a refusal. Its version's tickets review then starts.
  */
 export function recordRunningTicketSet(context: TestContext, mapId: string): void {
   const recorded = recordTicketSet(
@@ -846,7 +846,7 @@ export function recordRunningTicketSet(context: TestContext, mapId: string): voi
 /**
  * `draftedTicketSet` whose versions 1, 2 and 3 each fail a revise-only review, 2 and 3 written by
  * review repairs: version 3 is the second consecutive repair, so its review escalates and the set
- * is held (S7c-5).
+ * is held.
  */
 export async function heldTicketSet(
   context: TestContext,
@@ -870,7 +870,7 @@ const FAILED_RUN = {
 
 /**
  * Inserts a spec's spec-scoped run of `purpose` as `state` describes it: `running`; `stopped` (a
- * failed run and its failed retry, S6a-12); or `completed`. Returns the last run inserted.
+ * failed run and its failed retry); or `completed`. Returns the last run inserted.
  */
 function insertSpecRun(
   context: TestContext,
@@ -900,7 +900,7 @@ export function insertTicketsReviewRun(
 /**
  * Records a tickets review of the set's current version by a completed `tickets_review` run, with
  * `findings` in order (each with its `escalated` mark), and sets the set `review_passed` or
- * `review_failed`, as recording does (S7c-2). Returns the review's id.
+ * `review_failed`, as recording does. Returns the review's id.
  */
 export function insertTicketsReview(
   context: TestContext,
@@ -952,7 +952,7 @@ export function insertTicketsReview(
 }
 
 /**
- * Inserts a review repair (a `to_tickets` run with no hatch message, slice 7c D5) of the spec:
+ * Inserts a review repair (a `to_tickets` run with no hatch message) of the spec:
  * running, stopped after a failed retry, or completed, which writes the set's next version (TICKETS)
  * in `awaiting_review`, as a repair's write does. Returns the last run inserted.
  */
@@ -1004,7 +1004,7 @@ export function grillRound(final: boolean): GrillRound {
   return { intro: "Two choices on the columns.", final, questions: ROUND.questions };
 }
 
-/** Both answers an option without words: a final round answered so still starts the grilling run (S7b-14). */
+/** Both answers an option without words: a final round answered so still starts the grilling run. */
 export const PLAIN_ANSWERS: Answers = [
   { optionIndex: 0, note: "", accepted: true },
   { optionIndex: 1, note: "", accepted: false },
@@ -1107,7 +1107,7 @@ export function answer(
   if (!submitted.ok) throw new Error(submitted.error.code);
 }
 
-/** The map's running `consistency` run finds nothing: a clean pass (S6b-10). */
+/** The map's running `consistency` run finds nothing: a clean pass. */
 export function cleanPass(context: TestContext, mapId: string): void {
   const run = runningMapRun(context, mapId);
   if (run.purpose !== "consistency") throw new Error(`The running map run is ${run.purpose}`);
@@ -1220,7 +1220,7 @@ export function withdrawRound(
   }
 }
 
-/** Waypoints 1, 2 and 3 in a chain: 2 blocked by 1, 3 blocked by 2 (S7b-6's two-deep cascade). */
+/** Waypoints 1, 2 and 3 in a chain: 2 blocked by 1, 3 blocked by 2 (a two-deep cascade). */
 export const CHAIN: ChartConfirmation = {
   ...CONFIRMATION,
   waypoints: CONFIRMATION.waypoints.map((waypoint, index) => ({
@@ -1247,7 +1247,7 @@ export async function resolvedChain(context: TestContext, project: Project): Pro
   return mapId;
 }
 
-// --- Delivery (slice 8): for 04, 05 and 07, which may not edit this file. ---
+// --- Delivery: for 04, 05 and 07, which may not edit this file. ---
 
 /** The required checks the delivery helpers save: one that passes in any repository. */
 export const REQUIRED_CHECKS = ["git status --short"];
@@ -1306,7 +1306,7 @@ export async function startedRun(
   return started.value.run;
 }
 
-/** The stored folder of the run's project: what core's checkout seam gives its start (CR9b-3). */
+/** The stored folder of the run's project: what core's checkout seam gives its start. */
 export function runFolder(db: ZeNormDatabase, run: { projectId: string }): string {
   const project = db.select().from(projects).where(eq(projects.id, run.projectId)).get();
   if (project === undefined) throw new Error(`No project ${run.projectId}`);
@@ -1463,7 +1463,7 @@ export function asPre0010Run(context: TestContext, runId: string): void {
   );
 }
 
-// --- Revising a delivered spec (slice 8b): for 02–05 and 07, which may not edit this file. ---
+// --- Revising a delivered spec: for 02–05 and 07, which may not edit this file. ---
 
 /** A spec delivered through a real run: its map, spec, r1, approved set, and the passed run. */
 export interface DeliveredSpec {
@@ -1497,7 +1497,7 @@ export async function passedDelivery(
   return { ...set, specRevisionId: revision.id, run, finalCommit };
 }
 
-/** Merges the run branch into `project`'s base branch, then records it through Mark merged (S8-5). */
+/** Merges the run branch into `project`'s base branch, then records it through Mark merged. */
 export async function mergeDelivery(
   context: TestContext,
   project: Project,
@@ -1604,7 +1604,7 @@ export function insertNextRevision(
   return { specRevisionId, revision, ticketSetId };
 }
 
-/** A wait's stored hold (tickets review B3): what held the spec when the wait was recorded. */
+/** A wait's stored hold: what held the spec when the wait was recorded. */
 export interface StoredHold {
   readonly kind: SpecHoldKind;
   readonly mapId: string;
@@ -1697,7 +1697,7 @@ function draftReview(
 }
 
 /**
- * Holds the spec by a `revision` hold (S8b-4): `mapId` writes its next revision, unapproved, with
+ * Holds the spec by a `revision` hold: `mapId` writes its next revision, unapproved, with
  * its review `running` or `passed`.
  */
 export function holdByRevision(
@@ -1721,7 +1721,7 @@ export function holdByRevision(
 }
 
 /**
- * Holds the spec by a `revising` hold (S8b-4): `mapId`'s spec-scoped `to_spec` run on it, `running`
+ * Holds the spec by a `revising` hold: `mapId`'s spec-scoped `to_spec` run on it, `running`
  * or `stopped` (a failed run and its failed retry). Returns the last run inserted.
  */
 export function holdByRevising(
@@ -1732,7 +1732,7 @@ export function holdByRevising(
 }
 
 /**
- * Holds the spec by a `tickets` hold (S8b-4): `mapId` writes the spec's next revision with
+ * Holds the spec by a `tickets` hold: `mapId` writes the spec's next revision with
  * `content`, approved (a ticket-set run reads its map's latest approved revision); then, when `set`
  * is given, that revision's set of `set` (`insertTicketSetWith`, version 1 in `awaiting_review`);
  * then its `purpose` run on the spec, `running` or `stopped`. A `tickets_review` reviews a set, so
@@ -1780,7 +1780,7 @@ export function holdByTickets(
 }
 
 /**
- * Holds the spec by a `delivering` hold (S8b-4) in `project`'s real temp repository (its checks
+ * Holds the spec by a `delivering` hold in `project`'s real temp repository (its checks
  * saved, as `deliveredSpec` leaves them): `mapId` writes the spec's next revision with `content`,
  * approved, with an approved set of `TICKETS`, and a delivery run starts on it. The stored run is
  * the same whether it reads `running` or `interrupted`: that is whether a runner holds it.
@@ -1810,7 +1810,7 @@ export async function holdByDelivery(
 }
 
 /**
- * A replaced set (S8b-9): `mapId` writes the spec's next revision, approved, with a set of
+ * A replaced set: `mapId` writes the spec's next revision, approved, with a set of
  * `TICKETS` in `state` (never `approved`), then the revision after it, unapproved, with
  * `nextContent`, its review running. Returns the set, its revision and the replacing revision.
  */

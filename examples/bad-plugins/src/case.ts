@@ -3,9 +3,9 @@ import { SDK_VERSION } from "@zenorm/plugin-sdk";
 import type { ServerPlugin, WebPlugin } from "@zenorm/plugin-sdk";
 
 /**
- * One bad composition per D16 startup code (slice 9 spec S9-19): the plugins and config sections a
- * server starts with, which `apps/zenorm-example`'s `bad-plugins.test.ts` hands `startZeNorm` and
- * expects refused with `code`.
+ * One bad composition per plugin startup code: the plugins and config sections a server starts
+ * with, which `apps/zenorm-example`'s `bad-plugins.test.ts` hands `startZeNorm` and expects refused
+ * with `code`.
  */
 export interface BadServerCase {
   readonly kind: "server";

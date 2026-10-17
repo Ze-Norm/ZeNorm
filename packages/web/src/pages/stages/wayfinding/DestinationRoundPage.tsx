@@ -7,7 +7,7 @@ import { QuestionRound } from "./QuestionRound.tsx";
 import { pendingRound, RoundsRecord, submittedRounds, WayfindingFrame } from "./shared.tsx";
 
 /**
- * `wayfinding/destination`: the map-level round (spec D9, D10): open, it is answered here; once
+ * `wayfinding/destination`: the map-level round: open, it is answered here; once
  * answered, the record of the map's rounds. While open, the maps the first chart offered to split
  * off the idea sit above it (idea-phase split), and the answers wait until each is created or
  * dismissed.
@@ -27,7 +27,7 @@ export function DestinationRoundPage({ mapId }: { mapId: string }) {
   const answered = submittedRounds(detail.wayfinding.mapRounds);
   const split = detail.wayfinding.proposals.filter((proposal) => proposal.kind === "split");
 
-  // The head as every stage's (UX review P1-3): the round's eyebrow while it is open.
+  // The head as every stage's: the round's eyebrow while it is open.
   const head = (
     <PageHead
       eyebrow={

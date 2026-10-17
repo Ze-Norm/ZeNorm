@@ -1,7 +1,6 @@
 /**
- * Slice 8b ticket 03: a map writes the next revision of an approved spec (S8b-3, L125 (3)), and
- * the transaction writing it replaces the ticket-set runs of the revision before (S8b-9, issue 24
- * item 1, L180).
+ * A map writes the next revision of an approved spec, and the transaction writing it replaces
+ * the ticket-set runs of the revision before.
  */
 import type { HatchChange, HatchStage, PlanningRun, Project } from "@zenorm/contracts";
 import { hatchMessages, planningRuns, specWaits, ticketSets } from "@zenorm/db";
@@ -67,7 +66,7 @@ afterEach(async () => {
   await closeTestContext(context);
 });
 
-/** SPEC with a new title: every id kept, so no clause needs a source (S7-5). */
+/** SPEC with a new title: every id kept, so no clause needs a source. */
 function kept(title: string): DraftContent {
   return { ...SPEC, title, clauses: SPEC.clauses.map((clause) => ({ ...clause, sources: [] })) };
 }
@@ -182,7 +181,7 @@ function latestId(specificationId: string): string {
   return latest.id;
 }
 
-describe("revising from a map (S8b-3, B19)", () => {
+describe("revising from a map", () => {
   test("a later map naming a delivered spec writes r2 from that map, r1 stays approved, and r2 is reviewed", async () => {
     const delivered = await deliveredSpec(context, project);
     const later = await clearedMap(context, project);
@@ -261,7 +260,7 @@ describe("revising from a map (S8b-3, B19)", () => {
     },
   );
 
-  test("a same-map re-clear revises its own approved spec and leaves an unnamed approved spec untouched (L125 (3))", async () => {
+  test("a same-map re-clear revises its own approved spec and leaves an unnamed approved spec untouched", async () => {
     const mapId = await clearedMap(context, project);
     const drafted = recordSpecs(context.user, context.db, runningMapRun(context, mapId).id, {
       specs: [
@@ -301,7 +300,7 @@ describe("revising from a map (S8b-3, B19)", () => {
       [2, mapId, false, false],
     ]);
     expect(chain(two)).toEqual([[1, mapId, true, false]]);
-    // Spec 1's set is replaced (S8b-9); spec 2's to_tickets runs on.
+    // Spec 1's set is replaced; spec 2's to_tickets runs on.
     expect(runOf(replacedRun.id)).toMatchObject({ state: "cancelled", cancelReason: "replaced" });
     expect(runningOnSpecs(mapId)).toEqual([
       ["to_tickets", two],
@@ -310,7 +309,7 @@ describe("revising from a map (S8b-3, B19)", () => {
   });
 });
 
-describe("replaced sets (S8b-9, issue 24, L180)", () => {
+describe("replaced sets", () => {
   test("a same-map re-clear cancels its own tickets_review replaced; its late result saves nothing and nothing is due for the set", async () => {
     const { mapId, specificationId, ticketSetId } = await draftedTicketSet(context, project);
     const review = runningSpecRun(context, mapId, "tickets_review");
@@ -411,7 +410,7 @@ describe("replaced sets (S8b-9, issue 24, L180)", () => {
     expect(runOf(tickets.id)).toMatchObject({ state: "cancelled", cancelReason: "replaced" });
     const record = readSpecRecord(context.db, delivered.specificationId);
     expect(removedCriteria(record, 3).map((entry) => entry.criterion.id)).toEqual(["1.2"]);
-    // The revision's view carries it, though r3's text delta (from r2) does not (CR-3).
+    // The revision's view carries it, though r3's text delta (from r2) does not.
     const shown = await getMapOverview(context.db, later, RUNNERS);
     if (!shown.ok) throw new Error(shown.error.code);
     const r3 = shown.value.specs[0]?.revisions.find((revision) => revision.revision === 3);
@@ -419,7 +418,7 @@ describe("replaced sets (S8b-9, issue 24, L180)", () => {
     expect(r3?.takenOut.map((entry) => entry.criterion.id)).toEqual(["1.2"]);
   });
 
-  describe("the L180 boundary: a failed, unheld review whose repair is in flight", () => {
+  describe("the boundary of replacing: a failed, unheld review whose repair is in flight", () => {
     async function repairInFlight() {
       const drafted = await draftedTicketSet(context, project);
       recordRunningTicketsReview(context, drafted.mapId, FAILED_TICKETS_REVIEW);

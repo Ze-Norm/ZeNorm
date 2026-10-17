@@ -25,17 +25,17 @@ export const VERDICT_FINDING_FILE_MAX_LENGTH = 500;
 export const VERDICT_FINDING_TITLE_MAX_LENGTH = 200;
 export const VERDICT_FINDING_DETAIL_MAX_LENGTH = 4000;
 
-/** A run activity line's longest text; every stored line, of any actor, is cut to it with "…" (D4). */
+/** A run activity line's longest text; every stored line, of any actor, is cut to it with "…". */
 export const RUN_EVENT_TEXT_MAX_LENGTH = 500;
-/** A merged ticket's summary's longest text (D4). */
+/** A merged ticket's summary's longest text. */
 export const RUN_TICKET_SUMMARY_MAX_LENGTH = 1000;
 
 const ELLIPSIS = "…";
 
 /**
- * Agent text cut to `max` UTF-16 units (D4; L197 item 4), shared by the stream parser and core:
- * a longer text keeps whole characters up to `max - 1` units, drops back to just before an
- * inline-code or `**` pair the cut left open, and ends "…". A text that fits is kept as is.
+ * Agent text cut to `max` UTF-16 units, shared by the stream parser and core: a longer text keeps
+ * whole characters up to `max - 1` units, drops back to just before an inline-code or `**` pair the
+ * cut left open, and ends "…". A text that fits is kept as is.
  */
 export function cutAgentText(text: string, max: number): string {
   if (text.length <= max) {
@@ -75,7 +75,7 @@ function closeMarkdownPairs(text: string): string {
   return kept;
 }
 
-/** Who a run activity line comes from (slice 8 D1): ZeNorm or one of the executor's sessions. */
+/** Who a run activity line comes from: ZeNorm or one of the executor's sessions. */
 export const RunActor = z.enum(["zenorm", "orchestrator", "implementer", "reviewer"]);
 export type RunActor = z.infer<typeof RunActor>;
 
@@ -113,7 +113,7 @@ export const VerdictFinding = z.strictObject({
   detail: z.string().min(1).max(VERDICT_FINDING_DETAIL_MAX_LENGTH),
   /**
    * The criterion id of the pinned revision the finding fails, or null when the diff goes beyond
-   * the spec (S8-11).
+   * the spec.
    */
   criterion: CriterionId.nullable(),
 });
@@ -133,7 +133,7 @@ export const Verdict = z.strictObject({
 export type Verdict = z.infer<typeof Verdict>;
 
 /**
- * The step a delivery run is in; stored on the run at each transition and kept at its end (S8-10).
+ * The step a delivery run is in; stored on the run at each transition and kept at its end.
  * `publishing` follows a passing review on a project whose origin is on github.com: ZeNorm writes
  * the pull request's body, pushes the run branch and opens the pull request.
  */
@@ -168,7 +168,7 @@ export const PullRequest = z.strictObject({
 });
 export type PullRequest = z.infer<typeof PullRequest>;
 
-/** Why a run failed; the phase it failed in is the run's `phase` (L44). */
+/** Why a run failed; the phase it failed in is the run's `phase`. */
 export const DeliveryFailure = z.strictObject({
   code: DeliveryFailureCode,
   message: z.string(),
@@ -183,10 +183,10 @@ export type DeliveryFailure = z.infer<typeof DeliveryFailure>;
  */
 export const DeliveryRun = z.strictObject({
   id: EntityId,
-  /** The spec the run delivers (slice 7 D1). */
+  /** The spec the run delivers. */
   specificationId: EntityId,
   ticketSetId: EntityId,
-  /** Numbered per spec from 1 (S7-22). */
+  /** Numbered per spec from 1. */
   number: z.int().min(1),
   branch: z.string().min(1),
   /** The project's base branch, pinned at the start. */
@@ -218,9 +218,9 @@ export const DeliveryRun = z.strictObject({
   verdict: Verdict.nullable(),
   /** Null unless the run ended `failed`. */
   failure: DeliveryFailure.nullable(),
-  /** ISO 8601 UTC; set by Mark merged once git shows the final commit in the base branch (S8-5). */
+  /** ISO 8601 UTC; set by Mark merged once git shows the final commit in the base branch. */
   mergedAt: z.iso.datetime().nullable(),
-  /** The name of the delivery executor carrying the run, stored at its start (CR9b-6). */
+  /** The name of the delivery executor carrying the run, stored at its start. */
   executor: z.string().min(1),
   /**
    * The pull request the run opened once it passed on a project whose origin is on github.com;
@@ -231,7 +231,7 @@ export const DeliveryRun = z.strictObject({
 export type DeliveryRun = z.infer<typeof DeliveryRun>;
 export type DeliveryRunState = DeliveryRun["state"];
 
-/** One line of a run's activity (S8-9): display only, never read to decide a status. */
+/** One line of a run's activity: display only, never read to decide a status. */
 export const RunEvent = z.strictObject({
   /** Numbered per run from 1. */
   seq: z.int().min(1),
@@ -244,7 +244,7 @@ export const RunEvent = z.strictObject({
 });
 export type RunEvent = z.infer<typeof RunEvent>;
 
-/** Where one pinned ticket stands in a run (D6, the demo's `runTicketStatus`). */
+/** Where one pinned ticket stands in a run. */
 export const RunTicketStatus = z.discriminatedUnion("state", [
   /** The ticket has a merged record. */
   z.strictObject({
@@ -272,7 +272,7 @@ export const RunTicket = z.strictObject({
 export type RunTicket = z.infer<typeof RunTicket>;
 
 /**
- * One run of a spec as `map.overview` carries it (D2): the run with each pinned ticket's status, in
+ * One run of a spec as `map.overview` carries it: the run with each pinned ticket's status, in
  * pinned order; `tickets` is null for a run from before `0010`, which has no ticket rows.
  */
 export const SpecRun = DeliveryRun.extend({ tickets: z.array(RunTicket).nullable() });
@@ -288,14 +288,14 @@ export type ResumeDeliveryInput = z.infer<typeof ResumeDeliveryInput>;
 export const CancelDeliveryInput = z.strictObject({ runId: EntityId });
 export type CancelDeliveryInput = z.infer<typeof CancelDeliveryInput>;
 
-/** `delivery.markMerged` (S8-5). */
+/** `delivery.markMerged`. */
 export const MarkMergedInput = z.strictObject({ runId: EntityId });
 export type MarkMergedInput = z.infer<typeof MarkMergedInput>;
 
-/** `delivery.checkPullRequest` (Check now, C4): reads the run's pull request's state on GitHub. */
+/** `delivery.checkPullRequest` (Check now): reads the run's pull request's state on GitHub. */
 export const CheckPullRequestInput = z.strictObject({ runId: EntityId });
 export type CheckPullRequestInput = z.infer<typeof CheckPullRequestInput>;
 
-/** `delivery.activity` (S8-9): a run's lines, oldest first. */
+/** `delivery.activity`: a run's lines, oldest first. */
 export const DeliveryActivityInput = z.strictObject({ runId: EntityId });
 export type DeliveryActivityInput = z.infer<typeof DeliveryActivityInput>;

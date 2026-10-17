@@ -47,7 +47,7 @@ When nothing needs building, write zero tickets: `tickets` is empty, and `slicin
 - A test a delivery run can't execute (an opt-in live test needing a real external CLI or login) is never a ticket of its own: it goes in the ticket whose slice it verifies.
 - Fold a small edge case into the ticket whose behaviour it extends.
 
-## The document (D2)
+## The document
 
 - `tickets`: zero to five; most revisions need one or two. Each has:
   - `id`: numbered from the First ticket number, blockers first: with `First ticket number: 3`, `T3`, `T4`, …. Never reuse an earlier ticket's id.

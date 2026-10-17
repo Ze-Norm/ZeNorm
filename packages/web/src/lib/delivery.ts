@@ -11,12 +11,12 @@ import type {
 } from "@zenorm/contracts";
 
 /**
- * Pure helpers of the Delivery page (slice 8 D9), after the demo's `DeliveryStage.tsx`: a run's
- * name, the criteria a blocking finding fails per ticket, and when merged tickets fold away.
+ * Pure helpers of the Delivery page: a run's name, the criteria a blocking finding fails per
+ * ticket, and when merged tickets fold away.
  */
 
 /**
- * A run's name where people scan (D7, the demo's `runName`): "Delivery run" ("The delivery run" at
+ * A run's name where people scan: "Delivery run" ("The delivery run" at
  * the start of a sentence) until the spec has a second run, then "Run n".
  */
 export function runName(run: { number: number }, sentenceStart: boolean): string {
@@ -27,9 +27,9 @@ export function runName(run: { number: number }, sentenceStart: boolean): string
 }
 
 /**
- * The criteria of `ticket` that the verdict's blocking findings name (the demo's
- * `failingCriteria`): the pinned set's content decides who carries a criterion, so the finding
- * cards say "carried by T<n>" for a run of any age. A run's ticket rows read core's `failing`.
+ * The criteria of `ticket` that the verdict's blocking findings name: the pinned set's content
+ * decides who carries a criterion, so the finding cards say "carried by T<n>" for a run of any
+ * age. A run's ticket rows read core's `failing`.
  */
 export function failingCriteria(verdict: Verdict | null, ticket: TicketContent): string[] {
   if (verdict === null) {
@@ -53,7 +53,7 @@ export function carriersOf(
   return tickets.filter((ticket) => failingCriteria(verdict, ticket).includes(criterion));
 }
 
-/** Live work first, then what waits on it, then what is done (the demo's `STATUS_ORDER`). */
+/** Live work first, then what waits on it, then what is done. */
 const STATUS_ORDER: readonly RunTicketStatus["state"][] = [
   "implementing",
   "starting",
@@ -62,7 +62,7 @@ const STATUS_ORDER: readonly RunTicketStatus["state"][] = [
   "merged",
 ];
 
-/** Rows in the demo's status order; rows of one status keep their pinned order. */
+/** Rows in status order; rows of one status keep their pinned order. */
 export function inStatusOrder<T extends { status: RunTicketStatus }>(rows: readonly T[]): T[] {
   return [...rows].sort(
     (a, b) => STATUS_ORDER.indexOf(a.status.state) - STATUS_ORDER.indexOf(b.status.state),
@@ -73,8 +73,8 @@ export function inStatusOrder<T extends { status: RunTicketStatus }>(rows: reado
 export const FOLD_MERGED_FROM = 5;
 
 /**
- * The fold rule (the demo's `RunTickets`): merged tickets fold into one line while the run works on
- * a set of at least `FOLD_MERGED_FROM` tickets, so the live ones stay in view, until the person shows them.
+ * The fold rule: merged tickets fold into one line while the run works on a set of at least
+ * `FOLD_MERGED_FROM` tickets, so the live ones stay in view, until the person shows them.
  */
 export function foldsMerged({
   running,
@@ -109,8 +109,9 @@ export function revisionOf(spec: MapSpec, set: TicketSetView): SpecRevisionView 
 }
 
 /**
- * The run a page shows (`?run=`, D10): run `number`, or the latest (the first, newest first) when
- * absent. `runs` are this map's (`runsOn`), never the spec's every run (slice 8b D9). A number the spec has no run for, or a spec with no run, is the route's error (L100).
+ * The run a page shows (`?run=`): run `number`, or the latest (the first, newest first) when
+ * absent. `runs` are this map's (`runsOn`), never the spec's every run. A number the spec has no
+ * run for, or a spec with no run, is the route's error.
  */
 export function shownRun<Run extends { number: number }>(
   runs: readonly Run[],
@@ -128,8 +129,8 @@ export function shownRun<Run extends { number: number }>(
 }
 
 /**
- * Where `ticket` stands in `run`, as `map.overview` carries it (D10, S8-14). A run from before
- * `0010` (`tickets: null`) or a ticket outside the run's pinned set is the route's error (L100).
+ * Where `ticket` stands in `run`, as `map.overview` carries it. A run from before `0010`
+ * (`tickets: null`) or a ticket outside the run's pinned set is the route's error.
  */
 export function runTicketOf(run: SpecRun, ticket: string): RunTicket {
   if (run.tickets === null) {
@@ -142,13 +143,13 @@ export function runTicketOf(run: SpecRun, ticket: string): RunTicket {
   return row;
 }
 
-/** A ticket's lines in the run's activity, oldest first (D10): the lines tied to it. */
+/** A ticket's lines in the run's activity, oldest first: the lines tied to it. */
 export function ticketLines(events: readonly RunEvent[], ticket: string): RunEvent[] {
   return events.filter((event) => event.ticket === ticket);
 }
 
 /**
- * An agent's sentence placed mid-sentence (L197 item 3): its first letter lower-cased only when its
+ * An agent's sentence placed mid-sentence: its first letter lower-cased only when its
  * second is a lower-case letter, so an acronym such as "API" or a code span keeps its case.
  */
 export function midSentence(text: string): string {
@@ -161,8 +162,8 @@ export function midSentence(text: string): string {
 
 /**
  * A ticket's status as the page shows it. An interrupted run (no runner holds it after a restart)
- * still counts as active in core (D6), but nothing works on its tickets, so a started ticket and
- * one that has not started read as interrupted, never as live (L197 item 13). Display only.
+ * still counts as active in core, but nothing works on its tickets, so a started ticket and one
+ * that has not started read as interrupted, never as live. Display only.
  */
 export type ShownTicketStatus = RunTicketStatus | { state: "interrupted"; started: boolean };
 
@@ -185,7 +186,7 @@ export function shownTicketStatus(
   }
 }
 
-/** How long ago the run's last line was, as the demo's liveness count says it. */
+/** How long ago the run's last line was, as the liveness count says it. */
 export function agoWords(ms: number): string {
   const seconds = Math.max(0, Math.round(ms / 1000));
   return seconds < 60
@@ -199,13 +200,13 @@ const clockFormat = new Intl.DateTimeFormat("en-GB", {
   second: "2-digit",
 });
 
-/** A line's time as the demo's activity shows it: "14:03:27", in local time. */
+/** A line's time as the activity shows it: "14:03:27", in local time. */
 export function lineClock(iso: string): string {
   return clockFormat.format(new Date(iso));
 }
 
 /**
- * A merged ticket's report as its row on the Delivery page shows it (the demo's one-line row): the
+ * A merged ticket's report as its one-line row on the Delivery page shows it: the
  * report's first line that has text, without a heading's `#` marks. The whole report is on the
  * ticket's execution page, which the row opens.
  */

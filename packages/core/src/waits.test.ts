@@ -1,6 +1,5 @@
 /**
- * Slice 8b ticket 03: waits recorded by To Spec (S8b-5) and runs on one spec across maps (S8b-4,
- * B21).
+ * Waits recorded by To Spec and runs on one spec across maps.
  */
 import { readMapRounds } from "./run-work.ts";
 import type { HatchChange, HatchStage, PlanningRun, Project } from "@zenorm/contracts";
@@ -63,7 +62,7 @@ afterEach(async () => {
   await closeTestContext(context);
 });
 
-/** SPEC with a new title: every id kept, so no clause needs a source (S7-5). */
+/** SPEC with a new title: every id kept, so no clause needs a source. */
 function kept(title: string): DraftContent {
   return { ...SPEC, title, clauses: SPEC.clauses.map((clause) => ({ ...clause, sources: [] })) };
 }
@@ -157,7 +156,7 @@ async function heldByRevision() {
   return { ...first, holder, held };
 }
 
-describe("waits recorded by To Spec (S8b-5)", () => {
+describe("waits recorded by To Spec", () => {
   test("a wait on a held spec is recorded with the hold seen at recording; zero specs is accepted; the map's first To Spec is not started again", async () => {
     const { specificationId, holder } = await heldByRevision();
     const waiting = await clearedMap(context, project);
@@ -300,7 +299,7 @@ describe("waits recorded by To Spec (S8b-5)", () => {
     });
   });
 
-  test("a re-clear of a map whose spec another map holds names only its own drafts and is accepted (spec review blocker 1)", async () => {
+  test("a re-clear of a map whose spec another map holds names only its own drafts and is accepted", async () => {
     const first = await deliverableTicketSet(context, project);
     const later = await clearedMap(context, project);
     expect(
@@ -368,7 +367,7 @@ describe("waits recorded by To Spec (S8b-5)", () => {
     expect(waitsOf(waiting)).toMatchObject([{ holdKind: "revising", holdMapId: holder }]);
   });
 
-  test("a second unapproved revision of a spec fails to insert (S7-3's partial unique index)", async () => {
+  test("a second unapproved revision of a spec fails to insert (the partial unique index)", async () => {
     const { specificationId, held } = await heldByRevision();
     const other = await clearedMap(context, project);
     const writer = runningMapRun(context, other);
@@ -385,7 +384,7 @@ describe("waits recorded by To Spec (S8b-5)", () => {
   });
 });
 
-describe("runs on one spec across maps (S8b-4, B21)", () => {
+describe("runs on one spec across maps", () => {
   test("during another map's spec-scoped run, a set rejection starts nothing and does not throw; planNext after that run ends starts the to_tickets", async () => {
     const first = await reviewedTicketSet(context, project);
     const holder = await clearedMap(context, project);

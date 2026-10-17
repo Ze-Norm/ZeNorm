@@ -1,10 +1,9 @@
--- The first map-level round is never final; a follow-up round on the destination (round 2 or 3)
--- may be (destination rounds, DR-9, DR-11). The rebuild replaces
--- `question_rounds_map_level_not_final_ck` with `question_rounds_first_map_round_not_final_ck` and
--- copies every column, index and other check unchanged. Every stored map-level round is not final,
--- so each passes the new check. It refuses to finish unless the new table has as many rows as the
--- old one. It runs with foreign keys off (`migrateDatabase`) and ends by refusing any foreign key
--- violation.
+-- The first map-level round is never final; a follow-up round on the destination (round 2 or 3) may
+-- be. The rebuild replaces `question_rounds_map_level_not_final_ck` with
+-- `question_rounds_first_map_round_not_final_ck` and copies every column, index and other check
+-- unchanged. Every stored map-level round is not final, so each passes the new check. It refuses to
+-- finish unless the new table has as many rows as the old one. It runs with foreign keys off
+-- (`migrateDatabase`) and ends by refusing any foreign key violation.
 CREATE TABLE `__new_question_rounds` (
 	`id` text PRIMARY KEY NOT NULL,
 	`map_id` text NOT NULL,

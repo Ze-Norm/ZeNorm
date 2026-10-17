@@ -4,7 +4,7 @@ import { and, asc, eq, isNotNull } from "drizzle-orm";
 
 import type { Reader } from "./planning-runs.ts";
 
-/** A planning review finding that sent a waypoint of the map on (S7-8, L136 (a)). */
+/** A planning review finding that sent a waypoint of the map on. */
 export interface EscalatedFinding {
   readonly waypointId: string;
   readonly kind: SpecReviewFinding["kind"];
@@ -17,7 +17,7 @@ export interface EscalatedFinding {
 /**
  * Every escalated finding behind the waypoints of the map that a planning review sent on, in the
  * order they were recorded: the one that opened a waypoint first, then any later review's finding
- * raising the same problem that linked it (S7-9).
+ * raising the same problem that linked it.
  */
 export function readEscalatedFindings(db: Reader, mapId: string): EscalatedFinding[] {
   const rows = db
@@ -52,8 +52,8 @@ export function readEscalatedFindings(db: Reader, mapId: string): EscalatedFindi
 }
 
 /**
- * Every planning review finding that sent a waypoint on, as its grilling run reads them (L136
- * (a)): none for a waypoint no review sent on.
+ * Every planning review finding that sent a waypoint on, as its grilling run reads them: none for a
+ * waypoint no review sent on.
  */
 export function grillReviewFindings(
   db: Reader,

@@ -184,7 +184,7 @@ export const MODEL_LIMIT_STORED_CAPS: Readonly<Record<ModelLimitField, number>> 
 
 /**
  * Sonnet's drafting lengths: the `config.example.json` profile, the entry `zenorm init` writes for
- * a model with no tested table of its own (3.1), and the one every e2e config carries.
+ * a model with no tested table of its own, and the one every e2e config carries.
  */
 export const SONNET_LIMITS: ModelLimits = {
   questionText: { aim: 200, max: 200 },
@@ -252,7 +252,7 @@ export const OPUS_LIMITS: ModelLimits = {
   ticketsReviewSummary: { aim: 800, max: 1500 },
 };
 
-/** The models with a tested drafting-length table, by model id: Sonnet and Opus (3.1). */
+/** The models with a tested drafting-length table, by model id: Sonnet and Opus. */
 export const TESTED_MODEL_LIMITS: Readonly<Record<string, ModelLimits>> = {
   "claude-sonnet-5-5": SONNET_LIMITS,
   "claude-opus-5-5": OPUS_LIMITS,

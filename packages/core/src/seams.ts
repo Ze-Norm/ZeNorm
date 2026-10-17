@@ -6,7 +6,7 @@ import { isDirectory } from "./project.ts";
 import { localUser } from "./writes.ts";
 
 /**
- * Core's behaviour behind each seam (S9-17, D15): the instance's one local User, an access check
+ * Core's behaviour behind each seam: the instance's one local User, an access check
  * that allows, the stored project folder, this process's environment, and an admission that
  * admits. The server wraps these with the plugins' wrappers and sets the result with `setSeams`.
  */
@@ -31,7 +31,7 @@ export function coreSeams(db: ZeNormDatabase): Seams {
 
 /**
  * `seams` with one plugin's wrappers applied: each wrapped seam receives the one before it as
- * `next`. The server applies each plugin's in order over core's, so core is innermost (D16).
+ * `next`. The server applies each plugin's in order over core's, so core is innermost.
  */
 export function wrapSeams(seams: Seams, wrappers: SeamWrappers): Seams {
   return {

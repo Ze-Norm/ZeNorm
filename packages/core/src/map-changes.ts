@@ -14,7 +14,7 @@ import type { Reader, RunFailure, Tx } from "./planning-runs.ts";
 import { readFog } from "./wayfinding-records.ts";
 
 /**
- * The fog check of a confirming chart (S6b-4, L5): a chart leaving no waypoint while fog remains is
+ * The fog check of a confirming chart: a chart leaving no waypoint while fog remains is
  * refused `fog_left_unsettled`. `statuses` are every waypoint's status and `fogCount` the number
  * of fog items as the write would leave them; null when the write may go ahead.
  */
@@ -45,7 +45,7 @@ function nextExclusionPosition(tx: Tx, mapId: string): number {
 }
 
 /**
- * Saves one Out of scope line (S6b-2, S6b-3, S6b-5): the map's, or `waypointId`'s when set; linked
+ * Saves one Out of scope line: the map's, or `waypointId`'s when set; linked
  * to `splitMapId`, the map a confirmed proposal split its work into, or to none.
  */
 export function saveExclusion(
@@ -168,7 +168,7 @@ function insertProposal(
     .run();
 }
 
-/** The map's `fog_next_position` (spec D1). */
+/** The map's `fog_next_position`. */
 function fogNextPosition(db: Reader, mapId: string): number {
   const row = db.select({ next: maps.fogNextPosition }).from(maps).where(eq(maps.id, mapId)).get();
   if (row === undefined) {
@@ -179,7 +179,7 @@ function fogNextPosition(db: Reader, mapId: string): number {
 
 /**
  * Saves new fog items at the map's next positions and moves `fog_next_position` past them, so a
- * position is never reused (D1, L116 (1)).
+ * position is never reused.
  */
 export function addFog(
   tx: Tx,
@@ -215,7 +215,7 @@ export function settledFogPositions(changes: MapChanges): number[] {
 }
 
 /**
- * The first problem of a run's map changes (S6b-3, S6b-4), checked before anything is written: a
+ * The first problem of a run's map changes, checked before anything is written: a
  * new waypoint blocked by a number naming no existing waypoint is `waypoint_blocker_unknown`; a
  * fog position (`fromFog`, `fogOutOfScope` or `fogDecided`) naming no current item, or used twice, is
  * `fog_item_unknown`; fog settled by the run's own resolution when its outcome resolves nothing
@@ -269,7 +269,7 @@ export function mapChangesProblem(
 }
 
 /**
- * Applies a run's map changes (spec D3), already checked by `mapChangesProblem`, in the
+ * Applies a run's map changes, already checked by `mapChangesProblem`, in the
  * transaction recording its outcome: new waypoints numbered on from the map's highest with their
  * blockers, each graduated fog item deleted, each fog item moved out of scope deleted and its line
  * saved with no waypoint, each fog item the agent decided deleted and saved as a waypoint resolved

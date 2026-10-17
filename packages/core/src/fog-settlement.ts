@@ -57,7 +57,7 @@ export function decidedByPerson(
 }
 
 /**
- * A `fog` run's request (harness change #4): the map, its code survey, every resolved waypoint with
+ * A `fog` run's request: the map, its code survey, every resolved waypoint with
  * who stands behind it, the fog to settle, and the project's map suggestions and maps.
  */
 export function settleFogRequest(
@@ -146,14 +146,13 @@ function fogSettlementProblem(
 }
 
 /**
- * Saves a `fog` run's settlement in one transaction and inserts what it makes due (harness change
- * #4): each item settled by an existing resolution deleted, each decided item saved as a waypoint
- * resolved by the run, each item out of scope deleted with its Out of scope line, and each item
- * only the person can settle opened as an unblocked Grilling waypoint only the person settles
- * (`personDecides`), and each item proposed as a new map deleted with its proposal saved pending
- * and no Out of scope line; the run ends `completed`. An outcome `fogSettlementProblem` refuses, or
- * a proposal outside its bounds (`agent_output_invalid`), fails the run with its code and writes
- * nothing else.
+ * Saves a `fog` run's settlement in one transaction and inserts what it makes due: each item
+ * settled by an existing resolution deleted, each decided item saved as a waypoint resolved by the
+ * run, each item out of scope deleted with its Out of scope line, and each item only the person can
+ * settle opened as an unblocked Grilling waypoint only the person settles (`personDecides`), and
+ * each item proposed as a new map deleted with its proposal saved pending and no Out of scope line;
+ * the run ends `completed`. An outcome `fogSettlementProblem` refuses, or a proposal outside its
+ * bounds (`agent_output_invalid`), fails the run with its code and writes nothing else.
  */
 export function recordFogSettlement(
   actor: Actor,
@@ -163,7 +162,7 @@ export function recordFogSettlement(
 ): Result<null, RunFailure> {
   return write(db, actor, (tx): Result<null, RunFailure> => {
     if (isReplaced(tx, runId)) {
-      // A run cancelled while its call was out saves nothing and is not retried (S7b-6).
+      // A run cancelled while its call was out saves nothing and is not retried.
       return ok(null);
     }
     const run = runningRun(tx, runId);

@@ -17,7 +17,7 @@ import { COLUMNS_BREAKPOINT, useBreakpoint } from "@/hooks/use-breakpoint";
 import { cn } from "@/lib/utils";
 
 /**
- * The map workspace's shell (UX audit A1): the page beside its column, the Activity column, Run
+ * The map workspace's shell: the page beside its column, the Activity column, Run
  * activity or a plugin's aside. From `lg` up the two sit in a grid, the column sticky under the
  * top bar and the stage rail for the viewport's remaining height (`--workspace-chrome`, set in
  * `index.css`). Below `lg` the page takes the whole width and the column opens as a sheet from the
@@ -34,7 +34,7 @@ interface WorkspaceSheetValue {
   /**
    * Puts focus back where it was when the sheet opened: the top bar's button, or the page button
    * that opened it (a clause's Ask). The sheet's trigger lives outside the sheet's subtree, so
-   * Radix cannot do this itself (UX review P1-2).
+   * Radix cannot do this itself.
    */
   restoreFocus: () => void;
   /** The shell's registration of its column; null again when it unmounts. */
@@ -109,17 +109,16 @@ export function WorkspaceSheetTrigger() {
 }
 
 /**
- * The map page's one measure (UX audit P1-3; real-data review). Every map page is one centred
- * container inside `main`, no wider than `--page-measure`, so its box is the same from stage to
- * stage: the head (eyebrow, h1, lede) at the container's left edge, then the body. A page with an
- * index (Wayfinding's waypoints, a spec's sections) splits the body row from `md` up: the index on
- * a `--page-side` track at the left, sticky under the chrome, and the content beside it; below
- * `md` the side track goes and the index folds above the content (`folded`). A page without an
- * index keeps its head and body at the container's left edge, no wider than `--page-content`,
- * the content's width beside an index, so a card runs no wider there than here and the h1 never
- * moves. `main` fills its grid column (the space left of the Activity column at `xl`, the whole
- * width below), so the container centres in that space. The numbers live in `index.css` beside
- * the chrome's.
+ * The map page's one measure. Every map page is one centred container inside `main`, no wider than
+ * `--page-measure`, so its box is the same from stage to stage: the head (eyebrow, h1, lede) at the
+ * container's left edge, then the body. A page with an index (Wayfinding's waypoints, a spec's
+ * sections) splits the body row from `md` up: the index on a `--page-side` track at the left,
+ * sticky under the chrome, and the content beside it; below `md` the side track goes and the index
+ * folds above the content (`folded`). A page without an index keeps its head and body at the
+ * container's left edge, no wider than `--page-content`, the content's width beside an index, so a
+ * card runs no wider there than here and the h1 never moves. `main` fills its grid column (the
+ * space left of the Activity column at `xl`, the whole width below), so the container centres in
+ * that space. The numbers live in `index.css` beside the chrome's.
  */
 export function WorkspacePage({
   head,

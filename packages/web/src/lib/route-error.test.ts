@@ -28,7 +28,7 @@ function zodFailure(): Error {
   return result.error;
 }
 
-describe("the route error page's sentence and links (audit A6)", () => {
+describe("the route error page's sentence and links", () => {
   it("names a search key that belongs to another stage and links both stages", () => {
     const view = describeRouteError(
       new Error("?revision= belongs to the spec stage, not tickets"),
@@ -160,7 +160,7 @@ describe("the route error page's sentence and links (audit A6)", () => {
     expect(describeRouteError(new Error(""), nowhere).detail).toBeNull();
   });
 
-  it("drops the detail line when it only repeats the sentence (UX audit P2-19)", () => {
+  it("drops the detail line when it only repeats the sentence", () => {
     const repeat = describeRouteError(
       new Error("This map has no spec revision 9"),
       at({ mapId: MAP, stage: "spec", search: { revision: 9 } }),
@@ -175,7 +175,7 @@ describe("the route error page's sentence and links (audit A6)", () => {
   });
 });
 
-describe("a refused read's page (UX audit P2-19)", () => {
+describe("a refused read's page", () => {
   it("is what the route error boundary shows for a thrown map_not_found", () => {
     const thrown = new ORPCError("map_not_found", {
       message: `No map with id ${MAP}`,

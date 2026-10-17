@@ -151,8 +151,8 @@ export function claimInstanceLock(
 export type MigrationError = CodedError<"migration_failed"> & { readonly subject: string };
 
 /**
- * A database holding an applied migration this build does not ship (5.2); assignable to
- * `StartupError`. `subject` is the database file path.
+ * A database holding an applied migration this build does not ship; assignable to `StartupError`.
+ * `subject` is the database file path.
  */
 export type DatabaseNewerError = CodedError<"database_newer_than_build"> & {
   readonly subject: string;

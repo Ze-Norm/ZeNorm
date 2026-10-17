@@ -1,4 +1,4 @@
--- Delivery repairs failing checks (C2). A run pins its project's repair limit and fix commands at
+-- Delivery repairs failing checks. A run pins its project's repair limit and fix commands at
 -- its start and counts its repair attempts. Adds `delivery_runs.repair_limit` and
 -- `delivery_runs.repair_attempts`, null on every existing run: a run from before has no pinned
 -- limit and no attempt count, and reads as before. Adds `delivery_runs.fix_commands`, `[]` on

@@ -95,7 +95,7 @@ function branchExists(branch: string): boolean {
   );
 }
 
-describe("cleanup after a run ends (S8-12, D8)", () => {
+describe("cleanup after a run ends", () => {
   test("removes the run and ticket worktrees and the ticket branches; keeps the run branch and files", async () => {
     const run = await endedRunWithWorktrees();
     expect(worktreeList()).toContain(run.id);
@@ -122,7 +122,7 @@ describe("cleanup after a run ends (S8-12, D8)", () => {
     expect(readRunEvents(context.db, run.id)).toEqual([]);
   });
 
-  test("deletes only the pinned tickets' branches: a `-tweak` or unpinned `-t9` sibling survives (L197 item 8)", async () => {
+  test("deletes only the pinned tickets' branches: a `-tweak` or unpinned `-t9` sibling survives", async () => {
     const run = await endedRunWithWorktrees();
     git(project.folderPath, ["branch", `${run.branch}-tweak`, run.branch]);
     git(project.folderPath, ["branch", `${run.branch}-t9`, run.branch]);

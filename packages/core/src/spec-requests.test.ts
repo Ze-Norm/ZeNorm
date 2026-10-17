@@ -143,7 +143,7 @@ function wait(mapId: string): void {
   });
 }
 
-describe("D6: each request carries its new fields", () => {
+describe("each request carries its spec-context fields", () => {
   test("ChartMap: each other spec of the project, its latest revision, delivered, its hold", async () => {
     const charting = await newMap(context, project, "Quote the export");
     const prepared = await work(latestRun(context, charting).id);
@@ -160,8 +160,8 @@ describe("D6: each request carries its new fields", () => {
     ]);
   });
 
-  test("E-3: a release run and a chart read the ids earlier revisions retired", async () => {
-    // r2 drops 1.2, so 1.2 is retired: the QA chain's release run reused such an id every retry.
+  test("a release run and a chart read the ids earlier revisions retired", async () => {
+    // r2 drops 1.2, so 1.2 is retired: a release run unaware of it reuses the id on every retry.
     const dropped: DraftContent = {
       ...SPEC,
       clauses: SPEC.clauses.map((clause) => ({
@@ -295,7 +295,7 @@ describe("D6: each request carries its new fields", () => {
     if (prepared.purpose !== "to_spec" || !("latest" in prepared.request)) {
       throw new Error("expected a spec-scoped to_spec");
     }
-    // The map wrote spec 1, so it is in `latest`, not `projectSpecs` (deviation 7).
+    // The map wrote spec 1, so it is in `latest`, not `projectSpecs`.
     expect(prepared.request.projectSpecs).toEqual([]);
     expect(prepared.request.latest.revision).toBe(2);
     expect(prepared.request.waits).toEqual([]);
@@ -328,7 +328,7 @@ describe("D6: each request carries its new fields", () => {
     });
     expect(prepared.request.waits).toEqual([{ specNumber: 1, note: "Quote every row." }]);
     expect(prepared.request.waypoints[0]?.touches).toEqual([runTouch()]);
-    // r2 changes C1 since r1, which the delivering map wrote (L213 D-6).
+    // r2 changes C1 since r1, which the delivering map wrote.
     expect(prepared.request.changes).toEqual({
       since: 1,
       writer: { kind: "another-map", mapTitle: mapTitle(delivered.mapId) },
@@ -501,7 +501,7 @@ describe("D6: each request carries its new fields", () => {
   });
 });
 
-describe("S8b-8: ticket-set requests read the map's latest approved revision", () => {
+describe("ticket-set requests read the map's latest approved revision", () => {
   test.each(["to_tickets", "tickets_review"] as const)(
     "%s on a map with two approved revisions reads the second",
     async (purpose) => {
@@ -522,8 +522,8 @@ describe("S8b-8: ticket-set requests read the map's latest approved revision", (
   );
 });
 
-describe("L213: the mid-QA fixes at the request seam", () => {
-  test("D-6: ReviewSpec's changes run from the latest approved revision through every revision between", async () => {
+describe("requests along a chain of revisions", () => {
+  test("ReviewSpec's changes run from the latest approved revision through every revision between", async () => {
     const chain = await resolvedChain(context, project);
     insertRun(context, {
       mapId: chain,
@@ -563,7 +563,7 @@ describe("L213: the mid-QA fixes at the request seam", () => {
     });
   });
 
-  test("D-6: a spec's first chain, with no approved revision, has no changes", async () => {
+  test("a spec's first chain, with no approved revision, has no changes", async () => {
     const prepared = await work(
       runningOf((await draftedSpec(context, project)).mapId, "spec_review"),
     );
@@ -571,7 +571,7 @@ describe("L213: the mid-QA fixes at the request seam", () => {
     expect(prepared.request.changes).toBeNull();
   });
 
-  test("D-6: a revision after this map's own approved revision names this map", async () => {
+  test("a revision after this map's own approved revision names this map", async () => {
     holdByRevision(context, {
       specificationId: delivered.specificationId,
       mapId: delivered.mapId,
@@ -583,7 +583,7 @@ describe("L213: the mid-QA fixes at the request seam", () => {
     expect(prepared.request.changes).toMatchObject({ since: 1, writer: { kind: "this-map" } });
   });
 
-  test("D-2: earlier tickets list only approved sets' tickets, never a replaced set's", async () => {
+  test("earlier tickets list only approved sets' tickets, never a replaced set's", async () => {
     const chain = await resolvedChain(context, project);
     insertRun(context, {
       mapId: chain,
@@ -621,7 +621,7 @@ describe("L213: the mid-QA fixes at the request seam", () => {
     );
   });
 
-  test("D-1: takenOut lists a delivered criterion a never-approved middle revision dropped", async () => {
+  test("takenOut lists a delivered criterion a never-approved middle revision dropped", async () => {
     const chain = await resolvedChain(context, project);
     insertRun(context, {
       mapId: chain,
@@ -664,7 +664,7 @@ describe("L213: the mid-QA fixes at the request seam", () => {
     expect(prepared.request.takenOut.map((entry) => entry.criterion.id)).toEqual(["1.2"]);
   });
 
-  test("D-5: ChartMap reads a held spec's latest approved revision beside its draft", async () => {
+  test("ChartMap reads a held spec's latest approved revision beside its draft", async () => {
     const holder = await chartedMap(context, project);
     holdByRevision(context, {
       specificationId: delivered.specificationId,
@@ -684,7 +684,7 @@ describe("L213: the mid-QA fixes at the request seam", () => {
     ]);
   });
 
-  test("D-7: a task waypoint's request carries its touches with the touched revision's text", async () => {
+  test("a task waypoint's request carries its touches with the touched revision's text", async () => {
     const mapId = await newMap(context, project, "Quote the export");
     propose(context, mapId);
     answerDestination(context, mapId);

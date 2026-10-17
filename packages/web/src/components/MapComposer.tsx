@@ -46,9 +46,9 @@ export type ComposerTarget =
   { kind: "choose"; projects: readonly Project[] } | { kind: "fixed"; project: Project };
 
 /**
- * The map composer (spec D6): the idea, the project, and **Start map**, disabled until both are
- * set. `map.create` returns at once and the agent charts the map in the background (slice 6a
- * S6a-2, D4): a refusal shows its code, and success opens Idea. `disabledReason` disables it and says why.
+ * The map composer: the idea, the project, and **Start map**, disabled until both are set.
+ * `map.create` returns at once and the agent charts the map in the background: a refusal shows
+ * its code, and success opens Idea. `disabledReason` disables it and says why.
  * `onCancel`, when given, adds Cancel beside Start map (the project page's composer, opened by
  * New map); null for the Inbox's, which is always open.
  */
@@ -64,7 +64,7 @@ export function MapComposer({
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [idea, setIdea] = useState("");
-  // The chosen project's id; "" until the person chooses one (no preselection, spec D6).
+  // The chosen project's id; "" until the person chooses one (no preselection).
   const [chosenId, setChosenId] = useState("");
   const [adding, setAdding] = useState(false);
   const projectId = target.kind === "fixed" ? target.project.id : chosenId;

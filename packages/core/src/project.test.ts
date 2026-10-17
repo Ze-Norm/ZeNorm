@@ -408,7 +408,7 @@ describe("project reads", () => {
   });
 });
 
-describe("saveProjectSettings (S8-2)", () => {
+describe("saveProjectSettings", () => {
   const CHECKS = ["pnpm test", "pnpm lint"];
   const FIXES = ["pnpm format", "pnpm lint --fix"];
   /** The repair settings every save below carries unless it says otherwise. */
@@ -555,7 +555,7 @@ describe("saveProjectSettings (S8-2)", () => {
     "echo it\\'s",
     "pnpm test &",
   ])(
-    "the check %j needs a shell: project_check_invalid, and nothing is written (L197 item 9)",
+    "the check %j needs a shell: project_check_invalid, and nothing is written",
     async (command) => {
       const project = await added(await makeRepo("repo"), "main");
       const before = storedRow(project.id);

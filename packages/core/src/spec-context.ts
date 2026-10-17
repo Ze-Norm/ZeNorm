@@ -1,5 +1,5 @@
 /**
- * The reads slice 8b's views and requests share (D2, D6, D10): a waypoint's touches, the project's
+ * The reads the spec views and requests share: a waypoint's touches, the project's
  * other specs with their holds, a map's waits, criterion readings and the run that delivered a
  * revision. Derived from stored rows on every read; nothing here writes or stores a result.
  */
@@ -39,7 +39,7 @@ interface ResolvedTouch {
 }
 
 /**
- * The specs a waypoint touches (S8b-2), by spec number: each named criterion's text in the touched
+ * The specs a waypoint touches, by spec number: each named criterion's text in the touched
  * revision and the delivery that built it up to that revision (its baseline, that revision's own
  * set included).
  */
@@ -89,8 +89,8 @@ function resolvedTouches(db: Reader, waypointId: string): ResolvedTouch[] {
 }
 
 /**
- * A waypoint's touches as a run reads them (D6): criteria with their baseline ticket and commit,
- * and the touched revision's text (L213 D-7).
+ * A waypoint's touches as a run reads them: criteria with their baseline ticket and commit,
+ * and the touched revision's text.
  */
 export function runTouches(db: Reader, waypointId: string): RunTouch[] {
   return resolvedTouches(db, waypointId).map((touch) => ({
@@ -103,9 +103,9 @@ export function runTouches(db: Reader, waypointId: string): RunTouch[] {
 }
 
 /**
- * A waypoint's touches as Wayfinding shows them (D2, D13; the demo's `TouchesCard`): the map that
- * wrote the touched revision, whether a merged run delivered it, how many revisions came after it,
- * and each criterion with its clause's title and whether it was delivered.
+ * A waypoint's touches as Wayfinding shows them: the map that wrote the touched revision, whether a
+ * merged run delivered it, how many revisions came after it, and each criterion with its clause's
+ * title and whether it was delivered.
  */
 export function waypointTouchViews(db: Reader, waypointId: string): WaypointTouchView[] {
   return resolvedTouches(db, waypointId).map((touch) => {
@@ -177,8 +177,8 @@ export function deliveredRunOf(
 }
 
 /**
- * Each spec of the project not in `excluded` (D6): its latest revision, its latest approved one
- * (the revision a touch names, S8b-2, L213 D-5; null when none is), whether a merged run delivered
+ * Each spec of the project not in `excluded`: its latest revision, its latest approved one
+ * (the revision a touch names, null when none is), whether a merged run delivered
  * it, and its hold seen from `mapId` (null when unheld).
  */
 export function projectSpecContexts(
@@ -207,7 +207,7 @@ export function projectSpecContexts(
     });
 }
 
-/** The map's open waits (D6), oldest first: the spec's number and the change it waits to make. */
+/** The map's open waits, oldest first: the spec's number and the change it waits to make. */
 export function openWaits(db: Reader, mapId: string): { specNumber: number; note: string }[] {
   return db
     .select({ specNumber: specifications.number, note: specWaits.note })
@@ -219,10 +219,10 @@ export function openWaits(db: Reader, mapId: string): { specNumber: number; note
 }
 
 /**
- * Each criterion of revision `n` read against the text delta and the baseline (S8b-13): its change
+ * Each criterion of revision `n` read against the text delta and the baseline: its change
  * (`new` throughout revision 1, which has no delta), its expectation, the delivery that last built
  * it before `n`, and, when `dispositions` are given, the departure of its disposition. The
- * criteria `n` takes out are the delta's `removedCriteria`; the demo reads no expectation of them.
+ * criteria `n` takes out are the delta's `removedCriteria`; none of them has an expectation.
  */
 export function readingsOf(
   record: SpecRecord,

@@ -3,7 +3,7 @@ import { describe, expect, test } from "vitest";
 
 import { deliveryFailureWords, stoppedRunWords } from "./failure-words.ts";
 
-describe("stoppedRunWords (UX audit P1-1)", () => {
+describe("stoppedRunWords", () => {
   const purposes = PlanningRunPurpose.options.filter((purpose) => purpose !== "hatch");
 
   test("every code on every purpose is a sentence that does not carry the code", () => {

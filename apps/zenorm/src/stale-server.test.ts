@@ -175,7 +175,7 @@ function staleError(port: number): StaleServerError {
   throw new Error("the check did not throw");
 }
 
-describe("the e2e stale-server guard (S9-8, D7)", () => {
+describe("the e2e stale-server guard", () => {
   test("a listener whose command does not match fails the check with its PID and command, untouched", async () => {
     const dummy = await listen(["--input-type=module", "-e", LISTENER], scratch, {});
     const error = staleError(dummy.port);

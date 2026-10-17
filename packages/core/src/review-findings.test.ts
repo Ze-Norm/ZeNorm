@@ -25,7 +25,7 @@ afterEach(async () => {
   await closeTestContext(context);
 });
 
-/** A decision finding (S7-9): the person must decide, so the review sends it to Wayfinding. */
+/** A decision finding: the person must decide, so the review sends it to Wayfinding. */
 const DECISION: SpecReviewFinding = {
   kind: "undefined_term",
   route: "decision",
@@ -36,7 +36,7 @@ const DECISION: SpecReviewFinding = {
   waypointNumbers: [],
 };
 
-describe("an escalated waypoint carries the finding behind it (L136 (a), D13)", () => {
+describe("an escalated waypoint carries the finding behind it", () => {
   test("its grilling run receives the finding; the overview shows it, the Spec stage waits, and the activity links the waypoint", async () => {
     const { mapId, specificationId } = await reviewedSpec(context, project, [DECISION]);
 

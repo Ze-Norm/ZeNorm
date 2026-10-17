@@ -16,13 +16,13 @@ async function ruleIds(fixture: string): Promise<(string | null)[]> {
   return result.messages.map((message) => message.ruleId);
 }
 
-describe("the guardrail lint (S9-7, spec D6)", () => {
+describe("the guardrail lint", () => {
   test.each([
     { fixture: "nullish-literal.ts", rule: "no-restricted-syntax", count: 7 },
     { fixture: "or-literal.ts", rule: "no-restricted-syntax", count: 1 },
     { fixture: "assign-literal.ts", rule: "no-restricted-syntax", count: 4 },
     { fixture: "default-call.ts", rule: "no-restricted-syntax", count: 1 },
-    // S9-14: the change feed is imported only by packages/db, core's writes.ts and events.ts.
+    // The change feed is imported only by packages/db, core's writes.ts and events.ts.
     { fixture: "change-feed-import.ts", rule: "no-restricted-imports", count: 1 },
     // The fixture's Promise `.catch` is not reported.
     { fixture: "zod-catch.ts", rule: "zenorm/no-zod-catch", count: 1 },

@@ -294,13 +294,13 @@ const SUBMITTED_ROUND: ChartMapRequest["mapRounds"][number] = {
   final: false,
 };
 
-/** A final follow-up after `SUBMITTED_ROUND`: the chart's step is `confirm` (DR-2). */
+/** A final follow-up after `SUBMITTED_ROUND`: the chart's step is `confirm`. */
 const CONFIRM_ROUNDS: ChartMapRequest["mapRounds"] = [
   SUBMITTED_ROUND,
   { ...SUBMITTED_ROUND, final: true },
 ];
 
-/** `CONFIRMATION` as a `choose` chart writes it (DR-5, L253): flat, the follow-up's round fields null. */
+/** `CONFIRMATION` as a `choose` chart writes it: flat, the follow-up's round fields null. */
 const CHOICE_CONFIRMATION = {
   kind: "confirmation",
   intro: null,
@@ -309,7 +309,7 @@ const CHOICE_CONFIRMATION = {
   ...CONFIRMATION,
 };
 
-/** A follow-up as the port returns it (DR-5): the revised reading and destination, and its round. */
+/** A follow-up as the port returns it: the revised reading and destination, and its round. */
 const FOLLOW_UP: ChartFollowUp = {
   title: "Count lines, characters or words",
   summary: "Let people choose any of three units.",
@@ -582,7 +582,7 @@ describe("buildChartPrompt", () => {
     expect(prompt).toContain("Label it like `12 total lines`.");
   });
 
-  test("the confirmation prompt carries the kinds, fog and Out of scope rules (D2)", () => {
+  test("the confirmation prompt carries the kinds, fog and Out of scope rules", () => {
     const prompt = buildChartPrompt(chartRequest([SUBMITTED_ROUND]), LIMITS);
     expect(prompt).toContain("research: a named unknown fact that could change a decision");
     expect(prompt).toContain("that reading the repository or the\n  web answers");
@@ -806,7 +806,7 @@ describe("buildGrillPrompt", () => {
     expect(reopened).not.toContain("Resolve without asking");
   });
 
-  test("carries the kind, the numbered others, the fog, the Out of scope lines and the map-change rules (D2)", () => {
+  test("carries the kind, the numbered others, the fog, the Out of scope lines and the map-change rules", () => {
     const prompt = buildGrillPrompt(grillRequest(), LIMITS);
     const lines = prompt.split("\n");
     expect(lines).toContain("Kind: grilling");
@@ -842,7 +842,7 @@ describe("buildGrillPrompt", () => {
     expect(prompt).toContain("A conflict\nover implementation mechanics");
   });
 
-  test("carries the planning review finding that sent the waypoint on, with its spec and ids (L136 (a))", () => {
+  test("carries the planning review finding that sent the waypoint on, with its spec and ids", () => {
     const prompt = buildGrillPrompt(
       grillRequest({
         reviewFindings: [
@@ -866,7 +866,7 @@ describe("buildGrillPrompt", () => {
     expect(buildGrillPrompt(grillRequest(), LIMITS)).not.toContain("REVIEW-FINDING");
   });
 
-  test("carries every review finding that sent the waypoint on, one block each (RC3)", () => {
+  test("carries every review finding that sent the waypoint on, one block each", () => {
     const finding = {
       kind: "undefined_term" as const,
       spec: { number: 2, title: "Count lines" },
@@ -921,7 +921,7 @@ describe("buildGrillPrompt", () => {
     expect(buildGrillPrompt(request, LIMITS)).not.toContain(PERSON_DECIDES_RULE);
   });
 
-  test("carries the person's note about the waypoint, and nothing when it is null (S7b-10)", () => {
+  test("carries the person's note about the waypoint, and nothing when it is null", () => {
     const prompt = buildGrillPrompt(
       grillRequest({
         note: { text: "Use --lines, not -l.", sentAt: "2026-10-08T09:30:00.000Z" },
@@ -935,7 +935,7 @@ describe("buildGrillPrompt", () => {
     expect(none).not.toContain("<<<NOTE");
   });
 
-  test("a reopened waypoint's earlier rounds are superseded context, and with none since it must ask (L156 (1))", () => {
+  test("a reopened waypoint's earlier rounds are superseded context, and with none since it must ask", () => {
     const request = grillRequest();
     const reopened = buildGrillPrompt(
       {
@@ -1005,7 +1005,7 @@ describe("claudeCodeChartMap", () => {
     expect(flag(recordedArgv(), "--json-schema")).toBe(chartProposalJsonSchema(LIMITS));
   });
 
-  test("sends one schema per step: propose, choose, confirm after a final round and at the cap (DR-4, DR-6)", async () => {
+  test("sends one schema per step: propose, choose, confirm after a final round and at the cap", async () => {
     const third = { ...SUBMITTED_ROUND, final: false };
     const steps = [
       [[], PROPOSAL_OUTPUT, "title,summary,destination,split,intro,questions"],
@@ -1038,7 +1038,7 @@ describe("claudeCodeChartMap", () => {
     expect(flag(recordedArgv(), "--json-schema")).toBe(chartConfirmationJsonSchema(LIMITS));
   });
 
-  test("a choose chart returns a confirmation or a follow-up (DR-5)", async () => {
+  test("a choose chart returns a confirmation or a follow-up", async () => {
     const choose = async (output: unknown) =>
       await claudeCodeChartMap(config(writeStandIn(output)))(
         chartRequest([SUBMITTED_ROUND]),
@@ -1056,7 +1056,7 @@ describe("claudeCodeChartMap", () => {
     });
   });
 
-  test("a choose chart's fields that do not match its kind, or a follow-up of 0 or 4 questions, are agent_output_invalid (DR-5)", async () => {
+  test("a choose chart's fields that do not match its kind, or a follow-up of 0 or 4 questions, are agent_output_invalid", async () => {
     const choose = async (output: unknown) =>
       await claudeCodeChartMap(config(writeStandIn(output)))(
         chartRequest([SUBMITTED_ROUND]),
@@ -1099,7 +1099,7 @@ describe("claudeCodeChartMap", () => {
     }
   });
 
-  test("the choose prompt carries the follow-up rule, the count line, the proposed destination and the rounds once (DR-12)", () => {
+  test("the choose prompt carries the follow-up rule, the count line, the proposed destination and the rounds once", () => {
     const prompt = buildChartPrompt(chartRequest([SUBMITTED_ROUND]), LIMITS);
     const lines = prompt.split("\n");
     expect(prompt).toContain(DESTINATION_FOLLOW_UP_RULE.join("\n"));
@@ -1121,7 +1121,7 @@ describe("claudeCodeChartMap", () => {
     }
   });
 
-  test("the confirm prompt renders every round once, the proposed destination and the count line, and no follow-up rule (DR-13)", () => {
+  test("the confirm prompt renders every round once, the proposed destination and the count line, and no follow-up rule", () => {
     const prompt = buildChartPrompt(chartRequest(CONFIRM_ROUNDS), LIMITS);
     expect(prompt).toContain(`\n${PROPOSAL.destination}\nDESTINATION `);
     expect(prompt.split("\n")).toContain("Answered destination rounds: 2");
@@ -1135,7 +1135,7 @@ describe("claudeCodeChartMap", () => {
     expect(proposing).not.toContain(DESTINATION_ANSWERS_RULE[0]);
   });
 
-  test("the choose and confirm prompts set the map's title and summary beside the destination, with the title rule (DR-5, DR-13, L253)", () => {
+  test("the choose and confirm prompts set the map's title and summary beside the destination, with the title rule", () => {
     const titleRule = mapTitleRule(LIMITS).join("\n");
     for (const mapRounds of [[SUBMITTED_ROUND], CONFIRM_ROUNDS]) {
       const prompt = buildChartPrompt(chartRequest(mapRounds), LIMITS);
@@ -1146,7 +1146,7 @@ describe("claudeCodeChartMap", () => {
     }
   });
 
-  test("every chart prompt renders the refused attempt's problem, and none when null (DR-8, L253)", () => {
+  test("every chart prompt renders the refused attempt's problem, and none when null", () => {
     for (const mapRounds of [[], [SUBMITTED_ROUND], CONFIRM_ROUNDS]) {
       const request = chartRequest(mapRounds);
       const prompt = buildChartPrompt(
@@ -1158,7 +1158,7 @@ describe("claudeCodeChartMap", () => {
     }
   });
 
-  test("DESTINATION_FOLLOW_UP_RULE gains no paragraph (DR-12, L2)", () => {
+  test("DESTINATION_FOLLOW_UP_RULE gains no paragraph", () => {
     expect(DESTINATION_FOLLOW_UP_RULE.length).toBeLessThanOrEqual(9);
     expect(DESTINATION_FOLLOW_UP_RULE).not.toContain("");
   });
@@ -1441,8 +1441,8 @@ describe("claudeCodeGrillWaypoint", () => {
   });
 });
 
-// Slice 8b D6, S8b-2: the chart reads the project's specs and may name touches; the grilling
-// reads its waypoint's touches with their baselines.
+// The chart reads the project's specs and may name touches; the grilling reads its waypoint's
+// touches with their baselines.
 const TOUCHED_CONTENT = {
   title: "Count words",
   problem: "People cannot count words.",
@@ -1502,7 +1502,7 @@ const PROJECT_SPEC = {
 };
 const PROJECT_SPEC_APPROVED = { ...PROJECT_SPEC, approved: PROJECT_SPEC.latest };
 
-describe("a later map's chart and grilling (slice 8b D6)", () => {
+describe("a later map's chart and grilling", () => {
   test("the chart reads the project specs; the confirming chart states the touch rules", () => {
     const request = { ...chartRequest([SUBMITTED_ROUND]), projectSpecs: [PROJECT_SPEC_APPROVED] };
     const confirming = buildChartPrompt(request, LIMITS);
@@ -1526,7 +1526,7 @@ describe("a later map's chart and grilling (slice 8b D6)", () => {
     }
   });
 
-  test("a spec another map's draft holds is touched at its latest approved revision (L213 D-5)", () => {
+  test("a spec another map's draft holds is touched at its latest approved revision", () => {
     const held = {
       latest: { ...PROJECT_SPEC.latest, revision: 2 },
       retiredIds: [],
@@ -1577,7 +1577,7 @@ describe("a later map's chart and grilling (slice 8b D6)", () => {
     expect(buildGrillPrompt(base, LIMITS)).toContain("Touches: none");
   });
 
-  test("the grilling reads the touched revision's approved text (L213 D-7)", () => {
+  test("the grilling reads the touched revision's approved text", () => {
     const base = grillRequest();
     const prompt = buildGrillPrompt(
       { ...base, waypoint: { ...base.waypoint, touches: [TOUCH] } },
@@ -1590,7 +1590,7 @@ describe("a later map's chart and grilling (slice 8b D6)", () => {
   });
 });
 
-describe("the project's map suggestions and maps (C1)", () => {
+describe("the project's map suggestions and maps", () => {
   test("each suggestion's title and line, each map's title, quoted; states and stages plain; nothing else", () => {
     const nonce = "00000000-0000-4000-8000-000000000000";
     const text = projectSuggestionLines(PROJECT_CONTEXT, nonce).join("\n");
@@ -1663,7 +1663,7 @@ describe("the project's map suggestions and maps (C1)", () => {
   });
 });
 
-describe("the suggestion rules (map suggestions that don't repeat, C2)", () => {
+describe("the suggestion rules (map suggestions that don't repeat)", () => {
   test("every chart and the grilling carry the no-repeat, no-existing-map and salient-only rules, never propose-when-unsure", () => {
     for (const prompt of [
       buildChartPrompt({ ...chartRequest([]), ...PROJECT_CONTEXT }, LIMITS),
@@ -1687,7 +1687,7 @@ describe("the suggestion rules (map suggestions that don't repeat, C2)", () => {
   });
 });
 
-describe("the map's code survey (harness change #1)", () => {
+describe("the map's code survey", () => {
   test("each prompt carries the survey as FACTS, or says the map has none", () => {
     const builds = [
       (survey: CodeSurvey | null) => buildGrillPrompt(grillRequest({ survey }), LIMITS),
@@ -1793,7 +1793,7 @@ describe("the wayfinding runs' lengths follow the model's limits (agent.models)"
   });
 });
 
-describe("the grilling prompt's destination rounds (DR-16)", () => {
+describe("the grilling prompt's destination rounds", () => {
   test("renders the map-level rounds after the destination, under DESTINATION_ANSWERS_RULE once", () => {
     expectRoundsAfterDestination(buildGrillPrompt(grillRequest(), LIMITS));
   });

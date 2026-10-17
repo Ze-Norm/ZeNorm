@@ -7,7 +7,7 @@ import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
 import { githubOrigin, githubRepositoryOf } from "./github.ts";
 
-describe("githubRepositoryOf (C1, 1.1)", () => {
+describe("githubRepositoryOf", () => {
   test.each([
     "https://github.com/acme/numbers.git",
     "https://github.com/acme/numbers",
@@ -58,17 +58,17 @@ describe("githubOrigin", () => {
     expect(await githubOrigin(repo)).toBeNull();
   });
 
-  test("a github.com remote under another name is not read (1.1)", async () => {
+  test("a github.com remote under another name is not read", async () => {
     git(["remote", "add", "upstream", "https://github.com/acme/numbers.git"]);
     expect(await githubOrigin(repo)).toBeNull();
   });
 
-  test("an origin on an Enterprise host is none (1.1)", async () => {
+  test("an origin on an Enterprise host is none", async () => {
     git(["remote", "add", "origin", "https://github.acme.example/acme/numbers.git"]);
     expect(await githubOrigin(repo)).toBeNull();
   });
 
-  test("a fork's origin is the fork, whatever upstream says (1.2)", async () => {
+  test("a fork's origin is the fork, whatever upstream says", async () => {
     git(["remote", "add", "origin", "git@github.com:me/numbers.git"]);
     git(["remote", "add", "upstream", "https://github.com/acme/numbers.git"]);
     expect(await githubOrigin(repo)).toEqual({ owner: "me", name: "numbers" });

@@ -3,7 +3,7 @@ import type { ActivityLine, SpecLineLabel } from "@zenorm/contracts";
 /**
  * An activity line's text with the spec title it quotes taken out, for a one-spec map, where every
  * line of the Spec, Tickets and Delivery stages names the same spec and the title says
- * nothing (UX review P2-9). Core quotes the title (“…”) in a few shapes: after "for", "in" or
+ * nothing. Core quotes the title (“…”) in a few shapes: after "for", "in" or
  * "of" the phrase goes ("Tickets written for “T”: 2 tickets." reads "Tickets written: 2
  * tickets."); as the object after a colon the colon goes with it ("Approved: “T”." reads
  * "Approved.", and the one relative clause core writes becomes its own clause); anywhere else it
@@ -35,11 +35,10 @@ export interface SpecLineLink {
 }
 
 /**
- * The spec link of an activity line (L159 (a), slice 7c D10, slice 8 D13): a Spec line opens the
- * spec's latest revision, a Tickets line its tickets, a Delivery line the spec's Delivery
- * page (the demo's `store.tsx`); null when the line carries no spec. The words are the line's own
- * `specLabel` (slice 8b, tickets review Q1). Only those three stages carry a spec; a spec on any
- * other, or a spec without its label, is a programmer error.
+ * The spec link of an activity line: a Spec line opens the spec's latest revision, a Tickets line
+ * its tickets, a Delivery line the spec's Delivery page; null when the line carries no spec. The
+ * words are the line's own `specLabel`. Only those three stages carry a spec; a spec on any other,
+ * or a spec without its label, is a programmer error.
  */
 export function specLineLink(line: ActivityLine): SpecLineLink | null {
   if (line.spec === null) {

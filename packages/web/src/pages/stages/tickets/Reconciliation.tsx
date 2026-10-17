@@ -40,7 +40,7 @@ function criteriaCount(n: number): string {
   return `${String(n)} ${n === 1 ? "criterion" : "criteria"}`;
 }
 
-/** What the agent says the code needs for a criterion (the demo's `DispositionBadge`). */
+/** What the agent says the code needs for a criterion. */
 export function DispositionBadge({ disposition }: { disposition: Disposition }) {
   switch (disposition.kind) {
     case "work":
@@ -69,7 +69,7 @@ const TALLY_TONE: Record<Disposition["kind"], "default" | "ok" | "secondary" | "
   removed: "bad",
 };
 
-/** The set's dispositions tallied as badges (UX audit B1), and how many rows the review questioned. */
+/** The set's dispositions tallied as badges, and how many rows the review questioned. */
 function Tally({
   dispositions,
   departures,
@@ -94,7 +94,7 @@ function Tally({
 }
 
 /**
- * Where a carried-over criterion was delivered (the demo's `deliveryLine`), from the run records:
+ * Where a carried-over criterion was delivered, from the run records:
  * the earlier ticket, opened on the Tickets page of the map that wrote its revision.
  */
 function DeliveredLine({
@@ -182,17 +182,16 @@ export function reconciliationTitle(delta: TextDelta | null): string {
 }
 
 /**
- * The reconciliation (slice 8b D12, the demo's `Reconciliation`; slice 7c's Coverage on a first
- * revision), under its clauses (one header row per clause, UX audit B1), with what the agent says
- * the code needs. A criterion that plainly needs work is left to its ticket card, which leads with
- * its text and, past a first revision, how that text changed: a line counts them, and the table
- * lists only the rest (carried over or retained with the earlier ticket, already done with its
- * evidence, taken out with its reason, or questioned by the review, which points at the card), and
- * is left out when there are none. Past a first revision each row also shows how its text changed
- * from the revision before, and the table includes every criterion the revision takes out. A row
- * whose disposition departs from what the text delta and the baseline suggest shows core's
- * reading: the expectation, the review's question and the agent's reason. A clause opens on the
- * Spec page; a work badge opens its ticket's card.
+ * The reconciliation (Coverage on a first revision), under its clauses (one header row per clause),
+ * with what the agent says the code needs. A criterion that plainly needs work is left to its
+ * ticket card, which leads with its text and, past a first revision, how that text changed: a line
+ * counts them, and the table lists only the rest (carried over or retained with the earlier ticket,
+ * already done with its evidence, taken out with its reason, or questioned by the review, which
+ * points at the card), and is left out when there are none. Past a first revision each row also
+ * shows how its text changed from the revision before, and the table includes every criterion the
+ * revision takes out. A row whose disposition departs from what the text delta and the baseline
+ * suggest shows core's reading: the expectation, the review's question and the agent's reason. A
+ * clause opens on the Spec page; a work badge opens its ticket's card.
  */
 export function Reconciliation({
   mapId,

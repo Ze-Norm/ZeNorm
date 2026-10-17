@@ -69,7 +69,7 @@ const NOTHING: FogSettlementOutcome = {
 
 /** Waypoints 2 and 3, worked in parallel, both resolve leaving the fog; the fog run starts. */
 function raceToTheEnd(): string {
-  // Both runs are out at once, each seeing the other claimed (RC5).
+  // Both runs are out at once, each seeing the other claimed.
   const second = grillingRun(context, mapId, 2);
   const third = grillingRun(context, mapId, 3);
   expect(recordGrill(context.user, context.db, third.id, leavingFog(3)).ok).toBe(true);
@@ -79,7 +79,7 @@ function raceToTheEnd(): string {
   return fogRun.id;
 }
 
-describe("the fog run (harness change #4)", () => {
+describe("the fog run", () => {
   test("two parallel last waypoints leaving fog are not refused; the fog run settles it and the map clears", async () => {
     const fogRunId = raceToTheEnd();
     expect(runsOf(context, mapId).filter((run) => run.state === "failed")).toEqual([]);
@@ -87,7 +87,7 @@ describe("the fog run (harness change #4)", () => {
     const work = await prepareRun(context.db, fogRunId);
     if (!work.ok || work.value.purpose !== "fog") throw new Error("not a fog run");
     expect(work.value.request.fog.map((item) => item.position)).toEqual([1, 2]);
-    // The destination's rounds, as stored (DR-14).
+    // The destination's rounds, as stored.
     expect(work.value.request.mapRounds).toEqual([
       { questions: ROUND.questions, answers: ANSWERS, final: false },
     ]);

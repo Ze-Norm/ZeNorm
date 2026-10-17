@@ -27,7 +27,7 @@ import { criterionChange, wasLine } from "@/lib/specs";
 import { runInLabels, ticketCriteria, ticketDecisions } from "@/lib/tickets";
 import { ChangeBadge } from "@/pages/stages/spec/Changes";
 
-/** A waypoint reference's label, after the demo's "Decision" and "Research". */
+/** A waypoint reference's label. */
 const REFERENCE_KIND: Record<WaypointKind, string> = {
   grilling: "Decision",
   research: "Research",
@@ -43,7 +43,7 @@ function ticketTitle(tickets: readonly TicketContent[], id: string): string {
 }
 
 /**
- * The earlier delivered ticket a ticket follows up (S8b-14): core's follow-up and the earlier
+ * The earlier delivered ticket a ticket follows up: core's follow-up and the earlier
  * ticket's title, from the set of the revision that delivered it.
  */
 function followUpOf(
@@ -130,13 +130,13 @@ function WasLine({ delta, criterion }: { delta: TextDelta | null; criterion: str
 }
 
 /**
- * One ticket (D10; UX audit B2), led by what the person approves it for: its id and title, a row
- * of its key facts (what it waits on and what waits on it, the delivered ticket it follows up, what
- * it takes out), and the text of the criteria it carries under their clauses, past a first
- * revision each with how its text changed (its change badge, and a changed one's earlier wording). The implementer's
- * brief and the rest sit behind triggers with a count: Blocked by (what each supplies), Follow-up
- * to (the delivery it changes), Takes out, How it's built, Testing and completion, Out of scope,
- * and Decisions behind it (the waypoints its clauses rest on).
+ * One ticket, led by what the person approves it for: its id and title, a row of its key facts
+ * (what it waits on and what waits on it, the delivered ticket it follows up, what it takes out),
+ * and the text of the criteria it carries under their clauses, past a first revision each with how
+ * its text changed (its change badge, and a changed one's earlier wording). The implementer's brief
+ * and the rest sit behind triggers with a count: Blocked by (what each supplies), Follow-up to (the
+ * delivery it changes), Takes out, How it's built, Testing and completion, Out of scope, and
+ * Decisions behind it (the waypoints its clauses rest on).
  */
 export function TicketCard({
   detail,

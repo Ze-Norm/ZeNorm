@@ -51,8 +51,8 @@ async function until(condition: () => Promise<boolean> | boolean, what: string):
 }
 
 /**
- * Writes the session record for `pid`. `server` is the spawning server's fields (C6), or null for
- * a record written before records named their server (6.1).
+ * Writes the session record for `pid`. `server` is the spawning server's fields, or null for
+ * a record written before records named their server.
  */
 async function writeRecord(
   pid: number,
@@ -193,7 +193,7 @@ afterEach(async () => {
   await rm(root, { recursive: true, force: true });
 });
 
-describe("sweepSessions (S9-4, CR-1)", () => {
+describe("sweepSessions", () => {
   test("kills an orphaned session's group and a grandchild in a separate group", async () => {
     // sh (group leader) -> inner sh -> perl, which leaves for its own session and becomes sleep.
     const script = join(root, "session.sh");
@@ -230,7 +230,7 @@ describe("sweepSessions (S9-4, CR-1)", () => {
     expect(logLines).toHaveLength(1);
   });
 
-  test("signals the pid alone when it does not lead its own group (D3)", async () => {
+  test("signals the pid alone when it does not lead its own group", async () => {
     // Without setsid, the orphan stays in this test runner's group.
     const pid = await orphan(["/bin/sleep", "600"], false);
     await writeRecord(pid, "/bin/sleep", await goneServer());
@@ -242,7 +242,7 @@ describe("sweepSessions (S9-4, CR-1)", () => {
     expect(await readdir(sessionsDir)).toEqual([]);
   });
 
-  test("kills a session whose server is gone while a live stand-in subreaper is its parent (6.2)", async () => {
+  test("kills a session whose server is gone while a live stand-in subreaper is its parent", async () => {
     const { pid, reaper } = await underSubreaper("/bin/sleep", ["600"]);
     await writeRecord(pid, "/bin/sleep", await goneServer());
 
@@ -255,7 +255,7 @@ describe("sweepSessions (S9-4, CR-1)", () => {
     expect(logLines).toHaveLength(1);
   });
 
-  test("spares a session whose recorded server still runs with the recorded start time (6.2)", async () => {
+  test("spares a session whose recorded server still runs with the recorded start time", async () => {
     // A live server's session: the server is this test process, as `ps` shows it.
     const { pid, reaper } = await underSubreaper("/bin/sleep", ["600"]);
     await writeRecord(pid, "/bin/sleep", serverIdentity());
@@ -297,7 +297,7 @@ describe("sweepSessions (S9-4, CR-1)", () => {
     expect(logLines).toHaveLength(1);
   });
 
-  test("without server fields, kills an orphan whose parent is pid 1 (6.1)", async () => {
+  test("without server fields, kills an orphan whose parent is pid 1", async () => {
     const pid = await orphan(["/bin/sleep", "600"], true);
     // The older rule needs pid 1 to adopt the orphan: no subreaper above this test runner.
     expect((await processTable()).find((row) => row.pid === pid)?.ppid).toBe(1);
@@ -310,7 +310,7 @@ describe("sweepSessions (S9-4, CR-1)", () => {
     expect(logLines).toHaveLength(1);
   });
 
-  test("without server fields, spares a live process whose parent still runs (6.1, CR-1)", async () => {
+  test("without server fields, spares a live process whose parent still runs", async () => {
     // A live server's session, or the person's own `claude`: its parent is not pid 1.
     const sleeper = spawn("/bin/sleep", ["600"], { detached: true, stdio: "ignore" });
     const pid = track(sleeper);
@@ -324,7 +324,7 @@ describe("sweepSessions (S9-4, CR-1)", () => {
     expect(logLines).toHaveLength(1);
   });
 
-  test("without server fields, spares a session under a live stand-in subreaper (6.1)", async () => {
+  test("without server fields, spares a session under a live stand-in subreaper", async () => {
     const { pid } = await underSubreaper("/bin/sleep", ["600"]);
     await writeRecord(pid, "/bin/sleep", null);
 
@@ -335,7 +335,7 @@ describe("sweepSessions (S9-4, CR-1)", () => {
     expect(logLines).toHaveLength(1);
   });
 
-  test("spares an orphan that started at another time than its record says (CR-1)", async () => {
+  test("spares an orphan that started at another time than its record says", async () => {
     const pid = await orphan(["/bin/sleep", "600"], true);
     await writeRecord(
       pid,
@@ -351,7 +351,7 @@ describe("sweepSessions (S9-4, CR-1)", () => {
     expect(logLines).toHaveLength(1);
   });
 
-  test("spares an orphan whose command only starts with the recorded one, not on a word (CR-1)", async () => {
+  test("spares an orphan whose command only starts with the recorded one, not on a word", async () => {
     // The record names `<root>/sleep`; the orphan runs `<root>/sleep-foo`.
     const longer = join(root, "sleep-foo");
     await symlink("/bin/sleep", longer);
@@ -431,7 +431,7 @@ describe("sweepSessions (S9-4, CR-1)", () => {
   });
 });
 
-describe("sweepRunFolders (S9-5)", () => {
+describe("sweepRunFolders", () => {
   let db: ZeNormDatabase;
   let runsDir: string;
   const knownRunId = "019a0000-0000-7000-8000-000000000001";
@@ -443,7 +443,7 @@ describe("sweepRunFolders (S9-5)", () => {
     const migrated = migrateDatabase(db, MIGRATIONS_FOLDER);
     if (!migrated.ok) throw new Error(migrated.error.code);
     runsDir = join(root, "runs");
-    // The database is opened as startup opens it: the feed's triggers in place (CR9b-15).
+    // The database is opened as startup opens it: the feed's triggers in place.
     installChangeFeed(db);
     // The sweep reads only `delivery_runs.id`; the run's other parents are not needed for that.
     // The row still carries the one User, and is written as the system, as every write is.

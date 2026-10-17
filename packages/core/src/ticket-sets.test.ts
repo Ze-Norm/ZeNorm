@@ -238,7 +238,7 @@ const invalid: [string, unknown][] = [
   ["two tickets sharing an id", { ...TICKETS, tickets: [T1, { ...T2, id: "T1" }] }],
 ];
 
-describe("to_tickets content against the revision (S7-13)", () => {
+describe("to_tickets content against the revision", () => {
   test.each(invalid)(
     "%s fails the run ticket_set_content_invalid and writes nothing",
     async (_, content) => {
@@ -274,7 +274,7 @@ describe("to_tickets content against the revision (S7-13)", () => {
     expect(readSetVersion(context.db, set.id, 1).content).toEqual(content);
   });
 
-  test("a run cancelled while its port call was out saves nothing (S8b-9 prefactor)", async () => {
+  test("a run cancelled while its port call was out saves nothing", async () => {
     const { specRevisionId, run } = await awaitingTickets();
     writeTestData(context, (tx) =>
       tx
@@ -294,7 +294,7 @@ describe("to_tickets content against the revision (S7-13)", () => {
   });
 });
 
-describe("ticket numbering (S7-14)", () => {
+describe("ticket numbering", () => {
   test("a spec's first set numbers from T1", async () => {
     const { ticketSetId } = await reviewedTicketSet(context, project);
     expect(storedIds(ticketSetId, 1)).toEqual(["T1", "T2"]);
@@ -302,7 +302,7 @@ describe("ticket numbering (S7-14)", () => {
 
   /**
    * Spec 1's revision 1 with an approved set (T1, T2), then revision 2 approved on the same map
-   * (rows inserted directly: slice 7 writes no later revision of an approved spec) with its
+   * (rows inserted directly, not by a re-clear) with its
    * `to_tickets` running.
    */
   async function laterRevision() {
@@ -357,7 +357,7 @@ describe("ticket numbering (S7-14)", () => {
       },
     ],
   ])(
-    "ids starting anywhere but the start number, or out of order (%s), are refused, writing nothing (S8b-12)",
+    "ids starting anywhere but the start number, or out of order (%s), are refused, writing nothing",
     async (_, content) => {
       const { specRevisionId, run } = await laterRevision();
       expect(recordTicketSet(context.user, context.db, run.id, content)).toMatchObject({
@@ -405,7 +405,7 @@ function renumbered(content: TicketSetContent, by: number): TicketSetContent {
   };
 }
 
-describe("rejection and rewrite (S7-17, S7-18)", () => {
+describe("rejection and rewrite", () => {
   test("reject records the reason against version 1 and starts the rewrite with it", async () => {
     const { ticketSetId, run } = await rejectedSet();
     expect(context.db.select().from(ticketSetRejections).all()).toMatchObject([
@@ -438,7 +438,7 @@ describe("rejection and rewrite (S7-17, S7-18)", () => {
     expect(set).toMatchObject({ id: ticketSetId, state: "awaiting_review", version: 2 });
     expect(readSetVersion(context.db, ticketSetId, 1)).toEqual(before);
     expect(readSetVersion(context.db, ticketSetId, 2).content).toEqual(rewritten);
-    // S7c-7: the rewrite's version gets its own review, started with it; approval waits for it.
+    // The rewrite's version gets its own review, started with it; approval waits for it.
     expect(
       runsOf(context, mapId)
         .filter((candidate) => candidate.state === "running")
@@ -565,7 +565,7 @@ describe("rejection and rewrite (S7-17, S7-18)", () => {
     }
   });
 
-  test("S7c-6 (L167 B1): a passed version whose rejection rewrite stopped is not decided; Try again stays", async () => {
+  test("a passed version whose rejection rewrite stopped is not decided; Try again stays", async () => {
     const { mapId, ticketSetId, run } = await rejectedSet();
     failRun(context.user, context.db, run.id, { code: "agent_run_failed", message: "first" });
     const retry = runningSpecRun(context, mapId, "to_tickets");
@@ -609,7 +609,7 @@ function expectDecisionsRefused(ticketSetId: string, code: string): void {
   }
 }
 
-describe("the first tickets review (S7c-2, S7c-3)", () => {
+describe("the first tickets review", () => {
   test("a written set's first version gets one tickets_review, started in the writing transaction", async () => {
     const { run, mapId } = await awaitingTickets();
     expect(runningPurposes(mapId)).toEqual(["to_tickets"]);
@@ -715,7 +715,7 @@ describe("the first tickets review (S7c-2, S7c-3)", () => {
   );
 });
 
-describe("the approval gate (S7c-6, S7c-7)", () => {
+describe("the approval gate", () => {
   test("a running review is review_in_flight", async () => {
     const { ticketSetId } = await draftedTicketSet(context, project);
     expectDecisionsRefused(ticketSetId, "review_in_flight");
@@ -774,7 +774,7 @@ describe("the approval gate (S7c-6, S7c-7)", () => {
   });
 });
 
-describe("a review whose set moved on saves nothing (S7c-10)", () => {
+describe("a review whose set moved on saves nothing", () => {
   test("the set was approved meanwhile", async () => {
     const { mapId, specificationId, ticketSetId } = await reviewedTicketSet(context, project);
     expect(approveTicketSet(context.user, context.db, { ticketSetId }).ok).toBe(true);
@@ -809,7 +809,7 @@ describe("a review whose set moved on saves nothing (S7c-10)", () => {
   });
 });
 
-// --- Slice 8b: a later revision's set against the stored records (S8b-12, D7) ---
+// --- A later revision's set against the stored records ---
 
 /** r2 of the delivered spec: 1.1 unchanged, 1.2 removed, 1.3 new, and a new clause C2 with 2.1. */
 const R2_SPEC: SpecRevisionContent = {
@@ -855,7 +855,7 @@ function laterTicket(id: string, criteria: string[]): TicketContent {
 
 /**
  * A valid r2 set: `delivered` (1.1 by T2), `work` with a follow-up (1.3 by T3, following T1),
- * `satisfied` (2.1) and `removed` with a taking-out ticket (1.2 by T4, which carries nothing).
+ * `satisfied` and `removed` with a taking-out ticket (1.2 by T4, which carries nothing).
  */
 const R2_TICKETS: TicketSetContent = {
   tickets: [
@@ -1008,7 +1008,7 @@ const refusedLater: [string, TicketSetContent][] = [
   ],
 ];
 
-describe("a later revision's set against the stored records (S8b-12)", () => {
+describe("a later revision's set against the stored records", () => {
   test.each(refusedLater)(
     "%s fails the run ticket_set_content_invalid and writes nothing",
     async (_, content) => {
@@ -1085,7 +1085,7 @@ describe("a later revision's set against the stored records (S8b-12)", () => {
     expect(recordTicketSet(context.user, context.db, retry.id, R2_REMOVED_BY_NONE).ok).toBe(true);
   });
 
-  test("a criterion an approved set of an earlier revision took out is never demanded again (L213 D-1)", async () => {
+  test("a criterion an approved set of an earlier revision took out is never demanded again", async () => {
     // r1 delivered (T1 carries 1.2); another map's r2 drops 1.2 and its approved set takes it out;
     // the first map's r3 words r2 again.
     const delivered = await deliveredSpec(context, project);
@@ -1175,7 +1175,7 @@ describe("a later revision's set against the stored records (S8b-12)", () => {
     });
   });
 
-  test("retained is refused on a same-map note: its carrier is no longer deliverable (D5)", async () => {
+  test("retained is refused on a same-map note: its carrier is no longer deliverable", async () => {
     const { specRevisionId, run } = await undeliveredThenRevised("same-map");
     expect(recordTicketSet(context.user, context.db, run.id, RETAINED)).toMatchObject({
       ok: false,
@@ -1198,7 +1198,7 @@ describe("a later revision's set against the stored records (S8b-12)", () => {
   });
 });
 
-describe("approve and reject refuse a replaced set (D7, S8b-9)", () => {
+describe("approve and reject refuse a replaced set", () => {
   /** A replaced set of another map: r2 approved with a set in `state`, then r3 unapproved. */
   async function replaced(state: "review_passed" | "awaiting_review") {
     const delivered = await deliveredSpec(context, project);
@@ -1292,7 +1292,7 @@ describe("approve and reject refuse a replaced set (D7, S8b-9)", () => {
     });
   });
 
-  test("a reviewed zero-ticket set is approved like any set (S8b-15)", async () => {
+  test("a reviewed zero-ticket set is approved like any set", async () => {
     const delivered = await deliveredSpec(context, project);
     const mapId = await clearedMap(context, project);
     const next = insertNextRevision(context, {

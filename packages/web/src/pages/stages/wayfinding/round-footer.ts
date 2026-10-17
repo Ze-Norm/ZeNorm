@@ -1,7 +1,7 @@
 import { isLastMapRound, type QuestionRound } from "@zenorm/contracts";
 
 /**
- * The open round's footer line (spec D8, DR-18), pure so it is tested without a DOM. A map-level
+ * The open round's footer line, pure so it is tested without a DOM. A map-level
  * round: the last (`isLastMapRound`) says sending it confirms the destination; any other (round 1
  * always is) says the agent confirms from the answers or asks a short follow-up. A waypoint round:
  * its last round's resolution line, or that the answers may open further questions.

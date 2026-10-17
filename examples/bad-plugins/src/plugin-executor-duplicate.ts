@@ -11,7 +11,7 @@ const NOT_RUN: DeliveryAgentError = {
   data: { exitCode: null, subtype: null },
 };
 
-/** A plugin that registers an executor named `"local"`, the app's own (S9-22). */
+/** A plugin that registers an executor named `"local"`, the app's own. */
 export const pluginExecutorDuplicate: BadServerCase = {
   kind: "server",
   code: "plugin_executor_duplicate",

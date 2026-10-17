@@ -25,11 +25,11 @@ import {
 } from "@/pages/stages/wayfinding/shared";
 
 /**
- * Wayfinding (6a D9, 6b D8). While the map has no title: only its one next action. Then the index
+ * Wayfinding. While the map has no title: only its one next action. Then the index
  * beside the map overview: a card per pending round (**Answer**), per stopped scope and per
  * waiting waypoint (**Try again**), else the one agent card; the destination once confirmed;
  * Decisions so far; Not yet specified; Out of scope; Suggested new maps. Every action comes from
- * `map.overview` (D4); no button starts a waypoint.
+ * `map.overview`; no button starts a waypoint.
  */
 export function WayfindingStagePage({ detail }: { detail: MapOverviewDetail }) {
   const mapId = detail.map.id;
@@ -64,9 +64,9 @@ export function WayfindingStagePage({ detail }: { detail: MapOverviewDetail }) {
 }
 
 /**
- * The overview's next-action cards (D9): every round and stopped scope waiting on you; else the
- * one thing the agent is doing; once Wayfinding is done, the map's next action wherever it is (the
- * demo's cleared map shows its Next card, e.g. Spec's; L135 (d)).
+ * The overview's next-action cards: every round and stopped scope waiting on you; else the one
+ * thing the agent is doing; once Wayfinding is done, the map's next action wherever it is (a
+ * cleared map shows its Next card, e.g. Spec's).
  */
 function wayfindingCards(
   detail: MapOverviewDetail,
@@ -93,7 +93,7 @@ function Overview({ detail }: { detail: MapOverviewDetail }) {
   const yours = wayfinding.filter((action) => action.who === "you");
   const agent = wayfinding.find((action) => action.who === "agent");
   const shown = wayfindingCards(detail, yours, agent);
-  // Out-of-scope waypoints are neither counted nor waited on (spec D5, D8).
+  // Out-of-scope waypoints are neither counted nor waited on.
   const inScope = waypoints.filter((waypoint) => waypoint.status !== "out_of_scope");
   const unresolved = inScope.some((waypoint) => waypoint.status !== "resolved");
   const decided = inScope.filter((waypoint) => waypoint.status === "resolved");
@@ -217,9 +217,9 @@ function OutOfScopeLine({ mapId, line }: { mapId: string; line: MapOutOfScopeLin
 }
 
 /**
- * Where a decision line came from (spec D8): research findings, a task done, or the rounds; a
+ * Where a decision line came from: research findings, a task done, or the rounds; a
  * Grilling waypoint resolved without asking (the consistency pass or the hatch closed it) says so
- * rather than counting no questions (UX audit E3).
+ * rather than counting no questions.
  */
 function decisionSource(waypoint: WayfindingWaypoint): string {
   switch (waypoint.kind) {
@@ -264,8 +264,8 @@ function DecisionLine({ mapId, waypoint }: { mapId: string; waypoint: Wayfinding
 }
 
 /**
- * A next action's card: its label (**Answer**, S7b-16) opening its round, or the stopped run's code with **Try
- * again**; an agent card carries no button.
+ * A next action's card: its label (**Answer**) opening its round, or the stopped run's code with
+ * **Try again**; an agent card carries no button.
  */
 function ActionCard({ mapId, next }: { mapId: string; next: NextAction }) {
   if (next.stopped !== null) {
@@ -274,7 +274,7 @@ function ActionCard({ mapId, next }: { mapId: string; next: NextAction }) {
   if (next.round === null) {
     return <NextActionCard mapId={mapId} next={next} />;
   }
-  // The round's button, as core labels it (S7b-16).
+  // The round's button, as core labels it.
   const { label } = next;
   if (label === null) {
     throw new Error(`Map ${mapId}'s round on ${next.stage} has no button label`);

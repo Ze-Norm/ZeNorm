@@ -36,7 +36,7 @@ function title(page: Page) {
   return page.getByRole("heading", { level: 1 });
 }
 
-/** The rail's link to `stage`, which carries the stage's status line (D8). */
+/** The rail's link to `stage`, which carries the stage's status line. */
 function stageLink(page: Page, mapId: string, stage: "spec" | "tickets") {
   return rail(page).locator(`a[href="/maps/${mapId}/${stage}"]`);
 }
@@ -50,7 +50,7 @@ test("writes, reviews and approves a spec, then writes and approves its tickets"
     "Let people take their records elsewhere",
   );
 
-  // Spec: revision 1 is written, its planning review passes, and it waits on the person (D8, D9).
+  // Spec: revision 1 is written, its planning review passes, and it waits on the person.
   await expect(title(page)).toHaveText(SPEC_TITLE);
   await expect(page.getByText(/^Spec · revision 1 · draft · saved /)).toBeVisible();
   await expect(stageLink(page, mapId, "spec")).toContainText("Awaiting your approval");
@@ -60,7 +60,7 @@ test("writes, reviews and approves a spec, then writes and approves its tickets"
     "page",
   );
   await expect(page.getByRole("navigation", { name: "Spec index" })).toBeVisible();
-  // Each clause shows what it declares it adds (RC1), folded behind its details toggle.
+  // Each clause shows what it declares it adds, folded behind its details toggle.
   await page.getByRole("button", { name: /^Details of C1: / }).click();
   await expect(page.getByLabel("What C1 adds")).toHaveText("AddsCSV export");
 
@@ -68,7 +68,7 @@ test("writes, reviews and approves a spec, then writes and approves its tickets"
   await expect(page.getByText(/^Spec · revision 1 · approved · saved /)).toBeVisible();
   await expect(stageLink(page, mapId, "spec")).toContainText("Approved");
 
-  // Tickets: the tickets are written by themselves and wait on the person (D8, D10).
+  // Tickets: the tickets are written by themselves and wait on the person.
   await openStage(page, mapId, "tickets");
   await expect(page.getByText(/^Tickets · revision 1 · /)).toBeVisible();
   const tickets = page.getByRole("list", { name: "Tickets" });
@@ -103,7 +103,7 @@ test("writes, reviews and approves a spec, then writes and approves its tickets"
       0,
     );
     // The approved set reaches Delivery: the project has no required checks yet, so the quiet
-    // card says why and links Project settings; there is no Start delivery form (UX audit D1).
+    // card says why and links Project settings; there is no Start delivery form.
     await page.goto(`/maps/${mapId}/delivery`);
     await expect(nextCard(page)).toHaveAttribute("data-tone", "blocker");
     await expect(nextCard(page).getByRole("link", { name: "Set required checks" })).toBeVisible();
@@ -132,7 +132,7 @@ test("a To Spec run that fails twice stops with its code and Try again writes re
 
   await openStage(page, mapId, "spec");
   const card = nextCard(page);
-  // The card says why in a sentence, marked with the code (UX audit P1-1).
+  // The card says why in a sentence, marked with the code.
   await expect(card.locator("[data-code=agent_run_failed]")).toBeVisible();
   await expect(card).not.toContainText("agent_run_failed");
   await card.getByRole("button", { name: "Try again" }).click();

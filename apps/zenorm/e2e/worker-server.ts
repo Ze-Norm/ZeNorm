@@ -98,7 +98,7 @@ function createWorkerRoot(port: number): string {
   git(["init", "-q", "--bare", pushTargetRepo()]);
   git(["-C", pullRequestRepo, "remote", "add", "origin", GITHUB_ORIGIN_URL]);
   git(["-C", pullRequestRepo, "config", `url.${pushTargetRepo()}.insteadOf`, GITHUB_ORIGIN_URL]);
-  // The fake gh the server runs, first on its PATH (2.4).
+  // The fake gh the server runs, first on its PATH.
   mkdirSync(ghBinDir());
   mkdirSync(ghStateDir());
   writeFileSync(join(ghBinDir(), "gh"), fakeGhScript(ghStateDir()), { mode: 0o755 });

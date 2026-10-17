@@ -99,14 +99,14 @@ test("adds a repository with no commit: planning works and Start delivery is dis
   await expect(composer).toHaveCount(0);
 
   // Planning runs to an approved ticket set; the Delivery stage then shows the same reason, under
-  // core's `nobody` action: the map is quiet, not waiting on the person (spec D4).
+  // core's `nobody` action: the map is quiet, not waiting on the person.
   const mapId = await approvedMap(
     page,
     noCommitRepo(),
     "Plan a change in a repository with no commit",
   );
   // The quiet card lists every blocker and links Project settings; it has no Start delivery form
-  // to disable (UX audit D1).
+  // to disable.
   await expect(nextCard(page)).toHaveAttribute("data-who", "nobody");
   await expect(nextCard(page)).toHaveAttribute("data-tone", "blocker");
   await expect(startDeliveryForm(page)).toHaveCount(0);

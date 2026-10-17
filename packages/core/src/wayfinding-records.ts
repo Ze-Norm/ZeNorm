@@ -26,7 +26,7 @@ import { and, asc, eq, sql } from "drizzle-orm";
 
 import type { Reader } from "./planning-runs.ts";
 
-/** The map's fog items by position (slice 6b D1, D6). */
+/** The map's fog items by position. */
 export function readFog(db: Reader, mapId: string): FogItem[] {
   return db
     .select({ position: mapFog.position, text: mapFog.text })
@@ -48,7 +48,7 @@ export interface Exclusion {
   readonly splitMapId: string | null;
 }
 
-/** The map's Out of scope lines by position (slice 6b D1). */
+/** The map's Out of scope lines by position. */
 export function readExclusions(db: Reader, mapId: string): Exclusion[] {
   return db
     .select({
@@ -73,7 +73,7 @@ function waypointOf(mapWaypoints: readonly Waypoint[], waypointId: string): Wayp
   return waypoint;
 }
 
-/** The map's Out of scope lines as the snapshot reads them (spec D6). */
+/** The map's Out of scope lines as the snapshot reads them. */
 export function outOfScopeLines(
   exclusions: readonly Exclusion[],
   mapWaypoints: readonly Waypoint[],
@@ -217,7 +217,7 @@ export function readTaskOutcomes(db: Reader, mapId: string): StoredTaskOutcome[]
 /** A consistency finding with the id of the waypoint it opened. */
 export type StoredFinding = WaypointFinding & { readonly waypointId: string };
 
-/** The findings that opened the map's waypoints (slice 6b D1). */
+/** The findings that opened the map's waypoints. */
 export function readFindings(db: Reader, mapId: string): StoredFinding[] {
   return db
     .select({
@@ -232,7 +232,7 @@ export function readFindings(db: Reader, mapId: string): StoredFinding[] {
     .all();
 }
 
-/** A consistency pass (spec D1, D5): its run, what it compared and how many findings it saved. */
+/** A consistency pass: its run, what it compared and how many findings it saved. */
 export interface StoredPass {
   readonly runId: string;
   readonly compared: readonly { readonly waypointId: string; readonly resolvedAt: string }[];

@@ -12,7 +12,7 @@ export const PACKAGED_ASSET_DIRS = {
   migrationsFolder: "migrations",
 } as const;
 
-/** The assets the built package ships in `distDir`, the bundle's own folder (1.3). */
+/** The assets the built package ships in `distDir`, the bundle's own folder. */
 export function packagedAssets(distDir: string): ZeNormAssets {
   return {
     webDistDir: join(distDir, PACKAGED_ASSET_DIRS.webDistDir),

@@ -1,9 +1,9 @@
 import { isDefinedError } from "@orpc/client";
 
 /**
- * How the web app treats a failed read (slice 9 S9-14 Part B): a contract-defined error is the
- * answer and shows at once (CR9b-5); a fetch that never reached the server is the live layer's
- * business, so the page keeps what it has and the live Alert is the one signal (QA-3).
+ * How the web app treats a failed read: a contract-defined error is the answer and shows at once;
+ * a fetch that never reached the server is the live layer's business, so the page keeps what it
+ * has and the live Alert is the one signal.
  */
 
 /** How many times a read is retried after its first failure, unless its error is contract-defined. */
@@ -19,7 +19,7 @@ export function isFetchFailure(error: Error): boolean {
 }
 
 /**
- * The query client's `retry` (CR9b-5): a contract-defined error (`access_denied`, `map_not_found`,
+ * The query client's `retry`: a contract-defined error (`access_denied`, `map_not_found`,
  * …) is never retried; any other error is retried up to `QUERY_RETRIES` times.
  */
 export function retryQuery(failureCount: number, error: Error): boolean {

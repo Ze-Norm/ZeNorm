@@ -6,7 +6,7 @@ import { EntityId, MapIdea, MapTitle, QuestionRound } from "./map.ts";
 export const WAYPOINT_TITLE_MAX_LENGTH = 120;
 export const WAYPOINT_QUESTION_MAX_LENGTH = 1000;
 export const WAYPOINT_RESOLUTION_MAX_LENGTH = 4000;
-/** A resolved waypoint's one-line gist, as the map's Decisions so far shows it (S6a-5). */
+/** A resolved waypoint's one-line gist, as the map's Decisions so far shows it. */
 export const WAYPOINT_GIST_MAX_LENGTH = 200;
 /** The longest call a resolution lists as the agent's own (`agentDecided`). */
 export const WAYPOINT_AGENT_DECIDED_MAX_LENGTH = 200;
@@ -26,37 +26,37 @@ export const WaypointAgentDecided = z
   .max(WAYPOINT_AGENT_DECIDED_MAX_COUNT);
 export type WaypointAgentDecided = z.infer<typeof WaypointAgentDecided>;
 
-/** A waypoint's kind (spec D1). */
+/** A waypoint's kind. */
 export const WaypointKind = z.enum(["grilling", "research", "task"]);
 export type WaypointKind = z.infer<typeof WaypointKind>;
 
 export const WaypointStatus = z.enum(["open", "claimed", "resolved", "out_of_scope"]);
 export type WaypointStatus = z.infer<typeof WaypointStatus>;
 
-/** How a resolved waypoint was settled: by an agent run, or by ZeNorm from plain choices (D6). */
+/** How a resolved waypoint was settled: by an agent run, or by ZeNorm from plain choices. */
 export const WaypointResolvedHow = z.enum(["run", "plain_choice"]);
 export type WaypointResolvedHow = z.infer<typeof WaypointResolvedHow>;
 
-/** A fog item's and an Out of scope line's longest text (spec D1). */
+/** A fog item's and an Out of scope line's longest text. */
 export const MAP_LINE_MAX_LENGTH = 500;
 
-/** A research report's longest summary (spec D1). */
+/** A research report's longest summary. */
 export const RESEARCH_SUMMARY_MAX_LENGTH = 4000;
-/** A research source's longest title and excerpt, and a finding's longest detail (spec D1). */
+/** A research source's longest title and excerpt, and a finding's longest detail. */
 export const RESEARCH_SOURCE_TITLE_MAX_LENGTH = 200;
 export const RESEARCH_EXCERPT_MAX_LENGTH = 2000;
 export const RESEARCH_FINDING_DETAIL_MAX_LENGTH = 2000;
-/** A research report's longest gap, limitation or uncertainty (spec D1). */
+/** A research report's longest gap, limitation or uncertainty. */
 export const RESEARCH_NOTE_MAX_LENGTH = 1000;
 
 /** A fog item's or an Out of scope line's text. */
 export const MapLine = z.string().min(1).max(MAP_LINE_MAX_LENGTH);
 
-/** One fog item as a waypoint run reads it: its stable position and its text (spec D1). */
+/** One fog item as a waypoint run reads it: its stable position and its text. */
 export const FogItem = z.strictObject({ position: z.int().min(1), text: MapLine });
 export type FogItem = z.infer<typeof FogItem>;
 
-/** Where a research source comes from (spec D1); only `external` carries a URL. */
+/** Where a research source comes from; only `external` carries a URL. */
 export const ResearchSourceKind = z.enum([
   "map",
   "waypoint",
@@ -112,10 +112,10 @@ export const ConsistencyFindingKind = z.enum([
 ]);
 export type ConsistencyFindingKind = z.infer<typeof ConsistencyFindingKind>;
 
-/** A research report's gap, limitation or uncertainty (spec D1). */
+/** A research report's gap, limitation or uncertainty. */
 const ResearchNote = z.string().min(1).max(RESEARCH_NOTE_MAX_LENGTH);
 
-/** A stored research report as the snapshot reads it (spec D1, D6): keyed by its run; sources by position. */
+/** A stored research report as the snapshot reads it: keyed by its run; sources by position. */
 export const WaypointReport = z.strictObject({
   runId: EntityId,
   answered: z.boolean(),
@@ -129,11 +129,11 @@ export const WaypointReport = z.strictObject({
 });
 export type WaypointReport = z.infer<typeof WaypointReport>;
 
-/** How a Task run ended when it asked no round (S6b-8). */
+/** How a Task run ended when it asked no round. */
 export const TaskOutcomeKind = z.enum(["done", "failed"]);
 export type TaskOutcomeKind = z.infer<typeof TaskOutcomeKind>;
 
-/** A stored task outcome as the snapshot reads it (spec D1, D6); `facts` are never empty. */
+/** A stored task outcome as the snapshot reads it; `facts` are never empty. */
 export const WaypointTaskOutcome = z.strictObject({
   runId: EntityId,
   outcome: TaskOutcomeKind,
@@ -142,7 +142,7 @@ export const WaypointTaskOutcome = z.strictObject({
 });
 export type WaypointTaskOutcome = z.infer<typeof WaypointTaskOutcome>;
 
-/** The consistency finding that opened a waypoint, as the snapshot reads it (spec D1, D6). */
+/** The consistency finding that opened a waypoint, as the snapshot reads it. */
 export const WaypointFinding = z.strictObject({
   kind: ConsistencyFindingKind,
   /** The resolved waypoints it names, by number. */
@@ -152,8 +152,8 @@ export const WaypointFinding = z.strictObject({
 export type WaypointFinding = z.infer<typeof WaypointFinding>;
 
 /**
- * The planning review finding that sent a waypoint on (slice 7 S7-8, L136 (a)), as the snapshot
- * reads it: the spec's number and title, the explanation, and the clause and criterion ids named.
+ * The planning review finding that sent a waypoint on, as the snapshot reads it: the spec's number
+ * and title, the explanation, and the clause and criterion ids named.
  */
 export const WaypointReviewFinding = z.strictObject({
   spec: z.int().min(1),
@@ -164,8 +164,8 @@ export const WaypointReviewFinding = z.strictObject({
 export type WaypointReviewFinding = z.infer<typeof WaypointReviewFinding>;
 
 /**
- * One of the map's Out of scope lines (spec D6): `waypoint` is its waypoint's number, or null;
- * `splitMapId` the map a confirmed proposal split its work into, or null.
+ * One of the map's Out of scope lines: `waypoint` is its waypoint's number, or null; `splitMapId`
+ * the map a confirmed proposal split its work into, or null.
  */
 export const MapOutOfScopeLine = z.strictObject({
   text: MapLine,
@@ -220,11 +220,11 @@ export type ConfirmProposalInput = z.infer<typeof ConfirmProposalInput>;
 export const DismissProposalInput = z.strictObject({ proposalId: EntityId });
 export type DismissProposalInput = z.infer<typeof DismissProposalInput>;
 
-/** A stored waypoint (spec D1). The resolution fields are set exactly when it is resolved. */
+/** A stored waypoint. The resolution fields are set exactly when it is resolved. */
 export const Waypoint = z.strictObject({
   id: EntityId,
   mapId: EntityId,
-  /** One plus the map's highest when created (S6a-5). */
+  /** One plus the map's highest when created. */
   number: z.int().min(1),
   kind: WaypointKind,
   status: WaypointStatus,
@@ -242,7 +242,7 @@ export const Waypoint = z.strictObject({
   resolvedByRun: EntityId.nullable(),
   /** The planning run that charted it. */
   createdByRun: EntityId,
-  /** The latest hatch message that opened, reopened, reworded or directed it (S7b-10); else null. */
+  /** The latest hatch message that opened, reopened, reworded or directed it; else null. */
   hatchMessageId: EntityId.nullable(),
   /**
    * True when a planning review finding routed `decision` opened or linked it: only the person
@@ -252,7 +252,7 @@ export const Waypoint = z.strictObject({
 });
 export type Waypoint = z.infer<typeof Waypoint>;
 
-/** Every planning run purpose `CONTEXT.md` names (spec D1, B43); this slice starts four. */
+/** Every planning run purpose `CONTEXT.md` names; this slice starts four. */
 export const PlanningRunPurpose = z.enum([
   "chart",
   "survey",
@@ -269,40 +269,40 @@ export const PlanningRunPurpose = z.enum([
 ]);
 export type PlanningRunPurpose = z.infer<typeof PlanningRunPurpose>;
 
-/** A planning run's state: `asked` ends it with a question round; `cancelled` is for 7b. */
+/** A planning run's state: `asked` ends it with a question round; `cancelled` carries its `cancelReason`. */
 export const PlanningRunState = z.enum(["running", "asked", "completed", "failed", "cancelled"]);
 export type PlanningRunState = z.infer<typeof PlanningRunState>;
 
 /**
- * Why a run ended `cancelled`: a re-clear `to_spec` replaced a running repair (slice 7 S7-25), or a
- * hatch change reopened, reworded or ruled out its scope (slice 7b S7b-6, S7b-9).
+ * Why a run ended `cancelled`: a re-clear `to_spec` replaced a running repair, or a hatch change
+ * reopened, reworded or ruled out its scope.
  */
 export const PlanningRunCancelReason = z.enum(["replaced", "reopened"]);
 export type PlanningRunCancelReason = z.infer<typeof PlanningRunCancelReason>;
 
-/** A stored planning run (spec D1, D3). Its scope is its waypoint, else its map (L27). */
+/** A stored planning run. Its scope is its waypoint, else its map. */
 export const PlanningRun = z.strictObject({
   id: EntityId,
   mapId: EntityId,
   /** Set for a `grilling`, `research` or `task` run, else null. */
   waypointId: EntityId.nullable(),
   /**
-   * The spec a `spec_review`, `tickets_review`, `to_tickets` or spec-scoped `to_spec` run works
-   * (slice 7 D1), else null.
+   * The spec a `spec_review`, `tickets_review`, `to_tickets` or spec-scoped `to_spec` run works,
+   * else null.
    */
   specificationId: EntityId.nullable(),
   purpose: PlanningRunPurpose,
   state: PlanningRunState,
-  /** The failed run this one retries; null for a first attempt (S6a-12). */
+  /** The failed run this one retries; null for a first attempt. */
   retryOfRunId: EntityId.nullable(),
   /** Set exactly when the run failed. */
   errorCode: PlanningRunFailureCode.nullable(),
   errorMessage: z.string().nullable(),
-  /** Set exactly when the run was cancelled (S7-25). */
+  /** Set exactly when the run was cancelled. */
   cancelReason: PlanningRunCancelReason.nullable(),
   /**
    * The hatch message the run answers (a `hatch` run, always) or whose note started it (a `to_spec`
-   * or `to_tickets` run, S7b-13); else null.
+   * or `to_tickets` run); else null.
    */
   hatchMessageId: EntityId.nullable(),
   /** ISO 8601 UTC. */
@@ -319,13 +319,13 @@ export const StoppedRun = z.strictObject({
 });
 export type StoppedRun = z.infer<typeof StoppedRun>;
 
-/** Why a waypoint waits on the person after a completed run (slice 6b S6b-6, D6). */
+/** Why a waypoint waits on the person after a completed run. */
 export const WaitingReason = z.enum(["research_unanswered", "task_failed"]);
 export type WaitingReason = z.infer<typeof WaitingReason>;
 
 /**
- * A waiting waypoint's latest run (S6b-6): `completed` with an unanswered report or a `failed` task
- * outcome. `runId` is what **Try again** sends (S6b-12, L115).
+ * A waiting waypoint's latest run: `completed` with an unanswered report or a `failed` task
+ * outcome. `runId` is what **Try again** sends.
  */
 export const WaitingRun = z.strictObject({ runId: EntityId, reason: WaitingReason });
 export type WaitingRun = z.infer<typeof WaitingRun>;
@@ -351,19 +351,18 @@ export const WaypointState = z.discriminatedUnion("kind", [
 export type WaypointState = z.infer<typeof WaypointState>;
 
 /**
- * A spec a waypoint changes, as Wayfinding shows it (slice 8b D2; the demo's `TouchesCard`): the
- * touched revision, and each named criterion with its text in that revision and whether it was
- * delivered (its baseline, S8b-11). Criterion ids are `spec-content.ts`'s `CriterionId`, which
- * imports this module.
+ * A spec a waypoint changes, as Wayfinding shows it: the touched revision, and each named criterion
+ * with its text in that revision and whether it was delivered (its baseline). Criterion ids are
+ * `spec-content.ts`'s `CriterionId`, which imports this module.
  */
 export const WaypointTouchView = z.strictObject({
   specNumber: z.int().min(1),
   specTitle: z.string().min(1),
   revision: z.int().min(1),
-  /** The map that wrote the touched revision (the demo's "Its current revision came from …"). */
+  /** The map that wrote the touched revision. */
   writerMapId: EntityId,
   writerMapTitle: MapTitle,
-  /** Whether a merged run delivered the touched revision's set (the demo's `deliveredRun`). */
+  /** Whether a merged run delivered the touched revision's set. */
   delivered: z.boolean(),
   /** How many revisions of the spec came after the touched one, on any map. */
   laterRevisions: z.int().min(0),
@@ -382,8 +381,8 @@ export const WaypointTouchView = z.strictObject({
 export type WaypointTouchView = z.infer<typeof WaypointTouchView>;
 
 /**
- * A waypoint in the `map.overview` snapshot (slice 6a D4, slice 6b D6): its blockers' numbers, its
- * rounds, its research reports, task outcomes, opening finding, Out of scope line, and its state.
+ * A waypoint in the `map.overview` snapshot: its blockers' numbers, its rounds, its research
+ * reports, task outcomes, opening finding, Out of scope line, and its state.
  */
 export const WayfindingWaypoint = z.strictObject({
   ...Waypoint.shape,
@@ -399,21 +398,21 @@ export const WayfindingWaypoint = z.strictObject({
   finding: WaypointFinding.nullable(),
   /** The planning review finding that sent it on, or null. */
   reviewFinding: WaypointReviewFinding.nullable(),
-  /** Its Out of scope line once a run ruled it out of scope (S6b-5), else null. */
+  /** Its Out of scope line once a run ruled it out of scope, else null. */
   exclusion: MapLine.nullable(),
   state: WaypointState,
-  /** The specs it changes (slice 8b S8b-2), stored at charting, by spec number. */
+  /** The specs it changes, stored at charting, by spec number. */
   touches: z.array(WaypointTouchView),
 });
 export type WayfindingWaypoint = z.infer<typeof WayfindingWaypoint>;
 
-/** The map's Wayfinding in the `map.overview` snapshot (spec D4). */
+/** The map's Wayfinding in the `map.overview` snapshot. */
 export const Wayfinding = z.strictObject({
   /** The map-level rounds, oldest first. */
   mapRounds: z.array(QuestionRound),
   /** By number. */
   waypoints: z.array(WayfindingWaypoint),
-  /** The map's fog (Not yet specified), by position (slice 6b D6). */
+  /** The map's fog (Not yet specified), by position. */
   fog: z.array(FogItem),
   /** The map's Out of scope lines, by position: a waypoint's (its number) or the map's (null). */
   outOfScope: z.array(MapOutOfScopeLine),

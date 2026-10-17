@@ -163,7 +163,7 @@ function range(from: number, to: number): number[] {
   return Array.from({ length: to - from + 1 }, (_, index) => from + index);
 }
 
-describe("GET /events (S9-15)", () => {
+describe("GET /events", () => {
   test("is an uncached, unkept event stream that opens with a comment and sends each change once, in order", async () => {
     storeChange(PROJECT);
     const response = connect(streams(), null);
@@ -247,7 +247,7 @@ describe("GET /events (S9-15)", () => {
     },
   );
 
-  test("sends a named heartbeat event, which the browser dispatches, every 15 s (CR9b-8)", async () => {
+  test("sends a named heartbeat event, which the browser dispatches, every 15 s", async () => {
     vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
     const reader = frames(connect(streams(), null));
     expect(await nextFrame(reader)).toMatchObject({ comment: "open" });
@@ -344,7 +344,7 @@ describe("GET /events (S9-15)", () => {
     expect(log).not.toHaveBeenCalled();
   });
 
-  test("an access check that throws refuses that event, live or replayed, and is logged once per stream (CR9b-16)", async () => {
+  test("an access check that throws refuses that event, live or replayed, and is logged once per stream", async () => {
     const throwsOnOther: CheckAccess = (_userId, projectId) => {
       if (projectId === OTHER_PROJECT) throw new Error("the plugin's directory is unreachable");
       return true;
@@ -363,7 +363,7 @@ describe("GET /events (S9-15)", () => {
     await reader.cancel();
   });
 
-  test("a replay that throws ends its stream with a coded stream_error frame (CR9b-16)", async () => {
+  test("a replay that throws ends its stream with a coded stream_error frame", async () => {
     storeChange(PROJECT);
     // A row no ChangeEvent parses: the replay fails on it.
     db.$client
@@ -388,7 +388,7 @@ describe("GET /events (S9-15)", () => {
   });
 });
 
-describe("the change feed keeps only what an open stream needs (CR9b-17)", () => {
+describe("the change feed keeps only what an open stream needs", () => {
   function kept(): unknown[] {
     return db.$client.prepare("SELECT seq FROM change_feed ORDER BY seq").pluck().all();
   }

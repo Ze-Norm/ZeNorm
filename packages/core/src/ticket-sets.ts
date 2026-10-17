@@ -28,7 +28,7 @@ function ticketNumber(id: string): number {
 }
 
 /**
- * The number a spec's next ticket set starts from (S7-14): one past the highest ticket number in
+ * The number a spec's next ticket set starts from: one past the highest ticket number in
  * the current version of every approved set of the spec's revisions, on any map; 1 when none is
  * approved. A rewrite before approval starts from the same number, as its own set is unapproved.
  */
@@ -47,14 +47,13 @@ export function firstTicketNumber(db: Reader, specificationId: string): number {
 }
 
 /**
- * Checks a `to_tickets` output for revision `n` of the spec against its stored records (S7-13,
- * S8b-12; the demo's `checkTicketSet`); the saved set keeps the agent's ids. Refused, in order:
- * breaking D2's schema; ticket ids not running `T<first>`, `T<first+1>`, … in order (S7-14,
- * replacing L137's renumbering); a disposition of a criterion the revision neither has nor
+ * Checks a `to_tickets` output for revision `n` of the spec against its stored records; the
+ * saved set keeps the agent's ids. Refused, in order: breaking the schema; ticket ids not running
+ * `T<first>`, `T<first+1>`, … in order; a disposition of a criterion the revision neither has nor
  * removes, or a second one; a criterion of the revision with none or `removed`; a removed
  * criterion with none or another kind; `work` naming a set ticket that does not carry the
  * criterion; `delivered` naming no delivered ticket; `retained` naming no open, deliverable
- * carrier (D5); `removed` naming a ticket not in the set; a ticket carrying a criterion without
+ * carrier; `removed` naming a ticket not in the set; a ticket carrying a criterion without
  * its `work`, or carrying none while no `removed` names it; a follow-up naming no delivered
  * ticket; a blocker that is not an earlier ticket of the set.
  */
@@ -66,7 +65,11 @@ export function checkTicketSet(
 ): Result<TicketSetContent, RunFailure> {
   const parsed = TicketSetContent.safeParse(content);
   if (!parsed.success) {
-    return err(contentInvalid(`The ticket set breaks D2: ${parsed.error.message}`));
+    return err(
+      contentInvalid(
+        `The ticket set breaks the skill's "The document" rules: ${parsed.error.message}`,
+      ),
+    );
   }
   const { tickets, dispositions } = parsed.data;
   const misnumbered = tickets.findIndex(
@@ -153,7 +156,7 @@ export function checkTicketSet(
   return ok(parsed.data);
 }
 
-/** Why a disposition's reference is broken (S8b-12), or null when it holds. */
+/** Why a disposition's reference is broken, or null when it holds. */
 function dispositionRefusal(
   disposition: Disposition,
   tickets: readonly TicketContent[],
@@ -187,14 +190,13 @@ function dispositionRefusal(
 }
 
 /**
- * The rewrite a `to_tickets` run of the approved revision addresses (S7-18, S7b-12, slice 7c D4):
- * null when the revision has no set (the first version); else its current version, the findings of
- * that version's failed tickets review (empty when it had none) and the reason for the rewrite: the
- * note of a run a hatch message started (`note`), else the reason that version was rejected, else
- * null on a review repair, which is due after a failed review with no escalated finding; and the
- * set's directed versions so far, whose asks a rewrite keeps (L180 (2)). A set that
- * is approved, or one with none of the three due (a held set, or no failed review), has no rewrite
- * due, so a `to_tickets` run on it is a programmer error.
+ * The rewrite a `to_tickets` run of the approved revision addresses: null when the revision has no
+ * set (the first version); else its current version, the findings of that version's failed tickets
+ * review (empty when it had none) and the reason for the rewrite: the note of a run a hatch message
+ * started (`note`), else the reason that version was rejected, else null on a review repair, which
+ * is due after a failed review with no escalated finding; and the set's directed versions so far,
+ * whose asks a rewrite keeps. A set that is approved, or one with none of the three due (a held
+ * set, or no failed review), has no rewrite due, so a `to_tickets` run on it is a programmer error.
  */
 export function pendingRewrite(
   db: Reader,
@@ -244,12 +246,11 @@ export function pendingRewrite(
 }
 
 /**
- * Writes a `to_tickets` run's checked set for the approved revision: version 1 in
- * `awaiting_review` when the revision has none; else the rewrite's version + 1 in
- * `awaiting_review` from any unapproved state (L32, D8), bumping the set only where it is
- * unapproved and still at the version rewritten (D1). `note` is the text of the hatch message the
- * run carries (S7b-12), or null. Earlier versions' content
- * rows are never touched (S7-3).
+ * Writes a `to_tickets` run's checked set for the approved revision: version 1 in `awaiting_review`
+ * when the revision has none; else the rewrite's version + 1 in `awaiting_review` from any
+ * unapproved state, bumping the set only where it is unapproved and still at the version rewritten.
+ * `note` is the text of the hatch message the run carries, or null. Earlier versions' content rows
+ * are never touched.
  */
 export function writeTicketSet(
   tx: Tx,

@@ -46,7 +46,7 @@ function verdict(findings: VerdictFinding[]): Verdict {
   return { reviewedCommit: "a".repeat(40), summary: "Reviewed.", findings };
 }
 
-describe("runName (D7, the demo's runName)", () => {
+describe("runName", () => {
   it("names the first run of a spec the delivery run, by sentence position", () => {
     expect(runName({ number: 1 }, false)).toBe("Delivery run");
     expect(runName({ number: 1 }, true)).toBe("The delivery run");
@@ -58,7 +58,7 @@ describe("runName (D7, the demo's runName)", () => {
   });
 });
 
-describe("failingCriteria (the demo's failingCriteria)", () => {
+describe("failingCriteria", () => {
   const t1 = ticket("T1", ["1.1", "1.2"]);
 
   it("is empty for a run with no verdict", () => {
@@ -85,7 +85,7 @@ describe("failingCriteria (the demo's failingCriteria)", () => {
   });
 });
 
-describe("the fold rule (the demo's RunTickets)", () => {
+describe("the fold rule", () => {
   const wide = { running: true, tickets: FOLD_MERGED_FROM, merged: 1, shown: false };
 
   it("folds merged tickets of a running run with a wide set", () => {
@@ -149,7 +149,7 @@ function specRun(number: number, tickets: SpecRun["tickets"]): SpecRun {
 
 const started = { ticket: "T1", status: { state: "starting" as const }, failing: [] };
 
-describe("shownRun (D10: ?run= selects the run, the latest when absent)", () => {
+describe("shownRun (?run= selects the run, the latest when absent)", () => {
   const runs = [specRun(2, [started]), specRun(1, [started])];
 
   it("shows the latest run when ?run= is absent", () => {
@@ -166,7 +166,7 @@ describe("shownRun (D10: ?run= selects the run, the latest when absent)", () => 
   });
 });
 
-describe("runTicketOf (D10: the ticket's state comes from map.overview)", () => {
+describe("runTicketOf (the ticket's state comes from map.overview)", () => {
   it("returns the ticket's row from the run", () => {
     expect(runTicketOf(specRun(1, [started]), "T1")).toBe(started);
   });
@@ -184,7 +184,7 @@ function line(seq: number, who: RunEvent["who"], ticket: string | null): RunEven
   return { seq, at: "2026-10-09T10:00:00.000Z", who, ticket, text: `Line ${String(seq)}` };
 }
 
-describe("ticketLines (D10: only that ticket's lines, from delivery.activity)", () => {
+describe("ticketLines (only that ticket's lines, from delivery.activity)", () => {
   it("keeps the lines tied to the ticket, oldest first", () => {
     const events = [
       line(1, "zenorm", null),
@@ -197,7 +197,7 @@ describe("ticketLines (D10: only that ticket's lines, from delivery.activity)", 
   });
 });
 
-describe("agoWords (the demo's liveness count)", () => {
+describe("agoWords (the liveness count)", () => {
   it("counts seconds, then minutes and seconds", () => {
     expect(agoWords(0)).toBe("0s ago");
     expect(agoWords(12_400)).toBe("12s ago");
@@ -205,7 +205,7 @@ describe("agoWords (the demo's liveness count)", () => {
   });
 });
 
-describe("shownTicketStatus (L197 item 13: an interrupted run never reads as live)", () => {
+describe("shownTicketStatus (an interrupted run never reads as live)", () => {
   const implementing: RunTicketStatus = { state: "implementing", latest: null };
   const merged: RunTicketStatus = { state: "merged", commit: "a".repeat(40), summary: null };
 
@@ -232,7 +232,7 @@ describe("shownTicketStatus (L197 item 13: an interrupted run never reads as liv
   });
 });
 
-describe("midSentence (L197 item 3)", () => {
+describe("midSentence", () => {
   it("lower-cases a capital that starts a word, and keeps an acronym, code or a lower start", () => {
     expect(midSentence("The working `--lines` flag")).toBe("the working `--lines` flag");
     expect(midSentence("API keys")).toBe("API keys");
@@ -242,7 +242,7 @@ describe("midSentence (L197 item 3)", () => {
   });
 });
 
-describe("reportFirstLine (QA: a passed run's ticket row shows one line, as the demo does)", () => {
+describe("reportFirstLine (a passed run's ticket row shows one line)", () => {
   it("is the report's first line with text, without a heading's marks", () => {
     expect(reportFirstLine("Added slugify with tests.\n\nThe second paragraph.")).toBe(
       "Added slugify with tests.",

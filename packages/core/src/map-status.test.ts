@@ -87,7 +87,7 @@ const SET_APPROVED: StatusTicketSet = {
   anyDelivered: false,
 };
 
-/** An unapproved set whose current version's review reads `review` (slice 7c D6). */
+/** An unapproved set whose current version's review reads `review`. */
 function setReviewing(review: NonNullable<StatusTicketSet["review"]>): StatusTicketSet {
   return {
     tickets: 2,
@@ -172,7 +172,7 @@ function run(fields: Partial<Run>): Run {
   };
 }
 
-/** The pull request a passed run opened on a GitHub project (C1). */
+/** The pull request a passed run opened on a GitHub project. */
 const PULL_REQUEST = {
   number: 12,
   url: "https://github.com/acme/numbers/pull/12",
@@ -343,7 +343,7 @@ function pendingOn(number: number) {
 
 /**
  * A map charted with no waypoints, so cleared, with nothing drafted and the runners idle; each
- * case overrides it (as given, the spec is due with no run: a programmer error, L108).
+ * case overrides it (as given, the spec is due with no run: a programmer error).
  */
 function input(overrides: Partial<MapStatusInput>): MapStatusInput {
   return {
@@ -402,7 +402,7 @@ interface Case {
   /** Each next action as `who:stage`. */
   readonly next: readonly string[];
   readonly group: "needs-you" | "working" | "quiet";
-  /** A failure code the line of this stage index must not show: lines are human (L141). */
+  /** A failure code the line of this stage index must not show: lines are human. */
   readonly code?: readonly [number, string];
   /** What the first next action opens and acts on. */
   readonly acts?: Pick<NextAction, "round" | "stopped">;
@@ -725,7 +725,7 @@ const cases: readonly Case[] = [
     group: "needs-you",
   },
   {
-    rule: "passed run, not merged: needs you with Mark merged, the map under Needs you (S8-6, L98)",
+    rule: "passed run, not merged: needs you with Mark merged, the map under Needs you",
     input: input({
       specs: [delivering([run({ number: 2, state: "passed" }), run({ state: "cancelled" })])],
     }),
@@ -734,7 +734,7 @@ const cases: readonly Case[] = [
     group: "needs-you",
   },
   {
-    rule: "passed run with a pull request: needs you with Merge PR, the map under Needs you (C5)",
+    rule: "passed run with a pull request: needs you with Merge PR, the map under Needs you",
     input: input({
       specs: [delivering([run({ phase: "publishing", pullRequest: PULL_REQUEST })])],
     }),
@@ -743,14 +743,14 @@ const cases: readonly Case[] = [
     group: "needs-you",
   },
   {
-    rule: "merged run: done, a quiet map (S8-6)",
+    rule: "merged run: done, a quiet map",
     input: input({ specs: [delivering([run({ mergedAt: AT })])] }),
     tones: ["done", "done", "done", "done", "done"],
     next: ["nobody:delivery"],
     group: "quiet",
   },
   {
-    rule: "a waiting Research waypoint: Wayfinding needs you (D7)",
+    rule: "a waiting Research waypoint: Wayfinding needs you",
     input: input({
       waypoints: [kinded(1, "research", "open")],
       planningRuns: [...CONFIRMED_RUNS, onWaypoint(2, 1, "research", {})],
@@ -761,7 +761,7 @@ const cases: readonly Case[] = [
     group: "needs-you",
   },
   {
-    rule: "a failed Task waypoint: Wayfinding needs you (D7)",
+    rule: "a failed Task waypoint: Wayfinding needs you",
     input: input({
       waypoints: [kinded(1, "task", "open")],
       planningRuns: [...CONFIRMED_RUNS, onWaypoint(2, 1, "task", {})],
@@ -772,7 +772,7 @@ const cases: readonly Case[] = [
     group: "needs-you",
   },
   {
-    rule: "a research run running: working (D7)",
+    rule: "a research run running: working",
     input: input({
       waypoints: [kinded(1, "research", "claimed")],
       planningRuns: [...CONFIRMED_RUNS, onWaypoint(2, 1, "research", running)],
@@ -782,7 +782,7 @@ const cases: readonly Case[] = [
     group: "working",
   },
   {
-    rule: "a task run awaiting its retry: working (D7)",
+    rule: "a task run awaiting its retry: working",
     input: input({
       waypoints: [kinded(1, "task", "claimed")],
       planningRuns: [
@@ -795,7 +795,7 @@ const cases: readonly Case[] = [
     group: "working",
   },
   {
-    rule: "the code survey running: working, the spec later (harness change #1)",
+    rule: "the code survey running: working, the spec later",
     input: input({
       waypoints: [waypoint(1, "open")],
       planningRuns: [
@@ -809,7 +809,7 @@ const cases: readonly Case[] = [
     group: "working",
   },
   {
-    rule: "a stopped code survey: needs you with Try again (harness change #1)",
+    rule: "a stopped code survey: needs you with Try again",
     input: input({
       waypoints: [waypoint(1, "open")],
       planningRuns: [
@@ -825,7 +825,7 @@ const cases: readonly Case[] = [
     acts: { round: null, stopped: { runId: RUN_3, code: "agent_timed_out" } },
   },
   {
-    rule: "a consistency run running: working, the spec later (D7)",
+    rule: "a consistency run running: working, the spec later",
     input: input({
       waypoints: [waypoint(1, "resolved"), waypoint(2, "resolved")],
       planningRuns: [...CONFIRMED_RUNS, planningRun(2, { purpose: "consistency", ...running })],
@@ -835,7 +835,7 @@ const cases: readonly Case[] = [
     group: "working",
   },
   {
-    rule: "a consistency run awaiting its retry: working (D7)",
+    rule: "a consistency run awaiting its retry: working",
     input: input({
       waypoints: [waypoint(1, "resolved"), waypoint(2, "resolved")],
       planningRuns: [...CONFIRMED_RUNS, { ...failed(2, null), purpose: "consistency" }],
@@ -845,7 +845,7 @@ const cases: readonly Case[] = [
     group: "working",
   },
   {
-    rule: "a stopped consistency scope: needs you with Try again (S6b-12)",
+    rule: "a stopped consistency scope: needs you with Try again",
     input: input({
       waypoints: [waypoint(1, "resolved"), waypoint(2, "resolved")],
       planningRuns: [
@@ -860,7 +860,7 @@ const cases: readonly Case[] = [
     acts: { round: null, stopped: { runId: RUN_3, code: "agent_timed_out" } },
   },
   {
-    rule: "a stopped research scope: needs you with Try again (D7)",
+    rule: "a stopped research scope: needs you with Try again",
     input: input({
       waypoints: [kinded(1, "research", "open")],
       planningRuns: [
@@ -892,7 +892,7 @@ const cases: readonly Case[] = [
 ];
 
 describe("mapStatus next actions", () => {
-  test("a waypoint's round counts only its direct dependents (L106)", () => {
+  test("a waypoint's round counts only its direct dependents", () => {
     const status = mapStatus(
       input({
         rounds: [SUBMITTED_ROUND, pendingOn(1)],
@@ -908,7 +908,7 @@ describe("mapStatus next actions", () => {
   });
 });
 
-describe("mapStatus waiting next actions (D7, L116 (3))", () => {
+describe("mapStatus waiting next actions", () => {
   test("a waiting waypoint's entry carries its run, reason and number, with the gap or facts as detail", () => {
     for (const [kind, outcomes, reason, detail] of [
       ["research", UNANSWERED_ON_RUN_2, "research_unanswered", UNANSWERED_ON_RUN_2.reports[0]?.gap],
@@ -968,7 +968,7 @@ describe("mapStatus waiting next actions (D7, L116 (3))", () => {
 });
 
 describe("mapStatus programmer errors", () => {
-  // A due draft is always running or stopped (L108); none of either is a programmer error.
+  // A due draft is always running or stopped; none of either is a programmer error.
   test.each([
     ["the spec, cleared", input({})],
     ["the tickets, the spec approved", input({ specs: [spec(1, { revisions: [APPROVED] })] })],
@@ -998,7 +998,7 @@ describe("mapStatus", () => {
     if (item.code !== undefined) {
       const [index, code] = item.code;
       expect(status.stages[index]?.line).not.toContain(code);
-      // Nor the action's words: a stopped run's detail is a sentence (UX audit P1-1).
+      // Nor the action's words: a stopped run's detail is a sentence.
       expect(status.next[0]?.headline).not.toContain(code);
       expect(status.next[0]?.detail).not.toContain(code);
       expect(status.next[0]?.detail).not.toBeNull();
@@ -1009,7 +1009,7 @@ describe("mapStatus", () => {
   });
 });
 
-describe("mapStatus the destination round's next action (DR-19, D9)", () => {
+describe("mapStatus the destination round's next action", () => {
   /** Map-level round `number`, pending, `final` as given. */
   function pending(number: number, final: boolean) {
     return { ...PENDING_ROUND, number, final };
@@ -1057,7 +1057,7 @@ describe("mapStatus the destination round's next action (DR-19, D9)", () => {
   });
 });
 
-describe("mapStatus Wayfinding progress (D8, D5)", () => {
+describe("mapStatus Wayfinding progress", () => {
   test("k of n counts in-scope waypoints only: an out-of-scope waypoint is not counted", () => {
     const status = mapStatus(
       input({
@@ -1072,7 +1072,7 @@ describe("mapStatus Wayfinding progress (D8, D5)", () => {
   });
 });
 
-/** Two waypoints resolved with no pass of them: the map is un-cleared, its pass running (L121). */
+/** Two waypoints resolved with no pass of them: the map is un-cleared, its pass running. */
 const UNCLEARED_BY_PASS = {
   waypoints: [waypoint(1, "resolved"), waypoint(2, "resolved")],
   passes: [],
@@ -1182,7 +1182,7 @@ const specCases: readonly SpecCase[] = [
     stopped: RUN_3,
   },
   {
-    rule: "a stopped spec_review superseded on a map un-cleared by its pass: no status, no Try again (S7-26)",
+    rule: "a stopped spec_review superseded on a map un-cleared by its pass: no status, no Try again",
     input: input({
       ...UNCLEARED_BY_PASS,
       planningRuns: [
@@ -1198,7 +1198,7 @@ const specCases: readonly SpecCase[] = [
     group: "working",
   },
   {
-    rule: "a stopped repair superseded by the pass started after it: no status, no Try again (S7-26)",
+    rule: "a stopped repair superseded by the pass started after it: no status, no Try again",
     input: input({
       ...UNCLEARED_BY_PASS,
       planningRuns: [
@@ -1216,7 +1216,7 @@ const specCases: readonly SpecCase[] = [
     group: "working",
   },
   {
-    rule: "a stopped to_tickets on an approved spec of an un-cleared map keeps Try again (L127 (1))",
+    rule: "a stopped to_tickets on an approved spec of an un-cleared map keeps Try again",
     input: input({
       ...UNCLEARED_BY_PASS,
       planningRuns: [
@@ -1233,7 +1233,7 @@ const specCases: readonly SpecCase[] = [
     stopped: RUN_3,
   },
   {
-    rule: "a stopped to_tickets rewrite whose set was approved since: no Try again (L137 (1))",
+    rule: "a stopped to_tickets rewrite whose set was approved since: no Try again",
     input: input({
       planningRuns: [...CONFIRMED_RUNS, ...stoppedSpecRun(2, 1, "to_tickets")],
       specs: [delivering([])],
@@ -1244,7 +1244,7 @@ const specCases: readonly SpecCase[] = [
     group: "needs-you",
   },
   {
-    rule: "a stopped to_tickets rewrite after a rejection keeps Try again (S7-18)",
+    rule: "a stopped to_tickets rewrite after a rejection keeps Try again",
     input: input({
       planningRuns: [...CONFIRMED_RUNS, ...stoppedSpecRun(2, 1, "to_tickets")],
       specs: [spec(1, { revisions: [APPROVED], ticketSet: SET_PENDING, ticketsDue: true })],
@@ -1256,7 +1256,7 @@ const specCases: readonly SpecCase[] = [
     stopped: RUN_3,
   },
   {
-    rule: "slice 7c D6: a tickets review pending is the agent's, with no Approve the tickets",
+    rule: "a tickets review pending is the agent's, with no Approve the tickets",
     input: input({
       specs: [spec(1, { revisions: [APPROVED], ticketSet: setReviewing({ state: "pending" }) })],
     }),
@@ -1266,7 +1266,7 @@ const specCases: readonly SpecCase[] = [
     group: "working",
   },
   {
-    rule: "slice 7c D6: a tickets review running is the agent's, with no Approve the tickets",
+    rule: "a tickets review running is the agent's, with no Approve the tickets",
     input: input({
       planningRuns: [...CONFIRMED_RUNS, specRun(2, 1, "tickets_review", running)],
       specs: [spec(1, { revisions: [APPROVED], ticketSet: setReviewing({ state: "running" }) })],
@@ -1277,7 +1277,7 @@ const specCases: readonly SpecCase[] = [
     group: "working",
   },
   {
-    rule: "slice 7c D6: a stopped tickets review needs you with Try again (S7c-9)",
+    rule: "a stopped tickets review needs you with Try again",
     input: input({
       planningRuns: [...CONFIRMED_RUNS, ...stoppedSpecRun(2, 1, "tickets_review")],
       specs: [
@@ -1297,7 +1297,7 @@ const specCases: readonly SpecCase[] = [
     stopped: RUN_3,
   },
   {
-    rule: "slice 7c D6: a held set needs you to tell the agent how to fix it",
+    rule: "a held set needs you to tell the agent how to fix it",
     input: input({ specs: [spec(1, { revisions: [APPROVED], ticketSet: SET_HELD })] }),
     tones: ["done", "done", "done", "needs-you", "later"],
     specTones: [["done", "needs-you", "later"]],
@@ -1320,7 +1320,7 @@ const specCases: readonly SpecCase[] = [
     through: [2, 1, 2],
   },
   {
-    rule: "two specs: one delivering, one a draft; the rail never reads approved for both (L135 (c))",
+    rule: "two specs: one delivering, one a draft; the rail never reads approved for both",
     input: input({ specs: [delivering([]), spec(2, {})] }),
     tones: ["done", "done", "needs-you", "idle", "needs-you"],
     specTones: [
@@ -1377,7 +1377,7 @@ const specCases: readonly SpecCase[] = [
     through: [2, 3, 5],
   },
   {
-    rule: "S8b-15: a reviewed set with no tickets is confirmed, yours",
+    rule: "a reviewed set with no tickets is confirmed, yours",
     input: input({
       specs: [spec(1, { revisions: [APPROVED], ticketSet: { ...SET_PENDING, tickets: 0 } })],
     }),
@@ -1388,7 +1388,7 @@ const specCases: readonly SpecCase[] = [
   },
 ];
 
-describe("mapStatus per spec (S7-20, S7-26, D8)", () => {
+describe("mapStatus per spec", () => {
   test.each(specCases)("$rule", (item) => {
     const { status, specStages } = deriveStatus(item.input);
     expect(MapStatus.parse(status)).toEqual(status);
@@ -1418,13 +1418,13 @@ describe("mapStatus per spec (S7-20, S7-26, D8)", () => {
       const [first] = status.next;
       expect(first?.stopped === null ? null : first?.stopped.runId).toBe(item.stopped);
     }
-    // A superseded stop drives no Try again anywhere (S7-26).
+    // A superseded stop drives no Try again anywhere.
     if (item.stopped === undefined) {
       expect(status.next.every((action) => action.stopped === null)).toBe(true);
     }
   });
 
-  test("the map's re-clear stopped: a passed draft waits on the next revision, not your approval (S7-10, L138)", () => {
+  test("the map's re-clear stopped: a passed draft waits on the next revision, not your approval", () => {
     const { status, specStages } = deriveStatus(
       input({
         planningRuns: [
@@ -1446,7 +1446,7 @@ describe("mapStatus per spec (S7-20, S7-26, D8)", () => {
     ]);
   });
 
-  test("Approve the spec counts behaviours as clauses (L135 (a))", () => {
+  test("Approve the spec counts behaviours as clauses", () => {
     const status = mapStatus(input({ specs: [spec(1, {})] }));
     const [first] = status.next;
     // Three clauses (and no criteria count) make the detail's number.
@@ -1454,7 +1454,7 @@ describe("mapStatus per spec (S7-20, S7-26, D8)", () => {
   });
 });
 
-describe("runName (slice 8 D7)", () => {
+describe("runName", () => {
   test("Delivery run until the spec has a second run, then Run n", () => {
     expect(runName({ number: 1 }, false)).toBe("Delivery run");
     expect(runName({ number: 1 }, true)).toBe("The delivery run");
@@ -1463,7 +1463,7 @@ describe("runName (slice 8 D7)", () => {
   });
 });
 
-describe("mapStatus Delivery by its latest run (slice 8 D7, S8-6)", () => {
+describe("mapStatus Delivery by its latest run", () => {
   const ACTIVE_RUN = {
     runId: RUN_5,
     mapId: MAP_ID,
@@ -1565,7 +1565,7 @@ describe("mapStatus Delivery by its latest run (slice 8 D7, S8-6)", () => {
     expect(action?.detail).not.toContain(FINAL_COMMIT);
   });
 
-  test("a passed run with a pull request asks to merge it on GitHub, naming its number (C5)", () => {
+  test("a passed run with a pull request asks to merge it on GitHub, naming its number", () => {
     const [action] = mapStatus(
       input({ specs: [delivering([run({ phase: "publishing", pullRequest: PULL_REQUEST })])] }),
     ).next;
@@ -1575,7 +1575,7 @@ describe("mapStatus Delivery by its latest run (slice 8 D7, S8-6)", () => {
     expect(action?.detail).not.toContain("Mark merged");
   });
 
-  test("a passed run whose pull request was closed says so, still with Merge PR and never Mark merged (C4, 5.1)", () => {
+  test("a passed run whose pull request was closed says so, still with Merge PR and never Mark merged", () => {
     const closed = { ...PULL_REQUEST, state: "closed" } as const;
     const status = mapStatus(
       input({ specs: [delivering([run({ phase: "publishing", pullRequest: closed })])] }),
@@ -1649,7 +1649,7 @@ describe("mapStatus Delivery by its latest run (slice 8 D7, S8-6)", () => {
     );
     for (const status of [checks, active]) {
       expect(delivery(status)).toEqual(["idle", "nobody", null]);
-      // The rail's line is a few words (UX audit A4); the card's detail is the full sentence.
+      // The rail's line is a few words; the card's detail is the full sentence.
       expect(status.stages[4].line.length).toBeLessThan(30);
       expect(status.next[0]?.detail).not.toBe(status.stages[4].line);
     }
@@ -1670,7 +1670,7 @@ describe("mapStatus Delivery by its latest run (slice 8 D7, S8-6)", () => {
   });
 });
 
-describe("mapStatus action labels (S7b-16, L147 Q2)", () => {
+describe("mapStatus action labels", () => {
   const actions = [...cases, ...specCases].flatMap((item) => mapStatus(item.input).next);
 
   test("an action has a label exactly when it is yours: Try again on a run, Answer on a round", () => {
@@ -1688,7 +1688,7 @@ describe("mapStatus action labels (S7b-16, L147 Q2)", () => {
     }
   });
 
-  test("the table names each action as the demo's buttons do", () => {
+  test("the table names each action's button", () => {
     const byHeadline = new Map(
       actions
         .filter((action) => action.who === "you" && action.stopped === null)
@@ -1714,7 +1714,7 @@ describe("mapStatus action labels (S7b-16, L147 Q2)", () => {
     );
   });
 
-  test("the passed run's detail names the merge, the check and the record, as the demo's (L193, L197 item 5)", () => {
+  test("the passed run's detail names the merge, the check and the record", () => {
     const passed = actions.find((action) => action.label === "Mark merged");
     expect(passed?.detail).toMatch(
       /^Merge \S+ into main yourself, in the project folder, where the branch is\. Mark merged checks that [0-9a-f]{7} is in the folder's main, then records the tickets as delivered\.$/,
@@ -1729,7 +1729,7 @@ describe("mapStatus action labels (S7b-16, L147 Q2)", () => {
   });
 });
 
-describe("mapStatus Tickets by tickets review (slice 7c D6, S7c-11)", () => {
+describe("mapStatus Tickets by tickets review", () => {
   function ticketsStage(ticketSet: StatusTicketSet, planningRuns: PlanningRun[] = []) {
     const { status } = deriveStatus(
       input({
@@ -1780,7 +1780,7 @@ describe("mapStatus Tickets by tickets review (slice 7c D6, S7c-11)", () => {
     expect(detail).toMatch(/\.$/);
   });
 
-  test("passed: Approve the tickets, the demo's review verdict as detail", () => {
+  test("passed: Approve the tickets, the review verdict as detail", () => {
     expect(ticketsStage(SET_PENDING)).toEqual({
       tone: "needs-you",
       line: "2 tickets · awaiting approval",
@@ -1807,8 +1807,8 @@ describe("mapStatus Tickets by tickets review (slice 7c D6, S7c-11)", () => {
   });
 });
 
-describe("mapStatus a review repair (slice 7c D6, S7c-11, L175)", () => {
-  /** A failed, unheld review of the current version: its repair is due (S7c-4). */
+describe("mapStatus a review repair", () => {
+  /** A failed, unheld review of the current version: its repair is due. */
   const SET_FAILED = setReviewing({
     state: "findings",
     summary: "One criterion is not traced.",
@@ -1891,7 +1891,7 @@ describe("mapStatus a review repair (slice 7c D6, S7c-11, L175)", () => {
   });
 });
 
-describe("map.overview Tickets and Inbox from recorded reviews (slice 7c D6, S7c-11)", () => {
+describe("map.overview Tickets and Inbox from recorded reviews", () => {
   let context: TestContext;
 
   beforeEach(async () => {
@@ -1964,14 +1964,14 @@ describe("map.overview Tickets and Inbox from recorded reviews (slice 7c D6, S7c
     });
   });
 
-  /** The map's one ticket set's review, as `map.overview` gives it (D11). */
+  /** The map's one ticket set's review, as `map.overview` gives it. */
   async function reviewOf(mapId: string) {
     const result = await getMapOverview(context.db, mapId, { deliveryHeld: () => false });
     if (!result.ok) throw new Error(result.error.code);
     return result.value.specs[0]?.ticketSets[0]?.review;
   }
 
-  test("L180 (3): a rejection rewrite working, then stopped, reads its review pending, never the rejected version's pass", async () => {
+  test("a rejection rewrite working, then stopped, reads its review pending, never the rejected version's pass", async () => {
     const project = await addProject(context, "repo");
     const { mapId, ticketSetId } = await reviewedTicketSet(context, project);
     expect((await reviewOf(mapId))?.state).toBe("passed");
@@ -2019,7 +2019,7 @@ describe("map.overview Tickets and Inbox from recorded reviews (slice 7c D6, S7c
     });
   });
 
-  test("a held set's map is in the Inbox's Needs you group (issue 21 item 4)", async () => {
+  test("a held set's map is in the Inbox's Needs you group", async () => {
     const project = await addProject(context, "repo");
     const { mapId } = await heldTicketSet(context, project);
     expect(await ticketsStage(mapId)).toMatchObject({
@@ -2081,7 +2081,7 @@ const DELIVERED = spec(1, {
   runs: [run({ mergedAt: AT })],
 });
 
-describe("mapStatus waits (slice 8b D9, S8b-16)", () => {
+describe("mapStatus waits", () => {
   test("a wait's action is another map's, with no label, onMap its holder; a wait-first map is quiet", () => {
     const read = readStatus(input({ specs: [DELIVERED], waits: [heldWait(2, "revision")] }));
     expect(read.tones).toEqual(["done", "done", "idle", "done", "done"]);
@@ -2144,7 +2144,7 @@ describe("mapStatus waits (slice 8b D9, S8b-16)", () => {
     expect(read.tones[2]).toBe("done");
   });
 
-  test("B6: a released wait's run working on a spec the map has not written: Spec working, the agent's", () => {
+  test("a released wait's run working on a spec the map has not written: Spec working, the agent's", () => {
     const released: SpecWaitView = {
       ...heldWait(2, "revision"),
       hold: null,
@@ -2157,7 +2157,7 @@ describe("mapStatus waits (slice 8b D9, S8b-16)", () => {
     expect(read.group).toBe("working");
   });
 
-  test("B6: a released wait's run stopped: Try again on it, yours", () => {
+  test("a released wait's run stopped: Try again on it, yours", () => {
     const stopped = { runId: RUN_5, code: "agent_timed_out" } as const;
     const read = readStatus(
       input({
@@ -2181,11 +2181,11 @@ describe("mapStatus waits (slice 8b D9, S8b-16)", () => {
   });
 });
 
-describe("mapStatus revisions of a delivered spec (slice 8b D9)", () => {
+describe("mapStatus revisions of a delivered spec", () => {
   test.each([
     { rule: "awaiting review", set: { ...SET_PENDING, replaced: true } },
     { rule: "held by its review", set: { ...SET_HELD, replaced: true } },
-  ])("S8b-9: a replaced set ($rule) reads idle, nobody's, never yours", ({ set }) => {
+  ])("a replaced set ($rule) reads idle, nobody's, never yours", ({ set }) => {
     const read = readStatus(input({ specs: [spec(1, { revisions: [APPROVED], ticketSet: set })] }));
     expect(read.specTones).toEqual([["done", "idle", "idle"]]);
     expect(read.next).toEqual(["nobody:tickets:1"]);
@@ -2193,7 +2193,7 @@ describe("mapStatus revisions of a delivered spec (slice 8b D9)", () => {
     expect(read.group).toBe("quiet");
   });
 
-  test("S8b-15: a confirmed set with no tickets: Delivery done, the map quiet", () => {
+  test("a confirmed set with no tickets: Delivery done, the map quiet", () => {
     const read = readStatus(
       input({
         specs: [spec(1, { revisions: [APPROVED], ticketSet: { ...SET_APPROVED, tickets: 0 } })],
@@ -2236,7 +2236,7 @@ describe("mapStatus revisions of a delivered spec (slice 8b D9)", () => {
     expect(read.next).toEqual(["you:delivery:1", "another-map:spec:2", "another-map:spec:3"]);
   });
 
-  test("S8b-8: with two approved revisions on the map, status reads the later one", () => {
+  test("with two approved revisions on the map, status reads the later one", () => {
     const read = readStatus(
       input({
         specs: [

@@ -8,7 +8,7 @@ import { PullRequestActions } from "@/pages/stages/delivery/PullRequestStatus";
 import { checkPullRequestRefusalMessage, required } from "@/pages/stages/delivery/words";
 
 /**
- * A passed run's card when it opened a pull request (C5), in place of Mark merged: core's
+ * A passed run's card when it opened a pull request, in place of Mark merged: core's
  * "Merge PR" action, with the pull request's actions. Check now calls `delivery.checkPullRequest`;
  * a refusal shows beside it, in words chosen by its code.
  */

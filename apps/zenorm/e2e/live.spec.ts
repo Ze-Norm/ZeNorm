@@ -22,13 +22,13 @@ import {
 import { expect, test } from "./worker-server.ts";
 
 /**
- * S9-16's two flows. Nothing polls (L123): every state a page shows without a reload arrives as a
+ * The two live-update flows. Nothing polls: every state a page shows without a reload arrives as a
  * change on `/events`, refetched through the live layer.
  */
 
 const IDEA = "Show live progress to a second tab";
 const LIVE_ALERT = "Live updates stopped. Reconnecting…";
-/** S9-2's limit for a stop with nothing ignoring SIGTERM, here with an open stream. */
+/** The shutdown limit for a stop with nothing ignoring SIGTERM, here with an open stream. */
 const STOP_LIMIT_MS = 5_000;
 const HOST = "127.0.0.1";
 /**
@@ -152,7 +152,7 @@ test.afterEach(async () => {
   restartFolder = null;
 });
 
-test("a stopped server shows the live Alert and no error card beside it, and a restart clears it (S9-16, D14, QA-3)", async ({
+test("a stopped server shows the live Alert and no error card beside it, and a restart clears it", async ({
   browser,
 }) => {
   // A server of this flow's own, on the worker's e2e config but its own data folder and port.
@@ -181,7 +181,7 @@ test("a stopped server shows the live Alert and no error card beside it, and a r
   const alert = page.getByRole("alert").filter({ hasText: LIVE_ALERT });
   await expect(alert).toHaveCount(0);
 
-  // S9-2's timing still holds with a stream open: the stop ends it before the server closes.
+  // The shutdown timing still holds with a stream open: the stop ends it before the server closes.
   const { ms, code } = await stopServer(server);
   expect(code).toBe(0);
   expect(ms).toBeLessThan(STOP_LIMIT_MS);
@@ -189,7 +189,7 @@ test("a stopped server shows the live Alert and no error card beside it, and a r
   await expect(alert).toHaveText(LIVE_ALERT);
 
   // An in-app move to the Inbox while down: its reads fail to fetch, are retried, and run out.
-  // The page keeps the cached projects and maps and shows no card beyond the Alert (QA-3).
+  // The page keeps the cached projects and maps and shows no card beyond the Alert.
   let listFailures = 0;
   const readsRanOut = new Promise<void>((resolve) => {
     page.on("requestfailed", (request) => {
@@ -219,7 +219,7 @@ test("a stopped server shows the live Alert and no error card beside it, and a r
   await expect(alert).toHaveCount(0);
   await refetched;
   await expect(page.getByText(/^Could not load/)).toHaveCount(0);
-  // The restart deleted every feed row the project's add wrote (CR9b-17): a reconnect from
+  // The restart deleted every feed row the project's add wrote: a reconnect from
   // before them is refused, so the client resyncs instead of missing them.
   const pruned = await context.request.get(`${RESTART_URL}/events`, {
     headers: { "last-event-id": "0" },

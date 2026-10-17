@@ -9,11 +9,11 @@ import type { Log } from "./app.ts";
 
 /**
  * How often an open stream sends a `heartbeat` event, so idle proxies keep it and the client can
- * tell a live stream from a silently dead one (S9-15, CR9b-8).
+ * tell a live stream from a silently dead one.
  */
 export const HEARTBEAT_MS = 15_000;
 
-/** How many feed rows one replay read takes (slice 9 ticket 08). */
+/** How many feed rows one replay read takes. */
 export const REPLAY_PAGE_SIZE = 500;
 
 const BAD_REQUEST = 400;
@@ -23,18 +23,18 @@ const SERVICE_UNAVAILABLE = 503;
 export interface EventStreamsOptions {
   readonly db: ZeNormDatabase;
   readonly bus: ChangeBus;
-  /** The identity seam: the User the stream's request acts as (S9-17). */
+  /** The identity seam: the User the stream's request acts as. */
   readonly identify: Identify;
-  /** The access check seam: each row is sent only if its project's read is allowed (D12). */
+  /** The access check seam: each row is sent only if its project's read is allowed. */
   readonly checkAccess: CheckAccess;
   readonly log: Log;
 }
 
 /**
- * The instance's change stream (S9-15, D12): `handle` answers `GET /events`, `closeStreams` ends
- * every open stream (shutdown, before the server closes) and refuses new ones from then on.
+ * The instance's change stream: `handle` answers `GET /events`, `closeStreams` ends every open
+ * stream (shutdown, before the server closes) and refuses new ones from then on.
  *
- * The feed keeps only the rows an open stream still needs (CR9b-17): a stream replaying from its
+ * The feed keeps only the rows an open stream still needs: a stream replaying from its
  * `Last-Event-ID` needs the rows after the last one it has handled, and no other stream needs any
  * (a live stream is sent each change from the bus). After each committed change and each stream's
  * replay or end, every row no replaying stream needs is deleted; with none replaying, every row.
@@ -73,12 +73,12 @@ function changeFrame(event: ChangeEvent): string {
  */
 const HEARTBEAT_FRAME = "event: heartbeat\ndata: \n\n";
 
-/** The codes a stream can end with in a `stream_error` frame (CR9b-16). */
+/** The codes a stream can end with in a `stream_error` frame. */
 export type StreamErrorCode = "replay_failed";
 
 /**
  * The frame that ends a stream on a coded failure: the client closes the source and opens a fresh
- * one, with no `Last-Event-ID`, as it does after a refused reconnect (CR9b-16).
+ * one, with no `Last-Event-ID`, as it does after a refused reconnect.
  */
 function streamErrorFrame(code: StreamErrorCode): string {
   return `event: stream_error\ndata: ${JSON.stringify({ code })}\n\n`;
@@ -132,7 +132,7 @@ class Stream {
     if (this.#admitted(event)) this.send(changeFrame(event));
   }
 
-  /** The access check; one that throws refuses the event, and is logged once per stream (CR9b-16). */
+  /** The access check; one that throws refuses the event, and is logged once per stream. */
   #admitted(event: ChangeEvent): boolean {
     try {
       return this.#admits(event);
@@ -156,9 +156,9 @@ class Stream {
 }
 
 /**
- * Each database's streams whose replay is still reading the feed: only they need rows kept
- * (CR9b-17). Per database, not per `createEventStreams`, so no instance prunes a row another
- * instance's replay on the same database still needs.
+ * Each database's streams whose replay is still reading the feed: only they need rows kept. Per
+ * database, not per `createEventStreams`, so no instance prunes a row another instance's replay on
+ * the same database still needs.
  */
 const replayingStreams = new WeakMap<ZeNormDatabase, Set<Stream>>();
 
@@ -245,12 +245,12 @@ export function createEventStreams({
       const ends = changeFeedEnds(db);
       if (from.seq > ends.newest) {
         // An id this feed never sent (e.g. a tab left open across a database reset): replaying from
-        // it would drop every change up to it. The client reconnects afresh, live only (S9-15).
+        // it would drop every change up to it. The client reconnects afresh, live only.
         return refuse("last_event_id_ahead", CONFLICT);
       }
       if (from.seq < ends.prunedThrough) {
-        // Rows after the id are gone (CR9b-17): a replay would miss them. The client reconnects
-        // afresh, live only, and refetches, as after `last_event_id_ahead`.
+        // Rows after the id are gone: a replay would miss them. The client reconnects afresh, live
+        // only, and refetches, as after `last_event_id_ahead`.
         return refuse("last_event_id_pruned", CONFLICT);
       }
     }
@@ -261,7 +261,7 @@ export function createEventStreams({
     const body = new ReadableStream<Uint8Array>({
       start(controller) {
         const stream = new Stream(controller, from.seq, admits, log);
-        // Subscribe first, so no write committed during the replay is missed (S9-15).
+        // Subscribe first, so no write committed during the replay is missed.
         const unsubscribe = bus.subscribe("events", (event) => {
           if (stream.buffer === null) {
             stream.deliver(event);
@@ -294,8 +294,8 @@ export function createEventStreams({
           // Registered in this same turn as the check above, so no prune runs between them.
           replaying.add(stream);
           replay(stream).catch((error: unknown) => {
-            // Ended with a code, not just closed: a plain end would bring the browser straight
-            // back with the same Last-Event-ID, to fail on the same row (CR9b-16).
+            // Ended with a code, not just closed: a plain end would bring the browser straight back
+            // with the same Last-Event-ID, to fail on the same row.
             log("The change stream's replay failed", error);
             stream.send(streamErrorFrame("replay_failed"));
             ending(true);
@@ -313,7 +313,7 @@ export function createEventStreams({
         "content-type": "text/event-stream",
         "cache-control": "no-cache",
         // The connection ends with the stream: a kept-alive one would hold the server's close for
-        // seconds after `closeStreams` (S9-2's timing).
+        // seconds after `closeStreams`.
         connection: "close",
       },
     });

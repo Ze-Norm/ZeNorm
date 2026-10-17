@@ -13,7 +13,7 @@ const STATE_BADGE: Record<PullRequestState, "work" | "bad" | "ok"> = {
 };
 
 /**
- * A run's pull request as the Merge step shows it (C5): its link, which opens it on GitHub, and its
+ * A run's pull request as the Merge step shows it: its link, which opens it on GitHub, and its
  * recorded state (open, closed or merged). The group is named "Pull request", with `data-state`.
  */
 export function PullRequestStatus({ pullRequest }: { pullRequest: PullRequest }) {
@@ -40,9 +40,9 @@ export function PullRequestStatus({ pullRequest }: { pullRequest: PullRequest })
 }
 
 /**
- * The pull request card's actions (C5): **Open pull request #n**, which opens it on GitHub to merge
- * there, while it is open; and **Check now** (C4), which reads its state on GitHub at once. A closed
- * pull request offers Check now only (5.1); while the check runs the button reads "Checking pull
+ * The pull request card's actions: **Open pull request #n**, which opens it on GitHub to merge
+ * there, while it is open; and **Check now**, which reads its state on GitHub at once. A closed
+ * pull request offers Check now only; while the check runs the button reads "Checking pull
  * request #n…". `refusal` is Check now's refusal, beside the buttons; null for none.
  */
 export function PullRequestActions({

@@ -45,9 +45,8 @@ import {
   touchLines,
 } from "./revision-prompt-parts.ts";
 
-// The prompts of the five spec and ticket calls (spec D3, slice 7c D2). The rules live in the product skills the
-// appended system prompt names (L115, spec D4); a prompt carries the records and the plain lines the
-// e2e stand-in keys on (L107).
+// The prompts of the five spec and ticket calls. The rules live in the product skills the appended
+// system prompt names; a prompt carries the records and the plain lines the e2e stand-in keys on.
 
 /** The SKILL.md a skill-following call reads, and the name its system prompt gives it. */
 export interface PlanningSkill {
@@ -67,12 +66,14 @@ export function buildSkillSystemPrompt(skill: PlanningSkill): string {
   ].join("\n");
 }
 
-/** The plain line naming the revision a spec review reviews; the stand-in keys on it (L107). */
+/** The plain line naming the revision a spec review reviews; the stand-in keys on it. */
 export function reviewOfLine(ref: SpecRevisionRef): string {
   return `Review of: spec ${String(ref.specNumber)} revision ${String(ref.revision)}`;
 }
 
-/** The plain line naming the ticket set version a tickets review reviews; the stand-in keys on it (L107). */
+/**
+ * The plain line naming the ticket set version a tickets review reviews; the stand-in keys on it.
+ */
 export function reviewOfTicketsLine(specNumber: number, version: number): string {
   return `Review of: tickets ${String(specNumber)} version ${String(version)}`;
 }
@@ -83,9 +84,9 @@ export function ticketIdsLine(prefix: string, ticketIds: readonly string[]): str
 }
 
 /**
- * The plain line giving a ticket set's shape, computed from its tickets (RC5): each ticket's share
- * of the criteria the set covers, and the tickets with fewer than three criteria. It informs; core
- * refuses no shape.
+ * The plain line giving a ticket set's shape, computed from its tickets: each ticket's share of the
+ * criteria the set covers, and the tickets with fewer than three criteria. It informs; core refuses
+ * no shape.
  */
 export function ticketSetShapeLine(
   tickets: readonly TicketSetContent["tickets"][number][],
@@ -103,7 +104,7 @@ export function ticketSetShapeLine(
   }.`;
 }
 
-/** The plain line counting the review findings a To Tickets rewrite repairs (slice 7c D4). */
+/** The plain line counting the review findings a To Tickets rewrite repairs. */
 export function rewriteFindingsLine(count: number): string {
   return `Review findings to repair: ${String(count)}`;
 }
@@ -138,8 +139,8 @@ export function otherSpecsLine(count: number): string {
 }
 
 /**
- * The plain line giving why a revision is repaired: a failed review's finding count, a rejection, or
- * the person's note (S7b-11).
+ * The plain line giving why a revision is repaired: a failed review's finding count, a rejection,
+ * or the person's note.
  */
 export function feedbackLine(feedback: SpecFeedback): string {
   switch (feedback.kind) {
@@ -155,14 +156,14 @@ export function feedbackLine(feedback: SpecFeedback): string {
 }
 
 /**
- * The plain line telling a release run where its wait came from (S8b-16, N-1): a note through the
- * escape hatch, whose revision may cite the note, or this map's decisions, whose may not.
+ * The plain line telling a release run where its wait came from: a note through the escape hatch,
+ * whose revision may cite the note, or this map's decisions, whose may not.
  */
 export function waitSourceLine(noteDirected: boolean): string {
   return `Wait from: ${noteDirected ? "a note" : "this map's decisions"}`;
 }
 
-/** The plain line listing a reviewed spec's note-directed revisions (S7b-11). */
+/** The plain line listing a reviewed spec's note-directed revisions. */
 export function noteDirectedRevisionsLine(revisions: readonly number[]): string {
   return `Note-directed revisions: ${revisions.length === 0 ? "none" : revisions.join(", ")}`;
 }
@@ -175,8 +176,8 @@ export function previousDeliveryLine(delivery: { run: number; commit: string } |
 }
 
 /**
- * The spec review's rules for a later map's revision (slice 8b S8b-17, D8): the touch rule, the
- * kept-id rule and the research rule, stated in the prompt as in the skill.
+ * The spec review's rules for a later map's revision: the touch rule, the kept-id rule and the
+ * research rule, stated in the prompt as in the skill.
  */
 export const REVISION_REVIEW_RULES = [
   "Touch rule: a resolved waypoint whose Touches line names a spec counts as carried by that spec's",
@@ -189,10 +190,10 @@ export const REVISION_REVIEW_RULES = [
   "state them.",
 ];
 
-/** The plain line saying a map-scope To Spec run's previous attempt was refused (S7b-15). */
+/** The plain line saying a map-scope To Spec run's previous attempt was refused. */
 export const DRAFT_SPECS_REFUSED_LINE = "Previous attempt refused: yes";
 
-/** The plain line listing a ticket set's directed versions with their kind (L180 (2)). */
+/** The plain line listing a ticket set's directed versions with their kind. */
 export function directedVersionsLine(directed: readonly DirectedVersion[]): string {
   return `Directed versions: ${
     directed.length === 0
@@ -203,7 +204,7 @@ export function directedVersionsLine(directed: readonly DirectedVersion[]): stri
 
 /**
  * Each directed version's ask in its nonce block, oldest first: the person's words, which outrank
- * the review's tracing (L141, issue 21: the most recent information they gave is the most correct).
+ * the review's tracing (the most recent information they gave is the most correct).
  */
 function directedVersionBlocks(directed: readonly DirectedVersion[], nonce: string): string[] {
   return directed.flatMap((entry) =>
@@ -497,7 +498,7 @@ export const SPEC_SELF_CHECK = [
 ];
 
 /**
- * What each clause declares (RC1): the existing names it relies on and the new names it adds. Core
+ * What each clause declares: the existing names it relies on and the new names it adds. Core
  * resolves every reliance and refuses a clause with neither; the review reads the code around each.
  */
 export const SPEC_DECLARATION_RULE = [
@@ -517,8 +518,8 @@ export const SPEC_DECLARATION_RULE = [
 ];
 
 /**
- * What the clauses of a revision rely on, with the code around each (RC1), as a repair and a
- * review read them; nothing when no clause declared a reliance.
+ * What the clauses of a revision rely on, with the code around each, as a repair and a review read
+ * them; nothing when no clause declared a reliance.
  */
 export function referenceLines(
   references: readonly ClauseReference[],
@@ -546,8 +547,8 @@ export function referenceLines(
 }
 
 /**
- * The spec review's repository step (RC1): each clause against the code it relies on, shown with
- * the code around it; the code opened for any other claim FACTS does not cover.
+ * The spec review's repository step: each clause against the code it relies on, shown with the code
+ * around it; the code opened for any other claim FACTS does not cover.
  */
 export const SPEC_REVIEW_REPOSITORY_RULE = [
   "Before judging, check each clause against what it relies on, listed with the code around each:",
@@ -565,7 +566,7 @@ export const SPEC_REVIEW_REPOSITORY_RULE = [
 ];
 
 /**
- * The survey's unverifiable items in a review (RC2): each one a clause depends on is settled from the
+ * The survey's unverifiable items in a review: each one a clause depends on is settled from the
  * code (`verified`, path and line checked by core) or reported; nothing when the survey has none.
  */
 export function surveyItemsRule(survey: ReviewSpecRequest["survey"]): string[] {
@@ -608,8 +609,8 @@ export const WAS_RULE = [
 ];
 
 /**
- * The repair's `removed` (RC4): core refuses a revision whose declared removals are not exactly
- * the ids it drops, and the review reads each reason.
+ * The repair's `removed`: core refuses a revision whose declared removals are not exactly the ids
+ * it drops, and the review reads each reason.
  */
 export const REMOVED_RULE = [
   "In `removed`, list every clause and criterion id of the latest revision that your revision no longer",
@@ -669,7 +670,7 @@ export function ticketsReviewLengthLine(limits: ModelLimits): string {
   ]);
 }
 
-/** The prompt of a map-scope To Spec run (spec D3): the cleared map, and its specs on a re-clear. */
+/** The prompt of a map-scope To Spec run: the cleared map, and its specs on a re-clear. */
 export function buildDraftSpecsPrompt(request: DraftSpecsRequest, limits: ModelLimits): string {
   const nonce = randomUUID();
   const specs = request.specs.flatMap((spec) => [
@@ -752,7 +753,7 @@ export function buildDraftSpecsPrompt(request: DraftSpecsRequest, limits: ModelL
   ].join("\n");
 }
 
-/** The prompt of a spec-scope To Spec run (spec D3): repair one spec after a failed review or a rejection. */
+/** The prompt of a spec-scope To Spec run: repair one spec after a failed review or a rejection. */
 export function buildReviseSpecPrompt(request: ReviseSpecRequest, limits: ModelLimits): string {
   const nonce = randomUUID();
   return [
@@ -855,9 +856,9 @@ function clauseIdsLine(label: string, ids: readonly string[]): string {
 }
 
 /**
- * What the reviewed revision changes since the spec's latest approved revision before it (S8b-17,
- * L213 D-6): its changes are checked against this map's destination; the unchanged clauses carry
- * approved decisions, often another map's, and are context.
+ * What the reviewed revision changes since the spec's latest approved revision before it: its
+ * changes are checked against this map's destination; the unchanged clauses carry approved
+ * decisions, often another map's, and are context.
  */
 export function changesLines(changes: ReviewSpecRequest["changes"]): string[] {
   if (changes === null) {
@@ -882,8 +883,8 @@ export function changesLines(changes: ReviewSpecRequest["changes"]): string[] {
 }
 
 /**
- * The ids the reviewed revision drops from the previous one, with the repair's reasons (RC4), so
- * the review judges each removal; none listed when a map-scope run or the first draft wrote it.
+ * The ids the reviewed revision drops from the previous one, with the repair's reasons, so the
+ * review judges each removal; none listed when a map-scope run or the first draft wrote it.
  */
 export function removedLines(removed: ReviewSpecRequest["removed"], nonce: string): string[] {
   if (removed === null) {
@@ -906,7 +907,7 @@ export function removedLines(removed: ReviewSpecRequest["removed"], nonce: strin
   ];
 }
 
-/** The prompt of a spec review (spec D3, D5). */
+/** The prompt of a spec review. */
 export function buildReviewSpecPrompt(request: ReviewSpecRequest, limits: ModelLimits): string {
   const nonce = randomUUID();
   const before =
@@ -1054,8 +1055,8 @@ export const TICKET_CONCISION_RULE = [
 ];
 
 /**
- * The prompt of a To Tickets run (spec D3): the approved revision, and on a rewrite the current
- * version. One line states the run's turn budget, `maxTurns`.
+ * The prompt of a To Tickets run: the approved revision, and on a rewrite the current version. One
+ * line states the run's turn budget, `maxTurns`.
  */
 export function buildDraftTicketSetPrompt(
   request: DraftTicketSetRequest,
@@ -1107,7 +1108,7 @@ export function buildDraftTicketSetPrompt(
               ]),
         ];
   return [
-    // To Tickets does not read the destination's rounds (DR-15): its request has none.
+    // To Tickets does not read the destination's rounds: its request has none.
     ...mapContext(request, [], nonce),
     "",
     ticketsForLine(request.approved),
@@ -1185,7 +1186,7 @@ export const TICKETS_REVIEW_RULES = [
   "move it into a title, the slicing or the execution.",
 ];
 
-/** The prompt of a tickets review (slice 7c D2, D3): the approved revision and the version under review. */
+/** The prompt of a tickets review: the approved revision and the version under review. */
 export function buildReviewTicketSetPrompt(
   request: ReviewTicketSetRequest,
   skillPath: string,

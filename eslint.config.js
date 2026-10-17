@@ -4,7 +4,7 @@ import eslint from "@eslint/js";
 import { defineConfig } from "eslint/config";
 import tseslint from "typescript-eslint";
 
-/** Where the guardrail rules apply (spec D6). */
+/** Where the guardrail rules apply. */
 const GUARDED = ["packages/**", "apps/**", "examples/**"];
 
 /** One fixture per guardrail rule; `apps/zenorm/src/lint-rules.test.ts` lints each with `--no-ignore`. */
@@ -12,15 +12,15 @@ const LINT_FIXTURES = "apps/zenorm/eslint-fixtures/*.ts";
 
 const FALLBACK = "LogicalExpression[operator=/^(\\?\\?|\\|\\|)$/]";
 const NO_FALLBACK_MESSAGE =
-  "No `?? <literal>` or `|| <literal>` fallback (waypoint 10): missing data is a coded error.";
-/** The same fallback as an assignment, `x ??= <literal>` or `x ||= <literal>` (CR-6). */
+  "No `?? <literal>` or `|| <literal>` fallback: missing data is a coded error.";
+/** The same fallback as an assignment, `x ??= <literal>` or `x ||= <literal>`. */
 const FALLBACK_ASSIGNMENT = "AssignmentExpression[operator=/^(\\?\\?=|\\|\\|=)$/]";
 const NO_FALLBACK_ASSIGNMENT_MESSAGE =
-  "No `??= <literal>` or `||= <literal>` fallback (waypoint 10): missing data is a coded error.";
+  "No `??= <literal>` or `||= <literal>` fallback: missing data is a coded error.";
 
 /**
- * Waypoint 10 item 1 (spec D6): a fallback to a literal, an empty array or an empty object, as
- * `??`/`||` or as `??=`/`||=` (CR-6), and any `.default(` call.
+ * No silent defaults: a fallback to a literal, an empty array or an empty object, as `??`/`||`
+ * or as `??=`/`||=`, and any `.default(` call.
  */
 const GUARDRAIL_SYNTAX = [
   {
@@ -49,7 +49,7 @@ const GUARDRAIL_SYNTAX = [
   },
   {
     selector: "CallExpression[callee.property.name='default']",
-    message: "No `.default(` (waypoint 10): missing input is a coded error, never a default value.",
+    message: "No `.default(`: missing input is a coded error, never a default value.",
   },
 ];
 
@@ -62,8 +62,7 @@ const noZodCatch = {
     type: "problem",
     schema: [],
     messages: {
-      zodCatch:
-        "No Zod `.catch(` (waypoint 10): invalid input is a coded error, never a fallback value.",
+      zodCatch: "No Zod `.catch(`: invalid input is a coded error, never a fallback value.",
     },
   },
   /** @param {import("eslint").Rule.RuleContext} context */
@@ -126,19 +125,19 @@ export default defineConfig(
     },
   },
   {
-    // The guardrail lint (S9-7, spec D6).
+    // The guardrail lint.
     files: GUARDED,
     plugins: { "@eslint-community/eslint-comments": eslintComments },
     rules: {
       "no-restricted-syntax": ["error", ...GUARDRAIL_SYNTAX],
       "@eslint-community/eslint-comments/require-description": ["error", { ignore: [] }],
-      // Every disable names the rules it turns off (CR-6).
+      // Every disable names the rules it turns off.
       "@eslint-community/eslint-comments/no-unlimited-disable": "error",
     },
   },
   {
-    // Never read the change feed to decide (S9-14, domain model §3.8): only `packages/db`, core's
-    // `write` and the server's event route may import the table.
+    // Never read the change feed to decide: only `packages/db`, core's `write` and the server's
+    // event route may import the table.
     files: GUARDED,
     ignores: ["packages/db/**", "packages/core/src/writes.ts", "packages/server/src/events.ts"],
     rules: {
@@ -150,7 +149,7 @@ export default defineConfig(
               name: "@zenorm/db",
               importNames: ["changeFeed"],
               message:
-                "The change feed is never read to decide (S9-14): only packages/db, core's writes.ts and the server's events.ts import it.",
+                "The change feed is never read to decide: only packages/db, core's writes.ts and the server's events.ts import it.",
             },
           ],
         },
@@ -158,7 +157,7 @@ export default defineConfig(
     },
   },
   {
-    // A plugin imports only the SDK and contracts from the workspace (S9-19, B42): the examples
+    // A plugin imports only the SDK and contracts from the workspace: the examples
     // keep the SDK honest. This replaces the change-feed block above, whose import it also refuses.
     files: ["examples/**"],
     rules: {
@@ -169,7 +168,7 @@ export default defineConfig(
             {
               group: ["@zenorm/*", "!@zenorm/plugin-sdk", "!@zenorm/contracts"],
               message:
-                "A plugin imports only @zenorm/plugin-sdk and @zenorm/contracts from the workspace (S9-19).",
+                "A plugin imports only @zenorm/plugin-sdk and @zenorm/contracts from the workspace.",
             },
           ],
         },

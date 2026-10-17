@@ -1,7 +1,7 @@
 import { Server } from "node:http";
 
 /**
- * How long a closing server waits for its open connections before it ends them (S9-14b item 15):
+ * How long a closing server waits for its open connections before it ends them:
  * a keep-alive connection serving a request, such as a browser's refetch after a reconnect, would
  * otherwise hold `server.close()` open, and the shutdown with it.
  */

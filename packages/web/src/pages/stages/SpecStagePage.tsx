@@ -26,12 +26,11 @@ import { WaitedSpec } from "@/pages/stages/spec/WaitedSpec";
 import { Waits } from "@/pages/stages/spec/Waits";
 
 /**
- * The Spec stage (spec D9; slice 8b D11, the demo's `SpecStage`): the map's waits, then one spec of
- * the map, the route's or D11's default, as one document with its index and its revisions; past
- * r1, what it changes from the revision before. The map's latest revision of the spec is shown:
- * `revision` is a revision this map wrote, by its number from `?revision=`, undefined for the
- * latest; an unknown number is the route's error (D1, L100). A spec the map only waits on shows
- * its Waits and its latest revision, on whichever map (tickets review B6; E-1).
+ * The Spec stage: the map's waits, then one spec of the map, the route's or core's default, as one
+ * document with its index and its revisions; past r1, what it changes from the revision before.
+ * The map's latest revision of the spec is shown: `revision` is a revision this map wrote, by its
+ * number from `?revision=`, undefined for the latest; an unknown number is the route's error. A
+ * spec the map only waits on shows its Waits and its latest revision, on whichever map.
  */
 export function SpecStagePage({
   detail,
@@ -78,7 +77,7 @@ export function SpecStagePage({
 
   if (spec === undefined || viewed === undefined || latest === undefined) {
     const status = detail.status.stages[2];
-    // The stage's own action (D9): a map-wide one, or one naming a spec the map waits on, the one
+    // The stage's own action: a map-wide one, or one naming a spec the map waits on, the one
     // shown first; a released wait's run is the agent's while it works, Try again when stopped.
     const waited = detail.waits.map((wait) => wait.specNumber);
     const stageActions = detail.status.next.filter(

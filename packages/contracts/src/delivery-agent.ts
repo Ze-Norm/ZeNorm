@@ -37,9 +37,9 @@ export function gitIdentityEnv(identity: GitIdentity): Record<string, string> {
 }
 
 /**
- * A pinned ticket's branch, `<run branch>-t<n>` for `T<n>` (slice 8 D4): the executor contract's
- * naming rule (D18), which the runner reads when `ticket_merged` arrives. A string that is not a
- * ticket id is a programmer error.
+ * A pinned ticket's branch, `<run branch>-t<n>` for `T<n>`: the executor contract's naming rule,
+ * which the runner reads when `ticket_merged` arrives. A string that is not a ticket id is a
+ * programmer error.
  */
 export function ticketBranchName(runBranch: string, ticket: string): string {
   if (!/^T[1-9][0-9]*$/.test(ticket)) {
@@ -114,9 +114,9 @@ export const ImplementRequest = z.strictObject({
     .nullable(),
   checks: DeliveryChecks,
   /**
-   * The run's pinned fix commands, such as `pnpm format` (C4): the orchestrator, and the
-   * implementers fixing work in the run worktree, may run exactly these, as they may the checks.
-   * The same on every call, first and repair; empty when the project names none.
+   * The run's pinned fix commands, such as `pnpm format`: the orchestrator, and the implementers
+   * fixing work in the run worktree, may run exactly these, as they may the checks. The same on
+   * every call, first and repair; empty when the project names none.
    */
   fixCommands: ProjectFixCommands,
   gitIdentity: GitIdentity,
@@ -145,9 +145,9 @@ export const ReviewRequest = z.strictObject({
 export type ReviewRequest = z.infer<typeof ReviewRequest>;
 
 /**
- * What the pull request writer session needs to write the body of a passed run's pull request
- * (C3): the change (`baseCommit..finalCommit`, its diff and changed files), the spec and tickets,
- * each ticket's implementer report, the checks and the reviewer's verdict.
+ * What the pull request writer session needs to write the body of a passed run's pull request: the
+ * change (`baseCommit..finalCommit`, its diff and changed files), the spec and tickets, each
+ * ticket's implementer report, the checks and the reviewer's verdict.
  */
 export const PullRequestRequest = z.strictObject({
   /** The run folder; the session writes its prompt and output files here. */
@@ -179,8 +179,8 @@ export const PullRequestRequest = z.strictObject({
 export type PullRequestRequest = z.infer<typeof PullRequestRequest>;
 
 /**
- * What the orchestrator session reports while it works (D3): a line of the orchestrator or of a
- * ticket's implementer, a ticket's implementer started, and a ticket merged into the run branch.
+ * What the orchestrator session reports while it works: a line of the orchestrator or of a ticket's
+ * implementer, a ticket's implementer started, and a ticket merged into the run branch.
  */
 export const ImplementEvent = z.discriminatedUnion("kind", [
   z.strictObject({
@@ -217,20 +217,20 @@ export type ReviewDelivery = (
 ) => Promise<Result<Verdict, DeliveryAgentError>>;
 
 /**
- * The port behind which the read-only pull request writer session sits (C3): it returns the
- * pull request's body, markdown, which ZeNorm opens the pull request with as it is.
+ * The port behind which the read-only pull request writer session sits: it returns the pull
+ * request's body, markdown, which ZeNorm opens the pull request with as it is.
  */
 export type WritePullRequest = (
   request: PullRequestRequest,
   signal: AbortSignal,
 ) => Promise<Result<string, DeliveryAgentError>>;
 
-/** The name the app registers its Claude Code sessions under (S9-22, D18). */
+/** The name the app registers its Claude Code sessions under. */
 export const LOCAL_EXECUTOR = "local";
 
 /**
- * A delivery executor (S9-22, D18): one named set of the three ports, which supplies every role.
- * The app registers the Claude Code sessions as `"local"`; a plugin may register others, and
+ * A delivery executor: one named set of the three ports, which supplies every role. The app
+ * registers the Claude Code sessions as `"local"`; a plugin may register others, and
  * `delivery.executor` names the one every run uses.
  */
 export interface DeliveryExecutor {

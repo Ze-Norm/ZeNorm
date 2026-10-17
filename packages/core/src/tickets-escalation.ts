@@ -6,10 +6,10 @@ import type { Reader } from "./planning-runs.ts";
 import { readRejections, readSetVersion, readTicketsReview } from "./specs.ts";
 
 /**
- * Whether version `version` of the set is a review repair (slice 7c D5): a `to_tickets` run with
+ * Whether version `version` of the set is a review repair: a `to_tickets` run with
  * no hatch message wrote it, the version before has no rejection, and that version's tickets
- * review failed. A version written by a rejection rewrite or a note (S7b-12), and the first
- * version, are not repairs, so they restart the count (S7c-5).
+ * review failed. A version written by a rejection rewrite or a note, and the first
+ * version, are not repairs, so they restart the count.
  */
 function isReviewRepair(db: Reader, ticketSetId: string, version: number): boolean {
   if (version < 2) {
@@ -30,12 +30,12 @@ function isReviewRepair(db: Reader, ticketSetId: string, version: number): boole
 }
 
 /**
- * The positions (from 0) of a failing tickets review's findings that escalate (S7c-5, L30),
- * computed in the transaction recording it from recorded versions, their writing runs, rejections
- * and reviews (no counter, issue 25 item 3; the approved revision, the review's sources, does not
- * change within a set, issue 25 item 1). Every `decision` finding, whatever the count, when there
- * is one (the `revise` ones stay unescalated); else every finding when the version is the second
- * consecutive repair; else none, and the review's repair is due.
+ * The positions (from 0) of a failing tickets review's findings that escalate, computed in the
+ * transaction recording it from recorded versions, their writing runs, rejections and reviews (no
+ * counter; the approved revision, the review's sources, does not change within a set). Every
+ * `decision` finding, whatever the count, when there is one (the `revise` ones stay unescalated);
+ * else every finding when the version is the second consecutive repair; else none, and the review's
+ * repair is due.
  */
 export function escalatedTicketsPositions(
   db: Reader,

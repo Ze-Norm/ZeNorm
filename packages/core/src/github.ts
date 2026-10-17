@@ -13,7 +13,7 @@ import { runGit } from "./git.ts";
 
 /**
  * How long gh's sign-in check may take before ZeNorm gives up on reaching GitHub
- * (`delivery_github_unreachable`, C2). A fixed constant: no config key names it.
+ * (`delivery_github_unreachable`). A fixed constant: no config key names it.
  */
 export const GITHUB_SIGN_IN_TIMEOUT_MS = 30_000;
 
@@ -29,10 +29,10 @@ export interface GitHubRepository {
   readonly name: string;
 }
 
-/** Why the publishing step failed (C2); the message carries the command's output. */
+/** Why the publishing step failed; the message carries the command's output. */
 export type PublishError = CodedError<PublishFailureCode>;
 
-/** Why gh's sign-in check failed (C2): gh cannot run, is not signed in, or cannot reach GitHub. */
+/** Why gh's sign-in check failed: gh cannot run, is not signed in, or cannot reach GitHub. */
 export type GitHubSignInError = CodedError<
   "delivery_gh_missing" | "delivery_github_not_signed_in" | "delivery_github_unreachable"
 >;
@@ -91,8 +91,8 @@ export function githubRepositoryOf(url: string): GitHubRepository | null {
 }
 
 /**
- * The repository the project's `origin` remote names, when it is on github.com (C1); null when the
- * project has no `origin` or it is elsewhere. A remote under another name is never read (1.1). The
+ * The repository the project's `origin` remote names, when it is on github.com; null when the
+ * project has no `origin` or it is elsewhere. A remote under another name is never read. The
  * URL is read as configured, before any `insteadOf` rewriting.
  */
 export async function githubOrigin(folder: string): Promise<GitHubRepository | null> {
@@ -223,7 +223,7 @@ function exitWords(exitCode: number | null): string {
 
 /**
  * gh's environment: the server's own, read at each call (gh is the one first on its `PATH`, as git
- * is, C2), with gh's prompts and update notices off.
+ * is), with gh's prompts and update notices off.
  */
 function ghEnv(): NodeJS.ProcessEnv {
   return { ...process.env, GH_PROMPT_DISABLED: "1", GH_NO_UPDATE_NOTIFIER: "1", NO_COLOR: "1" };
@@ -242,7 +242,7 @@ function stopped<C extends PublishFailureCode>(code: C): CodedError<C> {
 }
 
 /**
- * Checks gh is signed in to github.com (`gh auth status --hostname github.com`, C2):
+ * Checks gh is signed in to github.com (`gh auth status --hostname github.com`):
  * `delivery_gh_missing` when gh cannot run, `delivery_github_not_signed_in` when it reports no
  * sign-in, `delivery_github_unreachable` when the check outlasts `GITHUB_SIGN_IN_TIMEOUT_MS`.
  */
@@ -278,9 +278,9 @@ export async function checkGitHubSignIn(input: {
 }
 
 /**
- * Pushes the run branch to `origin` under its own name (C1), from the project's folder, with git's
+ * Pushes the run branch to `origin` under its own name, from the project's folder, with git's
  * prompts off: `delivery_push_failed` with git's output when the push fails. Nothing else is pushed
- * and no remote branch is ever deleted (C2).
+ * and no remote branch is ever deleted.
  */
 export async function pushRunBranch(input: {
   readonly folder: string;
@@ -313,10 +313,10 @@ export async function pushRunBranch(input: {
 }
 
 /**
- * Opens a ready-for-review pull request of `branch` against `baseBranch` on `repository`, origin's
- * (C1, 1.2), titled `title` with the body in `bodyFile`: `gh pr create`, whose last output line is
- * the new pull request's URL. `delivery_gh_missing` when gh cannot run;
- * `delivery_pull_request_failed` when gh fails or prints no pull request URL of `repository`.
+ * Opens a ready-for-review pull request of `branch` against `baseBranch` on `repository`, origin's,
+ * titled `title` with the body in `bodyFile`: `gh pr create`, whose last output line is the new
+ * pull request's URL. `delivery_gh_missing` when gh cannot run; `delivery_pull_request_failed` when
+ * gh fails or prints no pull request URL of `repository`.
  */
 export async function openPullRequest(input: {
   readonly folder: string;
@@ -373,7 +373,7 @@ export async function openPullRequest(input: {
   }
 }
 
-/** Why reading a recorded pull request's state failed (C4): gh cannot run, or GitHub's answer. */
+/** Why reading a recorded pull request's state failed: gh cannot run, or GitHub's answer. */
 export type PullRequestReadError = GitHubSignInError;
 
 /** gh's `state` field of a pull request, as ZeNorm records it. */
@@ -388,7 +388,7 @@ function isGhPullRequestState(value: unknown): value is keyof typeof GH_PULL_REQ
 }
 
 /**
- * The state GitHub reports for the pull request at `url` (C4): `gh pr view <url> --json state`,
+ * The state GitHub reports for the pull request at `url`: `gh pr view <url> --json state`,
  * merged by any merge method (merge, squash or rebase) reading `merged`. `delivery_gh_missing`
  * when gh cannot run; `delivery_github_unreachable` when gh fails, prints no state, or outlasts
  * `GITHUB_SIGN_IN_TIMEOUT_MS`. The sign-in is checked first, by the caller. gh is given the full

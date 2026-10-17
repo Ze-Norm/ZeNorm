@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { laterRevisionsLine, touchOrigin } from "./touches.ts";
 
-describe("the Touches card's lines (slice 8b D13, the demo's TouchesCard)", () => {
+describe("the Touches card's lines", () => {
   it("names the map that wrote the touched revision and whether it is delivered", () => {
     expect(touchOrigin({ writerMapTitle: "Real URL slugs", delivered: true })).toBe(
       "Its current revision came from “Real URL slugs” and is delivered.",

@@ -67,7 +67,7 @@ function runUsers(mapId: string): string[] {
     .map((run) => run.userId);
 }
 
-describe("the actor of each write path (S9-13) and run attribution (S9-11)", () => {
+describe("the actor of each write path and run attribution", () => {
   test("a procedure-style write is the user's: the map and its first chart run take that User", async () => {
     const events = recordChanges();
 

@@ -8,7 +8,7 @@ const accessDenied = new ORPCError("access_denied", { defined: true, status: 403
 const undefinedServerError = new ORPCError("INTERNAL_SERVER_ERROR", { status: 500 });
 const fetchFailure = new TypeError("Failed to fetch");
 
-describe("the query client's retry (CR9b-5)", () => {
+describe("the query client's retry", () => {
   it("never retries a contract-defined error, so a route error shows at once", () => {
     expect(retryQuery(0, defined)).toBe(false);
     expect(retryQuery(0, accessDenied)).toBe(false);
@@ -24,7 +24,7 @@ describe("the query client's retry (CR9b-5)", () => {
   });
 });
 
-describe("the error a page shows for a read (QA-3)", () => {
+describe("the error a page shows for a read", () => {
   it("shows nothing for a fetch failure: the live Alert is the one signal", () => {
     expect(isFetchFailure(fetchFailure)).toBe(true);
     expect(shownQueryError(fetchFailure)).toBeNull();

@@ -24,7 +24,7 @@ describe("specLineLink", () => {
     });
   });
 
-  it("opens a Delivery line's run on that spec's Delivery page (slice 8 D13)", () => {
+  it("opens a Delivery line's run on that spec's Delivery page", () => {
     expect(specLineLink(line("delivery", 3, "Open the run"))).toEqual({
       stage: "delivery",
       specNumber: 3,
@@ -32,7 +32,7 @@ describe("specLineLink", () => {
     });
   });
 
-  it("reads the label from the line, not from its stage (tickets review Q1)", () => {
+  it("reads the label from the line, not from its stage", () => {
     expect(specLineLink(line("spec", 2, "See what the revision changes"))).toEqual({
       stage: "spec",
       specNumber: 2,

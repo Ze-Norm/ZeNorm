@@ -16,14 +16,14 @@ import {
 import { E2E_ROOT_ENV_VAR, repo, REPO_NAMES } from "./fixture.ts";
 
 /**
- * The example composition's Playwright project (S9-20): `apps/zenorm-example` composed with the
- * example plugin, on its own port, under the same shared lock as `apps/zenorm`'s e2e.
+ * The example composition's Playwright project: `apps/zenorm-example` composed with the example
+ * plugin, on its own port, under the same shared lock as `apps/zenorm`'s e2e.
  */
 const HOST = "127.0.0.1";
 const PORT = 4650;
 const BASE_URL = `http://${HOST}:${String(PORT)}`;
 const SHUTDOWN_TIMEOUT_MS = 5000;
-/** As `apps/zenorm`'s e2e (L123): the live layer's refetch after a chain of stand-in runs. */
+/** As `apps/zenorm`'s e2e: the live layer's refetch after a chain of stand-in runs. */
 const EXPECT_TIMEOUT_MS = 10_000;
 const appDir = fileURLToPath(new URL("..", import.meta.url));
 /** This app's web build, composed with the example plugin; `pnpm build` writes it before `e2e`. */
@@ -93,7 +93,7 @@ function createRoot(): string {
   return root;
 }
 
-/** As `apps/zenorm`'s: the stale-server guard (S9-8, S9-13) first, then the root and its record. */
+/** As `apps/zenorm`'s: the stale-server guard first, then the root and its record. */
 function runnerRoot(): string {
   stopStaleE2eServer(PORT, LIVE_RUN_WAIT_MS);
   const created = createRoot();

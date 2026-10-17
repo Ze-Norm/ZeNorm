@@ -32,21 +32,20 @@ function isFilter(value: string): value is StreamFilter {
   return value === "map" || value === "stage";
 }
 
-/** Whether the stage has the escape hatch: every stage but Delivery (S7b-17). */
+/** Whether the stage has the escape hatch: every stage but Delivery. */
 function isHatchStage(stage: Stage): stage is HatchStage {
   return HatchStage.safeParse(stage).success;
 }
 
 /**
- * The Activity column (spec D9, slice 7b D7): the map's stream, newest last, filtered to the whole
- * map or the viewed stage. Activity lines link their stage, and a line that carries a waypoint
- * links "Open the waypoint" (slice 6a D11); messages sent through the hatch and the agent's replies
- * sit among them by time. A working stage adds a pulsing line, the agent's next action in plain
- * words, and a message the agent is on adds "The agent is replying.". Nothing here asks you for
- * anything; under the stream sits the escape hatch, on the stages that have one (every stage but
- * Delivery, S7b-17). `specNumber` is the spec on screen a message names (the demo's `aboutSpec`).
- * It fills whatever `WorkspaceColumns` puts it in: the sticky column, or the sheet below the
- * columns breakpoint.
+ * The Activity column: the map's stream, newest last, filtered to the whole map or the viewed
+ * stage. Activity lines link their stage, and a line that carries a waypoint links "Open the
+ * waypoint"; messages sent through the hatch and the agent's replies sit among them by time. A
+ * working stage adds a pulsing line, the agent's next action in plain words, and a message the
+ * agent is on adds "The agent is replying.". Nothing here asks you for anything; under the stream
+ * sits the escape hatch, on the stages that have one (every stage but Delivery). `specNumber` is
+ * the spec on screen a message names. It fills whatever `WorkspaceColumns` puts it in: the sticky
+ * column, or the sheet below the columns breakpoint.
  */
 export function ActivityColumn({
   detail,
@@ -57,7 +56,7 @@ export function ActivityColumn({
   detail: MapOverviewDetail;
   stage: Stage;
   specNumber: number | null;
-  /** The `map.workspace.aside` slot, first in the column (S9-18, L36). */
+  /** The `map.workspace.aside` slot, first in the column. */
   aside: ReactNode;
 }) {
   const [filter, setFilter] = useState<StreamFilter>("map");
@@ -70,7 +69,7 @@ export function ActivityColumn({
   const { open } = useHatch();
 
   // The stream opens at its end. Opening the composer shortens the stream, so it scrolls to its
-  // end then too (demo `ActivityLog.tsx` scrolls on `composing`, L162 (2)).
+  // end then too.
   useEffect(() => {
     const element = viewport.current;
     if (element !== null) {
@@ -137,7 +136,7 @@ export function ActivityColumn({
         {/*
          * The cue that the stream continues above its opening end: the line at the top dissolves
          * under a fade as tall as the list's top padding, so an unscrolled first line clears it
-         * and a scrolled one fades out rather than being sliced (UX review P2-9).
+         * and a scrolled one fades out rather than being sliced.
          */}
         <div
           aria-hidden="true"
@@ -174,11 +173,11 @@ function Entry({ entry, detail }: { entry: StreamEntry; detail: MapOverviewDetai
 }
 
 /**
- * The titles a line of a one-spec map may quote, so the column can leave them out (UX review
- * P2-9): every Spec, Tickets and Delivery line of such a map names the same spec, under
- * the title of whichever revision was latest when it was written, and the top bar already names
- * the map. Nothing for an Idea or Wayfinding line, which quotes waypoints, or on a map with
- * several specs, where the title tells them apart.
+ * The titles a line of a one-spec map may quote, so the column can leave them out: every Spec,
+ * Tickets and Delivery line of such a map names the same spec, under the title of whichever
+ * revision was latest when it was written, and the top bar already names the map. Nothing for an
+ * Idea or Wayfinding line, which quotes waypoints, or on a map with several specs, where the title
+ * tells them apart.
  */
 function singleSpecTitles(line: ActivityLine, detail: MapOverviewDetail): string[] {
   const [spec] = detail.specs;
@@ -193,9 +192,8 @@ function singleSpecTitles(line: ActivityLine, detail: MapOverviewDetail): string
 
 /**
  * One activity line: its stage and time, its text, and "Open the waypoint" when it carries one;
- * a line that carries a spec links "Open the revision" (a Spec line, the demo's `writeRevision`,
- * L159 (a)), "Open the tickets" (a Tickets line, slice 7c D10) or "Open the run" (a
- * Delivery line, slice 8 D13).
+ * a line that carries a spec links "Open the revision" (a Spec line), "Open the tickets" (a
+ * Tickets line) or "Open the run" (a Delivery line).
  */
 function EventLine({ line, detail }: { line: ActivityLine; detail: MapOverviewDetail }) {
   const mapId = detail.map.id;

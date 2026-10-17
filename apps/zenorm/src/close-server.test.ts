@@ -41,7 +41,7 @@ function get(port: number, path: string): Promise<IncomingMessage | Error> {
   });
 }
 
-describe("closing the server (S9-14b item 15)", () => {
+describe("closing the server", () => {
   test("the bound is 2 s", () => {
     expect(SERVER_CLOSE_BOUND_MS).toBe(2_000);
   });

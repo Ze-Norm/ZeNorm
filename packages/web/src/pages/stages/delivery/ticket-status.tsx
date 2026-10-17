@@ -8,8 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { midSentence, type ShownTicketStatus } from "@/lib/delivery";
 
 /**
- * Where a ticket stands in a run, in words and as a badge (D6; the demo's `statusLine` and
- * `StatusBadge`), shared by the run's ticket rows, the ticket execution page and Run activity.
+ * Where a ticket stands in a run, in words and as a badge, shared by the run's ticket rows, the
+ * ticket execution page and Run activity.
  */
 
 export const ACTOR: Record<RunActor, string> = {
@@ -20,7 +20,7 @@ export const ACTOR: Record<RunActor, string> = {
 };
 
 /**
- * Who a run's line is from, naming the run's executor on its own lines (CR9b-6): `"local"`'s
+ * Who a run's line is from, naming the run's executor on its own lines: `"local"`'s
  * orchestrator reads "Orchestrator", as before; another executor's lines read its name.
  */
 export function actorLabel(who: RunActor, executor: string): string {
@@ -30,15 +30,15 @@ export function actorLabel(who: RunActor, executor: string): string {
   return ACTOR[who];
 }
 
-/** A plugin executor, by name (CR9b-6). */
+/** A plugin executor, by name. */
 export function executorLabel(executor: string): string {
   return `Executor "${executor}"`;
 }
 
 /**
- * "Starts when T1 has supplied …, and …." (the demo's waiting line). A `supplies` line is the
+ * "Starts when T1 has supplied …, and …." (the waiting line). A `supplies` line is the
  * agent's sentence: its inline markdown is rendered, its first letter lower-cased mid-sentence,
- * and its own closing period ends the line (L197 item 3).
+ * and its own closing period ends the line.
  */
 function WaitingLine({ on }: { on: readonly TicketBlocker[] }) {
   const closed = on.at(-1)?.supplies.trimEnd().endsWith(".") === true;
@@ -57,8 +57,8 @@ function WaitingLine({ on }: { on: readonly TicketBlocker[] }) {
 }
 
 /**
- * What a ticket's status says, in a line (the demo's `statusLine`; D6). The run's `executor` names
- * its own latest line, as Run activity does (CR9b-6).
+ * What a ticket's status says, in a line. The run's `executor` names its own latest line, as Run
+ * activity does.
  */
 export function StatusLine({ status, executor }: { status: ShownTicketStatus; executor: string }) {
   switch (status.state) {
@@ -69,7 +69,7 @@ export function StatusLine({ status, executor }: { status: ShownTicketStatus; ex
         </span>
       );
     case "implementing":
-      // A started ticket with no line yet reads the demo's starting sentence (deviation 10).
+      // A started ticket with no line yet reads the starting sentence.
       return status.latest === null ? (
         <span className="text-work">Nothing blocks it. An implementer is being started.</span>
       ) : (

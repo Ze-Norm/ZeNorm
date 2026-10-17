@@ -30,12 +30,12 @@ function targetOf(tx: Tx, mapId: string, number: number): Waypoint {
   return target;
 }
 
-/** Whether a `reword` or `rule_out_of_scope` still fits the waypoint's status (S7b-9, D4). */
+/** Whether a `reword` or `rule_out_of_scope` still fits the waypoint's status. */
 function isOpenOrClaimed(status: WaypointStatus): boolean {
   return status === "open" || status === "claimed";
 }
 
-/** Records the message that directed the waypoint (S7b-10): its next run's request carries it. */
+/** Records the message that directed the waypoint: its next run's request carries it. */
 function recordMessage(tx: Tx, waypointId: string, messageId: string): void {
   const updated = tx
     .update(waypoints)
@@ -47,7 +47,7 @@ function recordMessage(tx: Tx, waypointId: string, messageId: string): void {
   }
 }
 
-/** The run `target` waits on (S6b-6), or null when it is not waiting on the person. */
+/** The run `target` waits on, or null when it is not waiting on the person. */
 function waitingOn(tx: Tx, target: Waypoint) {
   return waitingRun(
     target,
@@ -57,8 +57,8 @@ function waitingOn(tx: Tx, target: Waypoint) {
 }
 
 /**
- * Whether `target` waits on the person for a run (L46): it waits on its latest run (S6b-6), or it
- * is `open` with its scope stopped after a failed retry (S6a-12).
+ * Whether `target` waits on the person for a run: it waits on its latest run, or it is `open` with
+ * its scope stopped after a failed retry.
  */
 function awaitsRun(tx: Tx, target: Waypoint): boolean {
   return (
@@ -69,12 +69,12 @@ function awaitsRun(tx: Tx, target: Waypoint): boolean {
 }
 
 /**
- * Applies an `open_waypoint` change (S7b-9, L154 (b)): the named waypoint, of any kind, is added
- * `open` as the map's next number, blocked by existing waypoints only, created by the hatch run and
- * recording the message (S7b-10); then the fog settlement applies, its waypoints numbered after it.
- * Nothing in flight is cancelled: a running map-scope `to_spec` finishes, and the re-clear is due
- * once the new waypoint resolves (S7b-8). A blocker naming the new waypoint itself (the one cycle a
- * new waypoint can form) fails the run `hatch_change_invalid`.
+ * Applies an `open_waypoint` change: the named waypoint, of any kind, is added `open` as the map's
+ * next number, blocked by existing waypoints only, created by the hatch run and recording the
+ * message; then the fog settlement applies, its waypoints numbered after it. Nothing in flight is
+ * cancelled: a running map-scope `to_spec` finishes, and the re-clear is due once the new waypoint
+ * resolves. A blocker naming the new waypoint itself (the one cycle a new waypoint can form) fails
+ * the run `hatch_change_invalid`.
  */
 export const applyOpenWaypoint: HatchApplier<"open_waypoint"> = (tx, { run, message }, change) => {
   const highest = tx
@@ -127,10 +127,10 @@ export const applyOpenWaypoint: HatchApplier<"open_waypoint"> = (tx, { run, mess
 };
 
 /**
- * Applies a `reword` change (S7b-9, L8): an `open` or `claimed` waypoint gets the new title and
- * question and records the message (S7b-10); a claimed one has its running run cancelled
- * `reopened` and its pending round withdrawn `superseded`, and returns to `open`, so the frontier
- * claims it with a fresh run. Any other status is refused `waypoint_state` (D4).
+ * Applies a `reword` change: an `open` or `claimed` waypoint gets the new title and question and
+ * records the message; a claimed one has its running run cancelled `reopened` and its pending round
+ * withdrawn `superseded`, and returns to `open`, so the frontier claims it with a fresh run. Any
+ * other status is refused `waypoint_state`.
  */
 export const applyReword: HatchApplier<"reword"> = (tx, { run, message }, change) => {
   const target = targetOf(tx, run.mapId, change.waypoint);
@@ -155,11 +155,11 @@ export const applyReword: HatchApplier<"reword"> = (tx, { run, message }, change
 };
 
 /**
- * Applies a `rule_out_of_scope` change (S7b-9, L8): an `open` or `claimed` waypoint moves to
- * `out_of_scope` with the reason as its Out of scope line, written by the hatch run; its running run
- * is cancelled `reopened` and its pending round withdrawn `waypoint_out_of_scope`; it records the
- * message (S7b-10) and the fog settlement applies; fog it leaves goes to the map's fog run (harness
- * change #4). Any other status is refused `waypoint_state` (D4).
+ * Applies a `rule_out_of_scope` change: an `open` or `claimed` waypoint moves to `out_of_scope`
+ * with the reason as its Out of scope line, written by the hatch run; its running run is cancelled
+ * `reopened` and its pending round withdrawn `waypoint_out_of_scope`; it records the message and
+ * the fog settlement applies; fog it leaves goes to the map's fog run. Any other status is refused
+ * `waypoint_state`.
  */
 export const applyRuleOutOfScope: HatchApplier<"rule_out_of_scope"> = (
   tx,
@@ -185,9 +185,9 @@ export const applyRuleOutOfScope: HatchApplier<"rule_out_of_scope"> = (
 };
 
 /**
- * Applies a `run_waypoint` change (S7b-9, L46): a waypoint waiting on the person (an unanswered
- * report or a `failed` task, S6b-6, or a scope stopped after a failed retry, S6a-12) is claimed with a fresh run of its kind and records the message
- * (S7b-10). One not waiting is refused `waypoint_not_waiting` (D4).
+ * Applies a `run_waypoint` change: a waypoint waiting on the person (an unanswered report or a
+ * `failed` task, or a scope stopped after a failed retry) is claimed with a fresh run of its kind
+ * and records the message. One not waiting is refused `waypoint_not_waiting`.
  */
 export const applyRunWaypoint: HatchApplier<"run_waypoint"> = (
   tx,
@@ -212,11 +212,11 @@ export const applyRunWaypoint: HatchApplier<"run_waypoint"> = (
 };
 
 /**
- * Applies an `accept_report` change (S7b-9, L9): the hatch run claims a waypoint waiting on an
- * unanswered research report (`open → claimed`) and resolves it (`claimed → resolved`) with the
- * report's summary as the resolution and the change's gist, `resolved_how` `run`, `resolved_by_run`
- * the hatch run; it records the message (S7b-10) and the fog settlement applies. A waypoint not
- * waiting on a report is refused `waypoint_not_waiting` (D4).
+ * Applies an `accept_report` change: the hatch run claims a waypoint waiting on an unanswered
+ * research report (`open → claimed`) and resolves it (`claimed → resolved`) with the report's
+ * summary as the resolution and the change's gist, `resolved_how` `run`, `resolved_by_run` the
+ * hatch run; it records the message and the fog settlement applies. A waypoint not waiting on a
+ * report is refused `waypoint_not_waiting`.
  */
 export const applyAcceptReport: HatchApplier<"accept_report"> = (tx, { run, message }, change) => {
   const target = targetOf(tx, run.mapId, change.waypoint);

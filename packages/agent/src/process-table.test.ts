@@ -8,7 +8,7 @@ import {
   serverIdentity,
 } from "./process-table.ts";
 
-describe("the process table (CR-2, CR-12)", () => {
+describe("the process table", () => {
   test("parses ps's pid, ppid and pgid columns", () => {
     expect(
       parseProcessTable("    1     0     1\n  412     1   412\n  413   412   412\n\n"),
@@ -45,7 +45,7 @@ describe("the process table (CR-2, CR-12)", () => {
   });
 });
 
-describe("process start times (C6)", () => {
+describe("process start times", () => {
   test.each([
     { name: "a two-digit day", lstart: "Wed Oct 14 10:00:05 2026", day: 14 },
     // procps pads a one-digit day with a space; macOS prints it the same way.

@@ -280,7 +280,7 @@ async function suggestingRequest(runId: string, purpose: RunWork["purpose"]) {
   }
 }
 
-describe("the project's suggestions (C1, 1.4)", () => {
+describe("the project's suggestions", () => {
   test("the reader lists every suggestion of the project oldest first, each line as stored", () => {
     expect(readProjectProposals(context.db, project.id)).toEqual(PROJECT_PROPOSALS);
   });
@@ -322,7 +322,7 @@ describe("the project's suggestions (C1, 1.4)", () => {
   });
 });
 
-describe("the project's maps (C1, 1.2)", () => {
+describe("the project's maps", () => {
   test("every map of the project, this one included, with the stage it has reached; another project's is absent", () => {
     expect(readProjectMaps(context.db, project.id)).toEqual(PROJECT_MAPS);
   });

@@ -50,13 +50,12 @@ function last<T>(items: readonly T[]): T | undefined {
 }
 
 /**
- * Idea: the map's overview (spec D8, S5-11; slice 6a S6a-18). The head as every stage's (UX review
- * P2-4): the map's title with the agent's one-line reading as the lede, or "Untitled map" before
- * charting names it; then what the map waits for first, as on every stage (up to two cards, then
- * "Also in motion" with the rest, L143); the idea itself quoted under that (six lines before a
- * title, when it is the page's only statement of the map, three after), then the Destination once confirmed,
- * then one digest per later stage from what it has produced so far, each linking its stage. Everything comes from
- * `map.overview` (D4).
+ * Idea: the map's overview. The head as every stage's: the map's title with the agent's one-line
+ * reading as the lede, or "Untitled map" before charting names it; then what the map waits for
+ * first, as on every stage (up to two cards, then "Also in motion" with the rest); the idea itself
+ * quoted under that (six lines before a title, when it is the page's only statement of the map,
+ * three after), then the Destination once confirmed, then one digest per later stage from what it
+ * has produced so far, each linking its stage. Everything comes from `map.overview`.
  */
 export function IdeaStagePage({ detail }: { detail: MapOverviewDetail }) {
   const { cards, rest } = overviewActions(detail.status.next);
@@ -75,8 +74,8 @@ export function IdeaStagePage({ detail }: { detail: MapOverviewDetail }) {
     >
       <div className="grid gap-3">
         {cards.map((next, index) => (
-          // Several actions can share a stage (rounds and waiting waypoints, slice 6b D7).
-          // A stopped run's card carries its own **Try again** (UX audit P1-1).
+          // Several actions can share a stage (rounds and waiting waypoints).
+          // A stopped run's card carries its own **Try again**.
           <NextActionCard key={index} mapId={detail.map.id} next={next} />
         ))}
         {rest.length > 0 && (
@@ -183,8 +182,8 @@ function Destination({ detail }: { detail: MapOverviewDetail }) {
 }
 
 /**
- * The map's other next actions, a line each, after the cards: each yours with its label (S7b-16); each names its stage and,
- * when about a spec, the spec's title, and opens that spec's page (the demo's lines, L141).
+ * The map's other next actions, a line each, after the cards: each yours with its label; each
+ * names its stage and, when about a spec, the spec's title, and opens that spec's page.
  */
 function AlsoInMotion({
   mapId,
@@ -212,7 +211,7 @@ function AlsoInMotion({
         </Micro>
         <ul>
           {rest.map((next, index) => {
-            // A wait's spec is one the map waits on, not one it wrote (tickets review B6).
+            // A wait's spec is one the map waits on, not one it wrote.
             const about = actionSpec(next, specs, waits);
             const content = (
               <>
@@ -247,10 +246,10 @@ function AlsoInMotion({
               </>
             );
             return (
-              // Several entries can share a stage (rounds and waiting waypoints, slice 6b D7).
+              // Several entries can share a stage (rounds and waiting waypoints).
               <li key={index}>
                 {next.onMap !== null && next.spec !== null && isSpecStage(next.stage) ? (
-                  // A wait opens the spec on the map it waits on (S8b-16).
+                  // A wait opens the spec on the map it waits on.
                   <Link
                     to="/maps/$mapId/$stage/$specNumber"
                     params={{ mapId: next.onMap, stage: next.stage, specNumber: next.spec }}
@@ -293,7 +292,7 @@ function StageDigests({ detail }: { detail: MapOverviewDetail }) {
   const [, wayfinding, specStatus, ticketsStatus, deliveryStatus] = detail.status.stages;
   return (
     // From `lg` the stage names share one label column, as wide as the longest, and each row's
-    // line, link and body line up with it through a subgrid (UX audit F1, review P2-11).
+    // line, link and body line up with it through a subgrid.
     <Card asChild className="grid lg:grid-cols-[max-content_minmax(0,1fr)_auto]">
       <section aria-label="Stages so far">
         <StageDigest mapId={mapId} status={wayfinding}>
@@ -320,7 +319,7 @@ function StageDigests({ detail }: { detail: MapOverviewDetail }) {
 }
 
 /**
- * A later stage's digest, once per spec (the demo's `PerSpec`): a map with several specs names
+ * A later stage's digest, once per spec: a map with several specs names
  * each, opening it in that stage.
  */
 function PerSpec({
@@ -410,13 +409,13 @@ function StageDigest({
   );
 }
 
-/** A waiting waypoint's mark (slice 6b D8), as the Wayfinding index marks it. */
+/** A waiting waypoint's mark, as the Wayfinding index marks it. */
 const waitingMark: Record<WaitingReason, string> = {
   research_unanswered: "report waiting",
   task_failed: "task failed",
 };
 
-/** The one state of a waypoint that is not resolved (S6a-18; slice 6b D12, S6b-17), as core derives it. */
+/** The one state of a waypoint that is not resolved, as core derives it. */
 function waypointState(state: WaypointState): string {
   switch (state.kind) {
     case "out_of_scope":
@@ -439,7 +438,7 @@ function waypointState(state: WaypointState): string {
 }
 
 /**
- * Wayfinding's digest (S6a-18; slice 6b D12): each resolved waypoint's gist and title, then each
+ * Wayfinding's digest: each resolved waypoint's gist and title, then each
  * other waypoint with its one state, then "Fog: …" while fog remains. Every waypoint line opens its
  * waypoint.
  */
@@ -499,8 +498,8 @@ function WayfindingDigest({ mapId, wayfinding }: { mapId: string; wayfinding: Wa
 }
 
 /**
- * A spec in the overview, as the demo's: this map's latest revision's problem, then "r<n> · n
- * behaviours: <titles>", and past r1 the revision it revises with its text delta's tally (D13).
+ * A spec in the overview: this map's latest revision's problem, then "r<n> · n behaviours:
+ * <titles>", and past r1 the revision it revises with its text delta's tally.
  */
 function SpecDigest({ mapId, spec }: { mapId: string; spec: MapSpec }) {
   const revision = last(ownRevisions(spec, mapId));
@@ -526,7 +525,7 @@ function SpecDigest({ mapId, spec }: { mapId: string; spec: MapSpec }) {
 }
 
 /**
- * On a revision after the first (the demo's `Revises`): the revision it changes, the map that wrote
+ * On a revision after the first: the revision it changes, the map that wrote
  * that one when it is another, and how much of the text moved.
  */
 function Revises({ mapId, spec, delta }: { mapId: string; spec: MapSpec; delta: TextDelta }) {
@@ -553,7 +552,7 @@ function Revises({ mapId, spec, delta }: { mapId: string; spec: MapSpec; delta: 
 }
 
 function TicketsDigest({ mapId, spec }: { mapId: string; spec: MapSpec }) {
-  // A later map's set on the spec is that map's (slice 8b D9).
+  // A later map's set on the spec is that map's.
   const set = last(ownTicketSets(spec, mapId));
   if (set === undefined) {
     return null;
@@ -577,12 +576,12 @@ function TicketsDigest({ mapId, spec }: { mapId: string; spec: MapSpec }) {
 }
 
 /**
- * The spec's latest delivery run on this map (`runsOn`; slice 8 S8-14, 8b D9), as the demo
- * digests it (`IdeaStage.tsx` 225–248): the verdict summary, a failure's sentence, each blocking
- * finding's title, "k of n tickets implemented · <branch>" (just the branch before `0010`) and **merged**.
+ * The spec's latest delivery run on this map (`runsOn`), as a digest: the verdict summary, a
+ * failure's sentence, each blocking finding's title, "k of n tickets implemented · <branch>"
+ * (just the branch before `0010`) and **merged**.
  */
 function DeliveryDigest({ mapId, spec }: { mapId: string; spec: MapSpec }) {
-  // Runs are newest first; another map's runs on the spec are that map's (slice 8b D9).
+  // Runs are newest first; another map's runs on the spec are that map's.
   const run = runsOn(spec, mapId)[0];
   if (run === undefined) {
     return null;

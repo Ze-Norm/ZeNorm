@@ -15,9 +15,9 @@ import { block } from "./prompt-parts.ts";
 import type { DeliverySkills } from "./skills.ts";
 
 /**
- * The orchestrator's appended system prompt, written to `<runDir>/orchestrator-prompt.md` (spec
- * D1, D5): the skill to follow, the Code Review skill for its review step, the run folder layout
- * (D3) and the rules the spike found load-bearing.
+ * The orchestrator's appended system prompt, written to `<runDir>/orchestrator-prompt.md`: the
+ * skill to follow, the Code Review skill for its review step, the run folder layout and the rules
+ * found load-bearing in practice.
  */
 export function buildOrchestratorSystemPrompt(
   request: ImplementRequest,
@@ -62,9 +62,9 @@ export function buildOrchestratorSystemPrompt(
 }
 
 /**
- * The rule naming the commands sessions may run: the checks, and the run's fix commands when it
- * has any (C4), with who may run those and where. The reviewer and single-ticket implementers run
- * none of them.
+ * The rule naming the commands sessions may run: the checks, and the run's fix commands when it has
+ * any, with who may run those and where. The reviewer and single-ticket implementers run none of
+ * them.
  */
 function commandRules(fixCommands: readonly string[]): string[] {
   if (fixCommands.length === 0) {
@@ -80,7 +80,7 @@ function commandRules(fixCommands: readonly string[]): string[] {
   ];
 }
 
-/** One `Fix:` line per fix command the run pinned (C4); none when it has none. */
+/** One `Fix:` line per fix command the run pinned; none when it has none. */
 function fixLines(fixCommands: readonly string[]): string[] {
   return fixCommands.map((command) => `Fix: ${command}`);
 }
@@ -154,10 +154,10 @@ function resumedFromLines(resumedFrom: ResumedFrom | null): string[] {
 }
 
 /**
- * A repair attempt's lines (C2): the attempt and the run's repair limit, and each check that did
- * not pass in ZeNorm's check pass with its output tail (in a nonce-delimited block) and the path to
- * its whole output. The orchestrator has one implementer fix them on the run branch, commits, and
- * runs the listed checks again before its closing review. None on a run's first call.
+ * A repair attempt's lines: the attempt and the run's repair limit, and each check that did not
+ * pass in ZeNorm's check pass with its output tail (in a nonce-delimited block) and the path to its
+ * whole output. The orchestrator has one implementer fix them on the run branch, commits, and runs
+ * the listed checks again before its closing review. None on a run's first call.
  */
 function repairLines(repair: RepairRequest | null): string[] {
   if (repair === null) return [];
@@ -182,7 +182,7 @@ function repairLines(repair: RepairRequest | null): string[] {
   ];
 }
 
-/** The orchestrator's `-p` prompt: spec D5's fixed lines, which the e2e stand-in reads. */
+/** The orchestrator's `-p` prompt: its fixed lines, which the e2e stand-in reads. */
 export function buildOrchestratorPrompt(request: ImplementRequest): string {
   return [
     "Implement the approved ticket set on the run branch, following the implement-spec skill your system prompt names.",
@@ -212,7 +212,7 @@ export function buildOrchestratorPrompt(request: ImplementRequest): string {
   ].join("\n");
 }
 
-/** The reviewer's appended system prompt, written to `<runDir>/reviewer-prompt.md` (spec D5). */
+/** The reviewer's appended system prompt, written to `<runDir>/reviewer-prompt.md`. */
 export function buildReviewerSystemPrompt(skills: DeliverySkills): string {
   return [
     "You are ZeNorm's delivery reviewer: an independent, read-only session that reviews one delivery run's",
@@ -262,9 +262,9 @@ function checkBlocks(results: readonly CheckResult[], nonce: string): string[] {
 }
 
 /**
- * The reviewer's `-p` prompt (spec D5): the files to review, the fixed `Base commit:` and
- * `Final commit:` lines, and the changed files and each check result in nonce-delimited blocks,
- * marked as material, not instructions (L63).
+ * The reviewer's `-p` prompt: the files to review, the fixed `Base commit:` and `Final commit:`
+ * lines, and the changed files and each check result in nonce-delimited blocks, marked as material,
+ * not instructions.
  */
 export function buildReviewerPrompt(request: ReviewRequest): string {
   const nonce = randomUUID();
@@ -291,12 +291,12 @@ export function buildReviewerPrompt(request: ReviewRequest): string {
   ].join("\n");
 }
 
-/** The heading the pull request body starts at (C3, 3.2). */
+/** The heading the pull request body starts at. */
 export const PULL_REQUEST_FIRST_HEADING = "## Why";
 
 /**
- * The pull request writer's appended system prompt, written to `<runDir>/pr-writer-prompt.md`
- * (C3): the PR skill to follow, its read-only rules, and the structured output it answers through.
+ * The pull request writer's appended system prompt, written to `<runDir>/pr-writer-prompt.md`: the
+ * PR skill to follow, its read-only rules, and the structured output it answers through.
  */
 export function buildPullRequestSystemPrompt(skills: DeliverySkills): string {
   return [
@@ -337,9 +337,9 @@ function renderVerdict(request: PullRequestRequest): string {
 }
 
 /**
- * The pull request writer's `-p` prompt (C3): the files to read, the fixed `Base commit:` and
+ * The pull request writer's `-p` prompt: the files to read, the fixed `Base commit:` and
  * `Final commit:` lines, and the changed files, each implementer report, each check result and the
- * verdict in nonce-delimited blocks, marked as material, not instructions (L63).
+ * verdict in nonce-delimited blocks, marked as material, not instructions.
  */
 export function buildPullRequestPrompt(request: PullRequestRequest): string {
   const nonce = randomUUID();

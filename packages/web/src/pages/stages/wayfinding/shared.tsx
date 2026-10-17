@@ -67,7 +67,7 @@ export function at<T>(items: readonly T[], index: number, what: string): T {
 
 const dayFormat = new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" });
 
-/** An ISO timestamp as a day, as the demo dates a resolution: "Oct 1", in local time. */
+/** An ISO timestamp as a day, as a resolution is dated: "Oct 1", in local time. */
 export function formatDay(iso: string): string {
   return dayFormat.format(new Date(iso));
 }
@@ -96,7 +96,7 @@ export function submittedRounds(rounds: readonly QuestionRoundRecord[]): Questio
   return rounds.filter((round) => round.status === "submitted");
 }
 
-/** The waypoints whose blockers include this one: direct dependents only (L106). */
+/** The waypoints whose blockers include this one: direct dependents only. */
 export function dependents(
   detail: MapOverviewDetail,
   waypoint: WayfindingWaypoint,
@@ -106,12 +106,12 @@ export function dependents(
   );
 }
 
-/** A waiting waypoint's run (slice 6b S6b-6, D6), or null when it does not wait on the person. */
+/** A waiting waypoint's run, or null when it does not wait on the person. */
 export function waitingRun(waypoint: WayfindingWaypoint): WaitingRun | null {
   return waypoint.state.kind === "waiting" ? waypoint.state.run : null;
 }
 
-/** How the index marks a waiting waypoint (spec D8). */
+/** How the index marks a waiting waypoint. */
 export function waitingMark(waiting: WaitingRun): string {
   switch (waiting.reason) {
     case "research_unanswered":
@@ -124,7 +124,7 @@ export function waitingMark(waiting: WaitingRun): string {
 /** Which index entry is open: the overview, the destination round, or a waypoint by number. */
 export type IndexSelection = "overview" | "destination" | number;
 
-/** The ring every focused link in the index shows, as `Button`'s (UX audit P2-17). */
+/** The ring every focused link in the index shows, as `Button`'s. */
 const focusRing = "focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none";
 
 const entryClass = cn(
@@ -133,10 +133,10 @@ const entryClass = cn(
 );
 
 /**
- * Wayfinding's index (6a D9, 6b D8): Map overview, then each non-empty group with its count. Each
+ * Wayfinding's index: Map overview, then each non-empty group with its count. Each
  * waypoint is in the one group its state puts it in. The out-of-scope ones close the index under
- * their own faint group, so every waypoint of the map is reachable from it (UX audit E1; the
- * group's label keeps it apart from the overview's Out of scope section).
+ * their own faint group, so every waypoint of the map is reachable from it (the group's label
+ * keeps it apart from the overview's Out of scope section).
  */
 export function WaypointIndex({
   detail,
@@ -302,7 +302,7 @@ function IndexEntry({
 /**
  * The frame of Wayfinding's child routes, as `StageView` frames the stage page: the workspace
  * shell (`WorkspaceColumns`) with the page, and the Activity column beside it, a sheet below the
- * columns breakpoint (spec D9; UX audit A1).
+ * columns breakpoint.
  */
 export function WayfindingFrame({
   detail,
@@ -352,7 +352,7 @@ function selectionLabel(detail: MapOverviewDetail, selected: IndexSelection): st
 /**
  * A Wayfinding page on the workspace's measure (`WorkspacePage`): the head, then the index of
  * waypoints at the left with the content beside it; below `md` the index folds above the content
- * behind one row naming the open entry (UX audit A1).
+ * behind one row naming the open entry.
  */
 export function WayfindingPage({
   detail,
@@ -444,7 +444,7 @@ export function useSubmitAnswers(): {
 }
 
 /**
- * Submitted rounds in the record form (spec D9): "Questions and answers" with the round count,
+ * Submitted rounds in the record form: "Questions and answers" with the round count,
  * then per round when it was asked and answered and each question's chosen option, words and
  * the options not chosen.
  */
@@ -549,9 +549,8 @@ function AnsweredQuestion({ question, answer }: { question: Question; answer: An
 }
 
 /**
- * A stopped scope's next-action card (S6a-12): the standard card, whose detail says why the run
- * stopped and whose action is **Try again** (UX audit P1-1); a card with no stopped run is a
- * programmer error here.
+ * A stopped scope's next-action card: the standard card, whose detail says why the run stopped and
+ * whose action is **Try again**; a card with no stopped run is a programmer error here.
  */
 export function StoppedRunCard({ mapId, next }: { mapId: string; next: NextAction }) {
   if (next.stopped === null) {

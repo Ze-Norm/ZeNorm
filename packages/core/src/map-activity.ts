@@ -21,7 +21,7 @@ import type {
   StoredTaskOutcome,
 } from "./wayfinding-records.ts";
 
-/** A revision's planning review outcome as the activity reads it (D13), at the review's end. */
+/** A revision's planning review outcome as the activity reads it, at the review's end. */
 export type ActivityReview =
   | { readonly outcome: "passed"; readonly at: string }
   /** Failed and not escalated; `repairing` when a repair started from it. */
@@ -34,22 +34,22 @@ export type ActivityReview =
   /** Sent on to Wayfinding: the numbers of the waypoints its escalated findings opened or linked. */
   | { readonly outcome: "escalated"; readonly at: string; readonly waypoints: readonly number[] };
 
-/** One revision of a spec written on the map (D13). */
+/** One revision of a spec written on the map. */
 export interface ActivityRevision {
   /** The revision's own title. */
   readonly title: string;
   /** True for the spec's first revision, else a revision of it. */
   readonly first: boolean;
   /**
-   * True when it revises a spec an earlier map delivered (slice 8b D14): the revision before it is
+   * True when it revises a spec an earlier map delivered: the revision before it is
    * another map's, and a merged run delivered an earlier revision.
    */
   readonly laterMapOfDelivered: boolean;
   readonly writtenAt: string;
-  /** The `to_spec` run that wrote it: a note's when that run carries a hatch message (S7b-13). */
+  /** The `to_spec` run that wrote it: a note's when that run carries a hatch message. */
   readonly writtenByRun: string;
   /**
-   * Its planning reviews, oldest first: one per rewrite of a draft in place (L241), the review of
+   * Its planning reviews, oldest first: one per rewrite of a draft in place, the review of
    * its current content last; empty before the first.
    */
   readonly reviews: readonly ActivityReview[];
@@ -59,9 +59,9 @@ export interface ActivityRevision {
 }
 
 /**
- * A ticket set version's tickets review as the activity reads it (slice 7c D10), at the review's
+ * A ticket set version's tickets review as the activity reads it, at the review's
  * end: passed, or failed with its findings, `held` when one escalated. A failed review that is not
- * held starts its repair in the transaction recording it (S7c-4, L175).
+ * held starts its repair in the transaction recording it.
  */
 export type ActivityTicketsReview =
   | { readonly outcome: "passed"; readonly at: string }
@@ -72,7 +72,7 @@ export type ActivityTicketsReview =
       readonly held: boolean;
     };
 
-/** A spec's ticket set (D13): each version written and reviewed, its approval and its rejections. */
+/** A spec's ticket set: each version written and reviewed, its approval and its rejections. */
 export interface ActivityTicketSet {
   /** The approved revision's title. */
   readonly title: string;
@@ -86,7 +86,7 @@ export interface ActivityTicketSet {
   /** When the revision was approved. */
   readonly revisionApprovedAt: string;
   /**
-   * Oldest first, each with the `to_tickets` run that wrote it (a note's, S7b-13) and its recorded
+   * Oldest first, each with the `to_tickets` run that wrote it (a note's) and its recorded
    * tickets review, or null with none.
    */
   readonly versions: readonly {
@@ -100,28 +100,28 @@ export interface ActivityTicketSet {
   readonly approvedAt: string | null;
   /** Oldest first. */
   readonly rejections: readonly { readonly reason: string; readonly at: string }[];
-  /** The set's delivery runs (slice 8 D13), in any order. */
+  /** The set's delivery runs, in any order. */
   readonly runs: readonly ActivityRun[];
 }
 
-/** One delivery run as the activity reads it (slice 8 D13). */
+/** One delivery run as the activity reads it. */
 export type ActivityRun = Pick<
   StoredDeliveryRun,
   "number" | "startedAt" | "endedAt" | "verdict" | "failure" | "mergedAt" | "baseBranch"
 >;
 
-/** One spec the map wrote a revision of (D13). */
+/** One spec the map wrote a revision of. */
 export interface ActivitySpec {
   readonly id: string;
   /** The spec's number in its project. */
   readonly number: number;
   /** Its revisions written on this map, oldest first. */
   readonly revisions: readonly ActivityRevision[];
-  /** The ticket set of each revision the map approved, oldest first (slice 8b D14). */
+  /** The ticket set of each revision the map approved, oldest first. */
   readonly ticketSets: readonly ActivityTicketSet[];
 }
 
-/** A wait the map recorded (slice 8b D14), with the hold it was recorded under (tickets review B3). */
+/** A wait the map recorded, with the hold it was recorded under. */
 export interface ActivityWait {
   readonly specNumber: number;
   /** The spec's latest title. */
@@ -135,14 +135,14 @@ export interface ActivityWait {
   readonly releasedAt: string | null;
 }
 
-/** A spec a waypoint of the map touches (slice 8b D14): delivered when any criterion is. */
+/** A spec a waypoint of the map touches: delivered when any criterion is. */
 export interface ActivityTouch {
   readonly waypoint: number;
   readonly specTitle: string;
   readonly delivered: boolean;
 }
 
-/** A change a hatch message applied (D7): the change, the run that replied, and when. */
+/** A change a hatch message applied: the change, the run that replied, and when. */
 export interface HatchChangeApplied {
   readonly change: HatchChange;
   readonly runId: string;
@@ -150,8 +150,7 @@ export interface HatchChangeApplied {
 }
 
 /**
- * What `mapActivity` reads: the map's runs, rounds and the stored timestamps of its records (slice
- * 6a spec D11, slice 5 spec D9).
+ * What `mapActivity` reads: the map's runs, rounds and the stored timestamps of its records.
  */
 export interface MapActivityInput {
   readonly map: Pick<MapRecord, "createdAt" | "destinationConfirmedAt">;
@@ -168,24 +167,24 @@ export interface MapActivityInput {
   readonly blockers: readonly { waypointNumber: number; blockerNumber: number }[];
   /** The map's planning runs, oldest first. */
   readonly planningRuns: readonly PlanningRun[];
-  /** The specs the map wrote a revision of, by number (D13). */
+  /** The specs the map wrote a revision of, by number. */
   readonly specs: readonly ActivitySpec[];
-  /** The map's research reports (6b D11). */
+  /** The map's research reports. */
   readonly reports: readonly Pick<StoredReport, "runId" | "answered">[];
-  /** The map's task outcomes (6b D11). */
+  /** The map's task outcomes. */
   readonly taskOutcomes: readonly Pick<StoredTaskOutcome, "runId" | "outcome">[];
-  /** The map's Out of scope lines, with the run that wrote each (6b D11). */
+  /** The map's Out of scope lines, with the run that wrote each. */
   readonly exclusions: readonly Pick<Exclusion, "waypointId" | "createdByRun">[];
-  /** The map's consistency passes (6b D11). */
+  /** The map's consistency passes. */
   readonly passes: readonly Pick<StoredPass, "runId" | "findingCount">[];
   /**
-   * The change each replied hatch message applied (D7, L147 Q1), with the `hatch` run that replied
+   * The change each replied hatch message applied, with the `hatch` run that replied
    * and the reply's time; messages that applied none (a reply only, a refusal) are not here.
    */
   readonly hatchChanges: readonly HatchChangeApplied[];
-  /** Every wait the map recorded, oldest first (slice 8b D14). */
+  /** Every wait the map recorded, oldest first. */
   readonly waits: readonly ActivityWait[];
-  /** Each spec each waypoint of the map touches (slice 8b D14). */
+  /** Each spec each waypoint of the map touches. */
   readonly touches: readonly ActivityTouch[];
 }
 
@@ -234,7 +233,7 @@ function known<T>(record: Partial<Record<PlanningRunPurpose, T>>, purpose: Plann
 }
 
 /**
- * The Wayfinding lines (spec D11), from planning runs and rounds: the map being charted, the
+ * The Wayfinding lines, from planning runs and rounds: the map being charted, the
  * destination asked, answered and confirmed, each waypoint's questions written and answered and its
  * resolution, the map cleared and the spec being written, and each failed run retried or stopped.
  */
@@ -248,7 +247,7 @@ function wayfindingLines(input: MapActivityInput): ActivityLine[] {
     lines.push(line("idea", "The agent is charting the map.", firstChart.startedAt));
   }
   for (const round of input.rounds.filter((candidate) => candidate.waypointId === null)) {
-    // DR-20: every map-level round is numbered.
+    // Every map-level round is numbered.
     const n = String(round.number);
     lines.push(line("wayfinding", `The agent asked destination round ${n}.`, round.askedAt));
     if (round.submittedAt !== null) {
@@ -274,7 +273,7 @@ function wayfindingLines(input: MapActivityInput): ActivityLine[] {
       specLabel: null,
       at,
     });
-    // Direct dependents only (L106).
+    // Direct dependents only.
     const unblocks = input.blockers.filter(
       (blocker) => blocker.blockerNumber === waypoint.number,
     ).length;
@@ -302,9 +301,9 @@ function wayfindingLines(input: MapActivityInput): ActivityLine[] {
         );
       }
     }
-    // A Research or Task waypoint's resolution is its report's or outcome's line (6b D11). The
-    // lines are history (L155 (c), L156 (3)): every resolution the waypoint ever had keeps its
-    // line after a reopen, so they come from the resolving runs, not the current resolution.
+    // A Research or Task waypoint's resolution is its report's or outcome's line. The lines are
+    // history: every resolution the waypoint ever had keeps its line after a reopen, so they come
+    // from the resolving runs, not the current resolution.
     for (const resolved of grillingResolutions(input).filter(
       (resolution) => resolution.waypointId === waypoint.id,
     )) {
@@ -312,7 +311,7 @@ function wayfindingLines(input: MapActivityInput): ActivityLine[] {
     }
   }
   lines.push(...researchTaskLines(input), ...mapChangeLines(input));
-  // Every clear and re-clear (S7b-8) starts a map-scope `to_spec`; a fresh run after Try again
+  // Every clear and re-clear starts a map-scope `to_spec`; a fresh run after Try again
   // continues the stopped one and is no new clear.
   const mapScope = input.planningRuns.filter(
     (run) => run.purpose === "to_spec" && run.specificationId === null,
@@ -321,7 +320,7 @@ function wayfindingLines(input: MapActivityInput): ActivityLine[] {
     const before = mapScope[index - 1];
     if (run.retryOfRunId !== null || before?.state === "failed") continue;
     const decisions = decisionsAt(input, run.startedAt);
-    // On Spec, as the demo's `store.tsx` clear line (L160).
+    // On Spec.
     lines.push(
       line(
         "spec",
@@ -331,7 +330,7 @@ function wayfindingLines(input: MapActivityInput): ActivityLine[] {
     );
   }
   const firstAsked = input.rounds.find((round) => round.waypointId === null)?.askedAt;
-  /** The first chart and its retry work on Idea (D8); every later chart on Wayfinding. */
+  /** The first chart and its retry work on Idea; every later chart on Wayfinding. */
   const stageOf = (run: PlanningRun): Stage =>
     run.purpose === "chart" &&
     (firstAsked === undefined || Date.parse(run.startedAt) < Date.parse(firstAsked))
@@ -339,7 +338,7 @@ function wayfindingLines(input: MapActivityInput): ActivityLine[] {
       : known(PURPOSE_STAGE, run.purpose);
   for (const run of input.planningRuns) {
     if (run.state !== "failed") continue;
-    // A hatch run's state shows on its message in the stream, never as a line (D6, D7, L148).
+    // A hatch run's state shows on its message in the stream, never as a line.
     if (run.purpose === "hatch") continue;
     if (run.endedAt === null || run.errorCode === null) {
       throw new Error(`Failed planning run ${run.id} has no end time or error code`);
@@ -348,7 +347,7 @@ function wayfindingLines(input: MapActivityInput): ActivityLine[] {
     lines.push(
       line(
         stageOf(run),
-        // The code stays off the line (L141); the next action's detail says why it failed.
+        // The code stays off the line; the next action's detail says why it failed.
         run.retryOfRunId === null
           ? `${words} failed. The agent is trying again.`
           : `${words} failed again. It stopped: Try again.`,
@@ -360,8 +359,8 @@ function wayfindingLines(input: MapActivityInput): ActivityLine[] {
 }
 
 /**
- * The chart line's sentences naming each delivered spec the map's waypoints touch (slice 8b D14,
- * the demo's `fixtures.ts` "One changes the delivered spec “X”."), in the order first touched.
+ * The chart line's sentences naming each delivered spec the map's waypoints touch ("One changes
+ * the delivered spec “X”."), in the order first touched.
  */
 function deliveredTouchWords(input: MapActivityInput): string {
   const counts = new Map<string, Set<number>>();
@@ -385,8 +384,8 @@ function deliveredTouchWords(input: MapActivityInput): string {
 
 /**
  * Each Grilling resolution the map's waypoints ever had, oldest first: a completed `grilling` run
- * that did not rule its waypoint out of scope resolved it at its end (S6a-10, S7b-14); a stored
- * plain-choice resolution (before S7b-14) has no run and reads its `resolved_at`.
+ * that did not rule its waypoint out of scope resolved it at its end; a stored plain-choice
+ * resolution (from before every resolution was a run's) has no run and reads its `resolved_at`.
  */
 function grillingResolutions(input: MapActivityInput): { waypointId: string; at: string }[] {
   const byRuns = input.planningRuns
@@ -410,11 +409,11 @@ function grillingResolutions(input: MapActivityInput): { waypointId: string; at:
 }
 
 /**
- * How many decisions a clear at `at` read (L162 (5)): a clear needs every waypoint resolved or out
- * of scope (S6b-10), so they are the waypoints that existed then (each is created when its run
+ * How many decisions a clear at `at` read: a clear needs every waypoint resolved or out
+ * of scope, so they are the waypoints that existed then (each is created when its run
  * ends) less those ruled out of scope by then; an Out of scope ruling is final. Read from the runs
  * and Out of scope lines, which a later reopen leaves alone, so the count stays as of that clear
- * even when a reopen clears a stored plain-choice resolution (L160).
+ * even when a reopen clears a stored plain-choice resolution.
  */
 function decisionsAt(input: MapActivityInput, at: string): number {
   const time = Date.parse(at);
@@ -470,7 +469,7 @@ function opening(text: string, waypoint: { number: number }, at: string): Activi
 }
 
 /**
- * Research and Task lines (6b D11): research started, finished, could not answer; task started,
+ * Research and Task lines: research started, finished, could not answer; task started,
  * done, failed. A run started after the task's answered round is no new start. "Finished",
  * "could not answer", "done" and "failed" open the waypoint.
  */
@@ -526,14 +525,14 @@ function researchTaskLines(input: MapActivityInput): ActivityLine[] {
 }
 
 /**
- * Map-change lines (6b D11): a waypoint ruled out of scope (opening it), n new waypoints charted by
+ * Map-change lines: a waypoint ruled out of scope (opening it), n new waypoints charted by
  * waypoint m (opening m), a fog item moved out of scope, and each consistency pass.
  */
 function mapChangeLines(input: MapActivityInput): ActivityLine[] {
   const lines: ActivityLine[] = [];
   for (const exclusion of input.exclusions) {
     const run = runOf(input, exclusion.createdByRun);
-    // A waypoint the hatch ruled out of scope has the note's own line (D7, `hatchLines`).
+    // A waypoint the hatch ruled out of scope has the note's own line (`hatchLines`).
     if (exclusion.waypointId !== null && run.purpose === "hatch") continue;
     if (exclusion.waypointId !== null) {
       const waypoint = waypointOf(input, exclusion.waypointId);
@@ -594,7 +593,7 @@ function added(input: MapActivityInput, runId: string): MapActivityInput["waypoi
 }
 
 /**
- * The lines of the waypoint changes hatch messages applied (D7, S7b-10), each opening the waypoint
+ * The lines of the waypoint changes hatch messages applied, each opening the waypoint
  * it changed, at the reply's time. A spec or ticket note's line is its revision's or version's
  * (`specLines`), written when its run saves it.
  */
@@ -648,15 +647,15 @@ function hatchLines(input: MapActivityInput): ActivityLine[] {
   return lines;
 }
 
-/** True when a run was started by a hatch message's note (S7b-13). */
+/** True when a run was started by a hatch message's note. */
 function fromNote(input: MapActivityInput, runId: string): boolean {
   return runOf(input, runId).hatchMessageId !== null;
 }
 
 /**
- * A completed map-scope re-clear that wrote no revision: every spec was approved and stands (S7b-8),
- * as the demo's "nothing to change" line. Only after the map's first revision: before it, a run
- * that wrote none named only waits (S8b-5), and its wait lines say so (the demo's waiting map).
+ * A completed map-scope re-clear that wrote no revision: every spec was approved and stands,
+ * the "nothing to change" line. Only after the map's first revision: before it, a run that wrote
+ * none named only waits, and its wait lines say so.
  */
 function unchangedLines(input: MapActivityInput): ActivityLine[] {
   const writers = new Set(
@@ -683,7 +682,7 @@ function sentence(reason: string): string {
   return /[.!?]$/.test(reason) ? reason : `${reason}.`;
 }
 
-/** The lines of a revision's planning reviews (D13): passed, repairing, or sent to Wayfinding. */
+/** The lines of a revision's planning reviews: passed, repairing, or sent to Wayfinding. */
 function reviewLines(input: MapActivityInput, revision: ActivityRevision): ActivityLine[] {
   return revision.reviews.flatMap((review) => reviewLine(input, revision.title, review));
 }
@@ -720,9 +719,9 @@ function reviewLine(
 }
 
 /**
- * The line of a ticket set version's tickets review (slice 7c D10): passed, found problems a
+ * The line of a ticket set version's tickets review: passed, found problems a
  * rewrite fixes, or needs you when held. Each carries the spec's number on Tickets, which
- * the activity column renders as "Open the tickets" to the spec's Tickets page (L169).
+ * the activity column renders as "Open the tickets" to the spec's Tickets page.
  */
 function ticketsReviewLines(
   spec: number,
@@ -750,19 +749,19 @@ function ticketsReviewLines(
 }
 
 /**
- * The Spec and Tickets lines (D13, 6b D11 style: no revision numbers or ids): each spec
- * written or revised, its review outcome, its approval and rejection; each ticket set version
- * written, its approval and its rejections; every line names the spec.
+ * The Spec and Tickets lines (no revision numbers or ids): each spec written or revised, its review
+ * outcome, its approval and rejection; each ticket set version written, its approval and its
+ * rejections; every line names the spec.
  */
 function specLines(input: MapActivityInput): ActivityLine[] {
   return input.specs.flatMap((spec) => {
-    // One "which an earlier map delivered" line per spec (L138): its first such revision here.
+    // One "which an earlier map delivered" line per spec: its first such revision here.
     const laterMap = spec.revisions.find(
       (revision) => revision.laterMapOfDelivered && !fromNote(input, revision.writtenByRun),
     );
     const written = (revision: ActivityRevision): ActivityLine => {
       const { title } = revision;
-      // A note's revision opens the spec ("Open the revision", the demo's `writeRevision`, L159 (a)).
+      // A note's revision opens the spec ("Open the revision").
       if (!revision.first && fromNote(input, revision.writtenByRun)) {
         return {
           ...line("spec", `Spec revised from your note: “${title}”.`, revision.writtenAt),
@@ -861,8 +860,8 @@ function specLines(input: MapActivityInput): ActivityLine[] {
 }
 
 /**
- * The first version of a set whose revision follows an approved one (F2, the demo's `store.tsx`
- * line): the revision's dispositions tallied, and the new tickets written for the work.
+ * The first version of a set whose revision follows an approved one: the revision's dispositions
+ * tallied, and the new tickets written for the work.
  */
 function compared(revision: number, version: ActivityTicketSet["versions"][number]): string {
   const count = (kind: Disposition["kind"]) =>
@@ -888,9 +887,8 @@ function compared(revision: number, version: ActivityTicketSet["versions"][numbe
 }
 
 /**
- * When a revision following an approved one started its first `to_tickets` (slice 8b D14, the demo's
- * approval line, `store.tsx` 739): its tickets are checked against what was delivered. Null for
- * the spec's first approved revision.
+ * When a revision following an approved one started its first `to_tickets`: its tickets are
+ * checked against what was delivered. Null for the spec's first approved revision.
  */
 function checkingAt(
   input: MapActivityInput,
@@ -909,15 +907,14 @@ function checkingAt(
       Date.parse(run.startedAt) >= approved,
   );
   if (first === undefined) {
-    // `to_tickets` starts in the transaction approving the revision (D6).
+    // `to_tickets` starts in the transaction approving the revision.
     throw new Error(`Approved revision of spec ${specificationId} has no to_tickets`);
   }
   return first.startedAt;
 }
 
 /**
- * A wait's sentence by the hold it was recorded under, X the spec and H the holding map (slice 8b
- * D16, the "Wait line" row).
+ * A wait's sentence by the hold it was recorded under, X the spec and H the holding map.
  */
 export const WAIT_LINES: Record<SpecHoldKind, (spec: string, holder: string) => string> = {
   revision: (spec, holder) =>
@@ -931,8 +928,8 @@ export const WAIT_LINES: Record<SpecHoldKind, (spec: string, holder: string) => 
 };
 
 /**
- * Each wait's lines (slice 8b D14): recorded at `since` ("See what waits", by its stored hold), and
- * released at `releasedAt` ("Open the revision"; D16, naming no approval, deviation 9).
+ * Each wait's lines: recorded at `since` ("See what waits", by its stored hold), and released at
+ * `releasedAt` ("Open the revision", naming no approval).
  */
 function waitLines(input: MapActivityInput): ActivityLine[] {
   return input.waits.flatMap((wait) => {
@@ -959,16 +956,16 @@ function waitLines(input: MapActivityInput): ActivityLine[] {
 }
 
 /**
- * A spec's delivery run lines (slice 8 D13, the demo's `store.tsx`): its start or start again from
- * clean, its end (the passed line opens the run on the spec's Delivery page), and its merge. They
- * are derived from the run row, never from its activity lines (S8-9).
+ * A spec's delivery run lines: its start or start again from clean, its end (the passed line opens
+ * the run on the spec's Delivery page), and its merge. They are derived from the run row, never
+ * from its activity lines.
  */
 function runLines(spec: number, title: string, run: ActivityRun, first: boolean): ActivityLine[] {
   const lines = [
     line(
       "delivery",
-      // The map's first run of the spec starts delivery, whatever its number on the spec (F1, the
-      // demo's `runsOn(spec, map).length === 0`): an earlier map may have run the spec before.
+      // The map's first run of the spec starts delivery, whatever its number on the spec: an
+      // earlier map may have run the spec before.
       first
         ? `Delivery started: “${title}”.`
         : `Run ${String(run.number)} of “${title}” started again from clean.`,
@@ -1010,7 +1007,7 @@ function runLines(spec: number, title: string, run: ActivityRun, first: boolean)
   return lines;
 }
 
-/** Every spec's delivery run lines (slice 8 D13). */
+/** Every spec's delivery run lines. */
 function deliveryLines(input: MapActivityInput): ActivityLine[] {
   return input.specs.flatMap(({ number, ticketSets }) => {
     const firstRun = Math.min(...ticketSets.flatMap((set) => set.runs.map((run) => run.number)));
@@ -1021,8 +1018,8 @@ function deliveryLines(input: MapActivityInput): ActivityLine[] {
 }
 
 /**
- * The map's activity (slice 6a spec D11, slice 5 spec D9), derived from runs, rounds and stored timestamps and never stored: each line with
- * its stage and time, oldest first (newest last). No line names a skill, criterion id or
+ * The map's activity, derived from runs, rounds and stored timestamps and never stored: each line
+ * with its stage and time, oldest first (newest last). No line names a skill, criterion id or
  * revision number.
  */
 export function mapActivity(input: MapActivityInput): ActivityLine[] {
