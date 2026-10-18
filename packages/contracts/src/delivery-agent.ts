@@ -7,6 +7,7 @@ import {
   DELIVERY_CHECKS_MAX_COUNT,
   DeliveryChecks,
   DeliveryFailure,
+  PULL_REQUEST_WRITTEN_BODY_MAX_LENGTH,
   RUN_TICKET_SUMMARY_MAX_LENGTH,
   Verdict,
   VerdictFinding,
@@ -178,6 +179,66 @@ export const PullRequestRequest = z.strictObject({
 });
 export type PullRequestRequest = z.infer<typeof PullRequestRequest>;
 
+/** The most changed screens a picker may list, and so the most a pull request shows. */
+export const DELIVERY_SCREENS_MAX_COUNT = 6;
+/** The longest a picked screen's `where` or `changed` may be. */
+export const PICKED_SCREEN_TEXT_MAX_LENGTH = 300;
+
+/**
+ * What the read-only screen picker session needs to judge whether a passed run's change is visible
+ * and which screens it changes: the change (`baseCommit..finalCommit`, its diff and changed files)
+ * and the spec. It runs before anything is installed or started.
+ */
+export const PickScreensRequest = z.strictObject({
+  /** The run folder; the session writes its prompt and output files here. */
+  runDir: AbsolutePath,
+  /** The run worktree; the session's working directory, which it must not change. */
+  worktreePath: AbsolutePath,
+  baseCommit: CommitSha,
+  finalCommit: CommitSha,
+  specPath: AbsolutePath,
+  /** `git diff <baseCommit> <finalCommit>`, written to a file. */
+  diffPath: AbsolutePath,
+  /** Paths relative to the worktree. */
+  changedFiles: z.array(z.string().min(1)),
+  gitIdentity: GitIdentity,
+});
+export type PickScreensRequest = z.infer<typeof PickScreensRequest>;
+
+/** One screen the change makes look different: where it is, what changed, and whether it is new. */
+export const PickedScreen = z.strictObject({
+  /** How to reach the screen in the app, such as a route or the page and the action that opens it. */
+  where: z.string().min(1).max(PICKED_SCREEN_TEXT_MAX_LENGTH),
+  /** What a person sees changed on it. */
+  changed: z.string().min(1).max(PICKED_SCREEN_TEXT_MAX_LENGTH),
+  /** True when the change adds the screen. */
+  isNew: z.boolean(),
+});
+export type PickedScreen = z.infer<typeof PickedScreen>;
+
+/**
+ * The screen picker's answer: the change shows on no screen (`no_visible_change`), or the changed
+ * screens, one to `DELIVERY_SCREENS_MAX_COUNT`.
+ */
+export const PickedScreens = z.discriminatedUnion("kind", [
+  z.strictObject({ kind: z.literal("no_visible_change") }),
+  z.strictObject({
+    kind: z.literal("screens"),
+    screens: z.array(PickedScreen).min(1).max(DELIVERY_SCREENS_MAX_COUNT),
+  }),
+]);
+export type PickedScreens = z.infer<typeof PickedScreens>;
+
+/**
+ * What the pull request writer returns: the body, markdown, which ZeNorm opens the pull request
+ * with as it is, and whether the change is one a person can see in the app.
+ */
+export const WrittenPullRequest = z.strictObject({
+  body: z.string().min(1).max(PULL_REQUEST_WRITTEN_BODY_MAX_LENGTH),
+  visibleChange: z.boolean(),
+});
+export type WrittenPullRequest = z.infer<typeof WrittenPullRequest>;
+
 /**
  * What the orchestrator session reports while it works: a line of the orchestrator or of a ticket's
  * implementer, a ticket's implementer started, and a ticket merged into the run branch.
@@ -218,24 +279,36 @@ export type ReviewDelivery = (
 
 /**
  * The port behind which the read-only pull request writer session sits: it returns the pull
- * request's body, markdown, which ZeNorm opens the pull request with as it is.
+ * request's body, markdown, which ZeNorm opens the pull request with as it is, and whether the
+ * change is visible, which ZeNorm reads only when the run took no screenshots.
  */
 export type WritePullRequest = (
   request: PullRequestRequest,
   signal: AbortSignal,
-) => Promise<Result<string, DeliveryAgentError>>;
+) => Promise<Result<WrittenPullRequest, DeliveryAgentError>>;
+
+/**
+ * The port behind which the read-only screen picker session sits. ZeNorm calls it on a passing run
+ * on a GitHub project that pinned an app start command and URL, before installing or starting
+ * anything; a failure is the capture's (`capture_picker_failed`), never the run's.
+ */
+export type PickScreens = (
+  request: PickScreensRequest,
+  signal: AbortSignal,
+) => Promise<Result<PickedScreens, DeliveryAgentError>>;
 
 /** The name the app registers its Claude Code sessions under. */
 export const LOCAL_EXECUTOR = "local";
 
 /**
- * A delivery executor: one named set of the three ports, which supplies every role. The app
- * registers the Claude Code sessions as `"local"`; a plugin may register others, and
- * `delivery.executor` names the one every run uses.
+ * A delivery executor: one named set of the ports, which supplies every role. The app registers
+ * the Claude Code sessions as `"local"`; a plugin may register others, and `delivery.executor`
+ * names the one every run uses.
  */
 export interface DeliveryExecutor {
   readonly name: string;
   readonly implementTicketSet: ImplementTicketSet;
   readonly reviewDelivery: ReviewDelivery;
   readonly writePullRequest: WritePullRequest;
+  readonly pickScreens: PickScreens;
 }

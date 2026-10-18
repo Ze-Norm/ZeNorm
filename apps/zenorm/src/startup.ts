@@ -5,6 +5,7 @@ import { parseArgs } from "node:util";
 
 import {
   claudeCodeImplementTicketSet,
+  claudeCodePickScreens,
   claudeCodePlanningAgent,
   claudeCodeReviewDelivery,
   claudeCodeWritePullRequest,
@@ -500,6 +501,7 @@ export function localExecutor(
     implementTicketSet: claudeCodeImplementTicketSet(deliveryAgent),
     reviewDelivery: claudeCodeReviewDelivery(deliveryAgent),
     writePullRequest: claudeCodeWritePullRequest(deliveryAgent),
+    pickScreens: claudeCodePickScreens(deliveryAgent),
   };
 }
 

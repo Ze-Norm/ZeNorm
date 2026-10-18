@@ -67,6 +67,7 @@ const LOCAL: DeliveryExecutor = {
   implementTicketSet: notCalled,
   reviewDelivery: notCalled,
   writePullRequest: notCalled,
+  pickScreens: notCalled,
 };
 
 function executorNamed(name: string): DeliveryExecutor {
@@ -75,6 +76,7 @@ function executorNamed(name: string): DeliveryExecutor {
     implementTicketSet: notCalled,
     reviewDelivery: notCalled,
     writePullRequest: notCalled,
+    pickScreens: notCalled,
   };
 }
 

@@ -24,6 +24,7 @@ export const pluginExecutorDuplicate: BadServerCase = {
           implementTicketSet: () => Promise.resolve(err(NOT_RUN)),
           reviewDelivery: () => Promise.resolve(err(NOT_RUN)),
           writePullRequest: () => Promise.resolve(err(NOT_RUN)),
+          pickScreens: () => Promise.resolve(err(NOT_RUN)),
         },
       ],
     }),

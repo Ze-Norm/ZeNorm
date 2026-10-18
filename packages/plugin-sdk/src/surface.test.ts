@@ -13,15 +13,21 @@ import * as sdk from "./index.ts";
 test("the exported names and values", () => {
   expect(Object.keys(sdk).sort()).toMatchInlineSnapshot(`
     [
+      "CaptureFailureCode",
+      "DELIVERY_SCREENS_MAX_COUNT",
       "DeliveryAgentErrorCode",
       "ImplementEvent",
       "ImplementRequest",
+      "PickScreensRequest",
+      "PickedScreen",
+      "PickedScreens",
       "PullRequestRequest",
       "ReviewRequest",
       "SDK_VERSION",
       "SEAM_NAMES",
       "SLOT_NAMES",
       "Verdict",
+      "WrittenPullRequest",
       "definePlugin",
       "defineWebPlugin",
       "err",

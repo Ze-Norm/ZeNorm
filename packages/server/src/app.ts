@@ -722,6 +722,7 @@ export function createApp({
     implementTicketSet: chosen.implementTicketSet,
     reviewDelivery: chosen.reviewDelivery,
     writePullRequest: chosen.writePullRequest,
+    pickScreens: chosen.pickScreens,
     checkTimeoutMinutes: delivery.checkTimeoutMinutes,
     // A run's end may start planning work on any map: a release run, or a run the spec's hold kept
     // back.

@@ -15,6 +15,7 @@ import {
   type DeliveryAgentConfig,
   type ImplementEvent,
   type ImplementRequest,
+  type PickScreensRequest,
   type PullRequestRequest,
   type ReviewRequest,
   Verdict,
@@ -24,6 +25,7 @@ import { z } from "zod";
 
 import {
   claudeCodeImplementTicketSet,
+  claudeCodePickScreens,
   claudeCodeReviewDelivery,
   claudeCodeWritePullRequest,
   type DeliverySessionConfig,
@@ -31,6 +33,7 @@ import {
   implementTicketSetWith,
   PULL_REQUEST_JSON_SCHEMA,
   reviewDeliveryWith,
+  SCREEN_PICKER_JSON_SCHEMA,
   VERDICT_JSON_SCHEMA,
   writePullRequestWith,
 } from "./delivery.ts";
@@ -232,15 +235,40 @@ function pullRequestRequest(): PullRequestRequest {
   };
 }
 
-function pullRequestResult(body: string): string {
+function pullRequestResult(body: string, visibleChange = false): string {
   return JSON.stringify({
     type: "result",
     subtype: "success",
     is_error: false,
     stop_reason: "tool_use",
-    structured_output: { pullRequestBody: body },
+    structured_output: { pullRequestBody: body, visibleChange },
   });
 }
+
+function pickScreensRequest(): PickScreensRequest {
+  return {
+    runDir,
+    worktreePath,
+    baseCommit: BASE,
+    finalCommit: FINAL,
+    specPath: join(runDir, "inputs", "spec.md"),
+    diffPath: join(runDir, "review.diff"),
+    changedFiles: ["src/Settings.tsx", "src/Settings.test.tsx"],
+    gitIdentity: IDENTITY,
+  };
+}
+
+function screenPickerResult(changedScreens: unknown[]): string {
+  return JSON.stringify({
+    type: "result",
+    subtype: "success",
+    is_error: false,
+    stop_reason: "tool_use",
+    structured_output: { changedScreens },
+  });
+}
+
+const SCREEN = { where: "/settings", changed: "A new App section.", isNew: false };
 
 function recordedArgv(): string[] {
   const raw = readFileSync(join(dir, "argv"), "utf8");
@@ -1077,7 +1105,7 @@ describe("claudeCodeWritePullRequest", () => {
 
     const result = await claudeCodeWritePullRequest(config(claudePath))(request, neverAborted());
 
-    expect(result).toEqual({ ok: true, value: BODY });
+    expect(result).toEqual({ ok: true, value: { body: BODY, visibleChange: false } });
     expect(readFileSync(join(dir, "cwd"), "utf8").trim()).toBe(worktreePath);
     expect(recordedGitEnv()).toEqual([
       IDENTITY.name,
@@ -1120,7 +1148,7 @@ describe("claudeCodeWritePullRequest", () => {
     const schema = z
       .looseObject({ properties: z.record(z.string(), z.unknown()) })
       .parse(JSON.parse(PULL_REQUEST_JSON_SCHEMA));
-    expect(Object.keys(schema.properties)).toEqual(["pullRequestBody"]);
+    expect(Object.keys(schema.properties)).toEqual(["pullRequestBody", "visibleChange"]);
 
     const prompt = argv[1];
     if (prompt === undefined) throw new Error("no prompt after -p");
@@ -1143,7 +1171,45 @@ describe("claudeCodeWritePullRequest", () => {
     const systemPrompt = readFileSync(systemPromptFile, "utf8");
     expect(systemPrompt).toContain(DELIVERY_SKILLS.pullRequest);
     expect(systemPrompt).toContain("`## Why`");
+    expect(systemPrompt).toContain("`visibleChange`");
     expect(readFileSync(join(runDir, "pr-writer.json"), "utf8")).toBe(stdout);
+  });
+
+  test("returns the writer's visibleChange with its body", async () => {
+    const claudePath = writeStandIn({
+      auth: LOGGED_IN,
+      run: { stdout: pullRequestResult(BODY, true), exitCode: 0 },
+    });
+
+    const result = await claudeCodeWritePullRequest(config(claudePath))(
+      pullRequestRequest(),
+      neverAborted(),
+    );
+
+    expect(result).toEqual({ ok: true, value: { body: BODY, visibleChange: true } });
+  });
+
+  test("refuses with agent_output_invalid when visibleChange is missing", async () => {
+    const claudePath = writeStandIn({
+      auth: LOGGED_IN,
+      run: {
+        stdout: JSON.stringify({
+          type: "result",
+          subtype: "success",
+          is_error: false,
+          stop_reason: "tool_use",
+          structured_output: { pullRequestBody: BODY },
+        }),
+        exitCode: 0,
+      },
+    });
+
+    const result = await claudeCodeWritePullRequest(config(claudePath))(
+      pullRequestRequest(),
+      neverAborted(),
+    );
+
+    expect(result.ok ? null : result.error.code).toBe("agent_output_invalid");
   });
 
   test("refuses with agent_timed_out past delivery.reviewerTimeoutMinutes", async () => {
@@ -1187,6 +1253,123 @@ describe("claudeCodeWritePullRequest", () => {
 
     expect(result.ok ? null : result.error.code).toBe("agent_cancelled");
     expect(isAlive(pid)).toBe(false);
+  });
+});
+
+describe("claudeCodePickScreens", () => {
+  test("runs with only the read tools under the reviewer's turns and returns the listed screens", async () => {
+    const stdout = screenPickerResult([SCREEN, { ...SCREEN, where: "/about", isNew: true }]);
+    const claudePath = writeStandIn({ auth: LOGGED_IN, run: { stdout, exitCode: 0 } });
+    const request = pickScreensRequest();
+
+    const result = await claudeCodePickScreens(config(claudePath))(request, neverAborted());
+
+    expect(result).toEqual({
+      ok: true,
+      value: { kind: "screens", screens: [SCREEN, { ...SCREEN, where: "/about", isNew: true }] },
+    });
+    expect(readFileSync(join(dir, "cwd"), "utf8").trim()).toBe(worktreePath);
+    const systemPromptFile = join(runDir, "screen-picker-prompt.md");
+    const argv = recordedArgv();
+    expect(argv).toEqual([
+      "-p",
+      expect.any(String),
+      "--output-format",
+      "json",
+      "--model",
+      "claude-sonnet-5-5",
+      "--effort",
+      "medium",
+      "--max-turns",
+      "30",
+      "--setting-sources",
+      "project",
+      "--permission-mode",
+      "dontAsk",
+      "--tools",
+      "Read,Grep,Glob",
+      "--allowedTools",
+      "Read,Grep,Glob",
+      "--disallowedTools",
+      "Bash,Write,Edit,NotebookEdit,WebFetch,WebSearch,Agent",
+      "--add-dir",
+      runDir,
+      "--append-system-prompt-file",
+      systemPromptFile,
+      "--json-schema",
+      SCREEN_PICKER_JSON_SCHEMA,
+    ]);
+    const schema = z
+      .looseObject({ properties: z.record(z.string(), z.unknown()) })
+      .parse(JSON.parse(SCREEN_PICKER_JSON_SCHEMA));
+    expect(Object.keys(schema.properties)).toEqual(["changedScreens"]);
+
+    const prompt = argv[1];
+    if (prompt === undefined) throw new Error("no prompt after -p");
+    expect(prompt.split("\n")).toEqual(
+      expect.arrayContaining([
+        `Spec: ${request.specPath}`,
+        `Diff: ${request.diffPath}`,
+        `Base commit: ${BASE}`,
+        `Final commit: ${FINAL}`,
+        "src/Settings.tsx",
+      ]),
+    );
+    expect(readFileSync(join(runDir, "screen-picker.json"), "utf8")).toBe(stdout);
+  });
+
+  test("no screen listed is no visible change", async () => {
+    const claudePath = writeStandIn({
+      auth: LOGGED_IN,
+      run: { stdout: screenPickerResult([]), exitCode: 0 },
+    });
+
+    const result = await claudeCodePickScreens(config(claudePath))(
+      pickScreensRequest(),
+      neverAborted(),
+    );
+
+    expect(result).toEqual({ ok: true, value: { kind: "no_visible_change" } });
+  });
+
+  test("refuses with agent_output_invalid past the six-screen cap", async () => {
+    const claudePath = writeStandIn({
+      auth: LOGGED_IN,
+      run: { stdout: screenPickerResult(Array.from({ length: 7 }, () => SCREEN)), exitCode: 0 },
+    });
+
+    const result = await claudeCodePickScreens(config(claudePath))(
+      pickScreensRequest(),
+      neverAborted(),
+    );
+
+    expect(result.ok ? null : result.error.code).toBe("agent_output_invalid");
+  });
+
+  test("refuses with agent_timed_out past delivery.reviewerTimeoutMinutes", async () => {
+    const claudePath = writeStandIn({ auth: LOGGED_IN, run: { body: SLEEP_UNTIL_TERM } });
+
+    const result = await claudeCodePickScreens(
+      config(claudePath, { reviewerTimeoutMinutes: 1 / 60 }),
+    )(pickScreensRequest(), neverAborted());
+
+    expect(result.ok ? null : result.error.code).toBe("agent_timed_out");
+    expect(existsSync(join(dir, "term"))).toBe(true);
+  });
+
+  test("returns agent_cancelled when the signal aborts mid-run", async () => {
+    const claudePath = writeStandIn({ auth: LOGGED_IN, run: { body: SLEEP_UNTIL_TERM } });
+    const controller = new AbortController();
+
+    const pending = claudeCodePickScreens(config(claudePath))(
+      pickScreensRequest(),
+      controller.signal,
+    );
+    await waitForFile(join(dir, "pid"));
+    controller.abort();
+    const result = await pending;
+
+    expect(result.ok ? null : result.error.code).toBe("agent_cancelled");
   });
 });
 

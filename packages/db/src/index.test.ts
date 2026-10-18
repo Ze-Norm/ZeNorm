@@ -224,6 +224,7 @@ const TAGS = [
   "0034_first_map_round_not_final",
   "0035_agent_decided",
   "0036_project_app_settings",
+  "0037_delivery_run_app_settings",
 ];
 
 /** The split-from columns 0026 gives every map, null on each map that predates it. */
@@ -252,7 +253,10 @@ const PULL_REQUEST_NULLS = { pr_number: null, pr_url: null, pr_state: null };
 /** The repair columns 0033 gives every delivery run that predates it: none pinned, none counted. */
 const REPAIRS_UNPINNED = { repair_limit: null, repair_attempts: null, fix_commands: "[]" };
 
-/** The columns 0020, 0024, 0030 and 0033 add to a delivery run, as they set them. */
+/** The app columns 0037 gives every delivery run that predates it: none pinned, capture off. */
+const APP_SETTINGS_UNPINNED = { app_start_command: null, app_url: null, app_setup_commands: "[]" };
+
+/** The columns 0020, 0024, 0030, 0033 and 0037 add to a delivery run, as they set them. */
 function runColumnsAfter0020(row: Record<string, unknown>): Record<string, unknown> {
   return {
     executor: "local",
@@ -260,6 +264,7 @@ function runColumnsAfter0020(row: Record<string, unknown>): Record<string, unkno
     resumed_from_run_id: null,
     ...PULL_REQUEST_NULLS,
     ...REPAIRS_UNPINNED,
+    ...APP_SETTINGS_UNPINNED,
   };
 }
 
@@ -5146,7 +5151,9 @@ describe("migration 0033", () => {
 
     expect(migrateDatabase(db, MIGRATIONS_FOLDER)).toEqual({ ok: true, value: undefined });
 
-    expect(runs()).toEqual(before.map((row) => ({ ...row, ...REPAIRS_UNPINNED })));
+    expect(runs()).toEqual(
+      before.map((row) => ({ ...row, ...REPAIRS_UNPINNED, ...APP_SETTINGS_UNPINNED })),
+    );
     expect(
       db
         .select({
@@ -5157,6 +5164,32 @@ describe("migration 0033", () => {
         .from(deliveryRuns)
         .all(),
     ).toEqual([{ repairLimit: null, repairAttempts: null, fixCommands: [] }]);
+    expect(db.$client.pragma("foreign_key_check")).toEqual([]);
+  });
+
+  test("0037: a run from before pins no app start command, URL or setup commands", async () => {
+    await migrateUpTo("0036_project_app_settings");
+    seedRun();
+    const runs = () =>
+      z
+        .array(z.record(z.string(), z.unknown()))
+        .parse(db.$client.prepare("select * from delivery_runs").all());
+    const before = runs();
+    expect(before).toHaveLength(1);
+
+    await migrateUpTo("0037_delivery_run_app_settings");
+
+    expect(runs()).toEqual(before.map((row) => ({ ...row, ...APP_SETTINGS_UNPINNED })));
+    expect(
+      db
+        .select({
+          appStartCommand: deliveryRuns.appStartCommand,
+          appUrl: deliveryRuns.appUrl,
+          appSetupCommands: deliveryRuns.appSetupCommands,
+        })
+        .from(deliveryRuns)
+        .all(),
+    ).toEqual([{ appStartCommand: null, appUrl: null, appSetupCommands: [] }]);
     expect(db.$client.pragma("foreign_key_check")).toEqual([]);
   });
 });

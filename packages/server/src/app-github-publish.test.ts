@@ -18,6 +18,7 @@ import {
   client,
   approvedSet,
   PULL_REQUEST_BODY,
+  PULL_REQUEST_WRITTEN,
   PASSING_CHECK,
   gitIn,
   verdictFor,
@@ -48,7 +49,7 @@ describe("a passing run on a GitHub project opens a pull request", () => {
     await useExecutor(
       writingWith((request) => {
         requests.push(request);
-        return Promise.resolve(ok(PULL_REQUEST_BODY));
+        return Promise.resolve(ok(PULL_REQUEST_WRITTEN));
       }),
     );
     const { project, mapId, ticketSetId } = await approvedSet();
@@ -101,7 +102,7 @@ describe("a passing run on a GitHub project opens a pull request", () => {
     await useExecutor({
       ...writingWith((request) => {
         written.push(request);
-        return Promise.resolve(ok(PULL_REQUEST_BODY));
+        return Promise.resolve(ok(PULL_REQUEST_WRITTEN));
       }),
       reviewDelivery: (request) => Promise.resolve(ok(verdictFor(request.finalCommit, true))),
     });
@@ -190,7 +191,7 @@ describe("a passing run on a GitHub project opens a pull request", () => {
       writingWith(() => {
         // From the publishing step on, `PATH` finds git but no gh; afterEach restores it.
         process.env.PATH = noGh;
-        return Promise.resolve(ok(PULL_REQUEST_BODY));
+        return Promise.resolve(ok(PULL_REQUEST_WRITTEN));
       }),
     );
     const { project, mapId, ticketSetId } = await approvedSet();
@@ -228,7 +229,7 @@ describe("a passing run on a GitHub project opens a pull request", () => {
 
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
     try {
-      writer.resolve(ok(PULL_REQUEST_BODY));
+      writer.resolve(ok(PULL_REQUEST_WRITTEN));
       await vi.waitFor(() => {
         expect(ghCalls()).toEqual(["auth status --hostname github.com"]);
       }, DELIVERY_WAIT);
@@ -342,7 +343,7 @@ describe("a passing run on a GitHub project opens a pull request", () => {
     const { status } = await client.map.overview({ mapId });
     expect(status.stages[4]).toMatchObject({ stage: "delivery", tone: "working" });
 
-    writer.resolve(ok(PULL_REQUEST_BODY));
+    writer.resolve(ok(PULL_REQUEST_WRITTEN));
     await runIn(mapId, run.id, "passed", "publishing");
     await cleanedUp(run);
   });

@@ -64,7 +64,13 @@
  *   the tickets file's `Carries criteria …`).
  * - Pull request writer (a `--json-schema` with the root property `pullRequestBody`): checks its
  *   read-only tools as the reviewer's and answers a body with the PR skill's headings, starting at
- *   `## Why`.
+ *   `## Why`, and `visibleChange` true when the spec file its prompt names contains
+ *   `[fake:visible-change]`, else false.
+ * - Screen picker (a `--json-schema` with the root property `changedScreens`): checks that its
+ *   tools are exactly Read, Grep and Glob with Bash denied, appends its prompt's `Final commit:` to
+ *   `fake-screen-picker-calls` under `$ZENORM_E2E_ROOT` (so an e2e can tell that no picker ran),
+ *   and answers no changed screen, or, when the spec file its prompt names contains
+ *   `[fake:screens]`, the two screens `SCREENS`; `[fake:picker-fails]` there fails the session.
  *
  * Every spec the planning stand-in writes has the fixed problem sentence followed by the idea's
  * `[fake:…]` markers, so the delivery markers above ride in the idea.
@@ -305,6 +311,21 @@ const DELIVERY_CLOSING_HELD_MARKER = "[fake:delivery-closing-held]";
 const DELIVERY_CLOSING_RELEASE_FILE = "fake-delivery-closing-release";
 const TICKET_UNMERGED_MARKER = "[fake:ticket-unmerged]";
 const REPAIR_HELD_MARKER = "[fake:repair-held]";
+/** In the spec: the pull request writer reports a visible change. */
+const VISIBLE_CHANGE_MARKER = "[fake:visible-change]";
+/** In the spec: the screen picker lists `SCREENS`. */
+const SCREENS_MARKER = "[fake:screens]";
+/** In the spec: the screen picker session fails. */
+const PICKER_FAILS_MARKER = "[fake:picker-fails]";
+/** The file under `$ZENORM_E2E_ROOT` each screen picker call appends its final commit to (`fixture.ts` names it too). */
+const SCREEN_PICKER_CALLS_FILE = "fake-screen-picker-calls";
+/** The screens the picker lists under `[fake:screens]`. */
+const SCREENS = [
+  { where: "/export", changed: "The new Export page lists every record.", isNew: true },
+  { where: "/projects", changed: "The project page has an Export button.", isNew: false },
+];
+/** The screen picker's tools: the read tools alone. */
+const SCREEN_PICKER_TOOLS = "Read,Grep,Glob";
 /** The file under `$ZENORM_E2E_ROOT` that releases a held repair (`fixture.ts` names it too). */
 const REPAIR_RELEASE_FILE = "fake-repair-release";
 /** A repair prompt's line (`packages/agent/src/delivery-prompt.ts`'s `repairLines`). */
@@ -858,7 +879,7 @@ function callPrompt(): string {
 
 const prompt = callPrompt();
 
-type Role = "orchestrator" | "reviewer" | "pull-request-writer" | "planning";
+type Role = "orchestrator" | "reviewer" | "pull-request-writer" | "screen-picker" | "planning";
 
 /** The root `properties` of the `--json-schema`, which must be an object schema. */
 function schemaProperties(): object {
@@ -892,6 +913,9 @@ function detectRole(): Role {
   }
   if (args.includes("--json-schema") && "pullRequestBody" in schemaProperties()) {
     return "pull-request-writer";
+  }
+  if (args.includes("--json-schema") && "changedScreens" in schemaProperties()) {
+    return "screen-picker";
   }
   return "planning";
 }
@@ -946,6 +970,24 @@ function checkReviewerFlags(): void {
   }
 }
 
+/** The screen picker has the read tools alone, and Bash, Edit and Write are denied. */
+function checkScreenPickerFlags(): void {
+  expectFlags([
+    ...DELIVERY_FLAGS,
+    ["--output-format", "json"],
+    ["--tools", SCREEN_PICKER_TOOLS],
+    ["--allowedTools", SCREEN_PICKER_TOOLS],
+  ]);
+  const denied = flagValue(args, "--disallowedTools").split(",");
+  for (const tool of ["Bash", "Edit", "Write"]) {
+    if (!denied.includes(tool)) {
+      mismatch(
+        `the screen picker's --disallowedTools ${JSON.stringify(denied.join(","))} lack ${tool}`,
+      );
+    }
+  }
+}
+
 const role = detectRole();
 switch (role) {
   case "orchestrator":
@@ -954,6 +996,9 @@ switch (role) {
   case "reviewer":
   case "pull-request-writer":
     checkReviewerFlags();
+    break;
+  case "screen-picker":
+    checkScreenPickerFlags();
     break;
   case "planning":
     expectFlags([
@@ -1495,6 +1540,23 @@ function pullRequestBody(): string {
     "None: the change only adds files.",
     "",
   ].join("\n");
+}
+
+/**
+ * The screen picker's changed screens: recorded by the prompt's `Final commit:`, then none, or
+ * `SCREENS` with `[fake:screens]` in the spec; `[fake:picker-fails]` there fails the session.
+ */
+function changedScreens(): unknown[] {
+  const finalCommit = /^Final commit: ([0-9a-f]{40})$/m.exec(prompt)?.[1];
+  if (finalCommit === undefined) {
+    mismatch("the screen picker prompt has no `Final commit: <sha>` line");
+  }
+  appendFileSync(join(e2eRoot("the screen picker"), SCREEN_PICKER_CALLS_FILE), `${finalCommit}\n`);
+  const spec = deliverySpec();
+  if (spec.includes(PICKER_FAILS_MARKER)) {
+    failRun();
+  }
+  return spec.includes(SCREENS_MARKER) ? SCREENS : [];
 }
 
 /** The integer on the prompt's line starting with `label`; a missing line is a mismatch. */
@@ -2767,7 +2829,18 @@ switch (role) {
       type: "result",
       subtype: "success",
       is_error: false,
-      structured_output: { pullRequestBody: pullRequestBody() },
+      structured_output: {
+        pullRequestBody: pullRequestBody(),
+        visibleChange: deliverySpec().includes(VISIBLE_CHANGE_MARKER),
+      },
+    });
+    break;
+  case "screen-picker":
+    print({
+      type: "result",
+      subtype: "success",
+      is_error: false,
+      structured_output: { changedScreens: changedScreens() },
     });
     break;
   case "planning":

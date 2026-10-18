@@ -1,8 +1,9 @@
 import { execFileSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { delimiter, join } from "node:path";
 
 import {
   DeliveryRun,
@@ -10,6 +11,7 @@ import {
   MapOverviewDetail,
   Project,
   QuestionRound,
+  RunEvent,
 } from "@zenorm/contracts";
 import type { DeliveryExecutor, ImplementRequest, SpecRun } from "@zenorm/contracts";
 import { createExamplePlugin } from "@zenorm/plugin-example/server";
@@ -25,7 +27,8 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
  * example plugin and `delivery.executor: "example"`, and one map driven over `/rpc` by the stand-in
  * claude to an approved ticket set. A required check looks for the file the executor commits on a
  * repair attempt (`example-executor/repair-<n>.txt`). The executor is wrapped only to record the
- * requests it is given.
+ * requests it is given. A run on a project with a github.com origin and capture on shows the
+ * executor's picker and writer reporting no visible change.
  */
 
 /** The stand-in `claude` of `apps/zenorm`'s e2e, for the planning sessions. */
@@ -183,17 +186,28 @@ function gitIn(folderPath: string, args: readonly string[]): string {
   return execFileSync("git", ["-C", folderPath, ...args], { encoding: "utf8" }).trim();
 }
 
+/** The app settings of a project that takes no screenshots. */
+const NO_APP_SETTINGS = { appStartCommand: null, appUrl: null, appSetupCommands: [] };
+
 /**
  * Drives one map from idea to an approved ticket set with every recommendation accepted, saves
- * `checks` and `repairLimit`, starts delivery and waits for the run to end. Returns the started
- * run, the ended run and the project's folder.
+ * `checks`, `repairLimit` and `app`, starts delivery and waits for the run to end. Returns the
+ * started run, the ended run and the project's folder. `prepare` sets up the repository before it
+ * is added.
  */
 async function deliver(
   app: StartedZeNorm["app"],
   checks: readonly string[],
   repairLimit: number,
+  appSettings: {
+    readonly appStartCommand: string | null;
+    readonly appUrl: string | null;
+    readonly appSetupCommands: readonly string[];
+  } = NO_APP_SETTINGS,
+  prepare: (folderPath: string) => void = () => undefined,
 ): Promise<{ started: DeliveryRun; ended: SpecRun; folderPath: string }> {
   const folderPath = repository();
+  prepare(folderPath);
   const project = Project.parse(
     await rpc(app, "project/create", { folderPath, baseBranch: "main" }),
   );
@@ -239,9 +253,7 @@ async function deliver(
     requiredChecks: [...checks],
     repairLimit,
     fixCommands: [],
-    appStartCommand: null,
-    appUrl: null,
-    appSetupCommands: [],
+    ...appSettings,
   });
   const started = DeliveryRun.parse(
     await rpc(app, "delivery/start", { ticketSetId: ticketSet.id }),
@@ -318,6 +330,93 @@ describe("repairs through the example executor", () => {
           "example-executor/repair-3.txt",
         );
       }
+    },
+    TEST_TIMEOUT_MS,
+  );
+});
+
+/** The github.com repository the capture run's project names as its `origin`. */
+const GITHUB_URL = "https://github.com/acme/numbers.git";
+
+/**
+ * A stand-in for the GitHub CLI: `gh auth status` succeeds; `gh pr create` keeps its `--body-file`
+ * as `<state>/body` and prints pull request 1's URL. Any other call exits 2.
+ */
+function fakeGh(state: string): string {
+  return [
+    "#!/bin/sh",
+    'if [ "$1" = "auth" ] && [ "$2" = "status" ]; then exit 0; fi',
+    'if [ "$1" = "pr" ] && [ "$2" = "create" ]; then',
+    '  prev=""',
+    '  for arg in "$@"; do',
+    `    if [ "$prev" = "--body-file" ]; then cp "$arg" '${state}/body'; fi`,
+    '    prev="$arg"',
+    "  done",
+    '  echo "https://github.com/acme/numbers/pull/1"',
+    "  exit 0",
+    "fi",
+    "exit 2",
+    "",
+  ].join("\n");
+}
+
+describe("screenshots through the example executor", () => {
+  let originalPath: string;
+
+  beforeEach(() => {
+    const path = process.env.PATH;
+    if (path === undefined) throw new Error("The test process has no PATH");
+    originalPath = path;
+  });
+
+  afterEach(() => {
+    process.env.PATH = originalPath;
+  });
+
+  test(
+    "with capture on, its picker reports no visible change and the pull request opens with its fixed body, without screenshots",
+    async () => {
+      // gh runs from the server's own PATH: the fake one first.
+      const bin = join(root, "gh-bin");
+      const state = join(root, "gh-state");
+      await mkdir(bin);
+      await mkdir(state);
+      await writeFile(join(bin, "gh"), fakeGh(state), { mode: 0o755 });
+      process.env.PATH = `${bin}${delimiter}${originalPath}`;
+      const pushTarget = join(root, "origin.git");
+      execFileSync("git", ["init", "-q", "--bare", pushTarget]);
+      const { app } = await start([]);
+
+      const { started, ended, folderPath } = await deliver(
+        app,
+        [PASSING_CHECK],
+        0,
+        {
+          appStartCommand: "git tag example-app-started",
+          appUrl: "http://localhost:5173",
+          appSetupCommands: ["git tag example-setup-ran"],
+        },
+        (folder) => {
+          gitIn(folder, ["remote", "add", "origin", GITHUB_URL]);
+          gitIn(folder, ["config", `url.${pushTarget}.insteadOf`, GITHUB_URL]);
+        },
+      );
+
+      expect(ended).toMatchObject({ state: "passed", phase: "publishing", failure: null });
+      expect(ended.pullRequest).toMatchObject({ number: 1, state: "open" });
+      const activity = RunEvent.array()
+        .parse(await rpc(app, "delivery/activity", { runId: started.id }))
+        .map((line) => line.text);
+      expect(activity).toContain(
+        "The screen picker found no visible change, so the pull request has no screenshots and nothing was installed or started.",
+      );
+      expect(activity.filter((text) => text.includes("Project settings"))).toEqual([]);
+      const body = readFileSync(join(state, "body"), "utf8");
+      expect(body.startsWith("## Why\n")).toBe(true);
+      expect(body).toContain("The example executor committed one file per ticket");
+      expect(body).not.toMatch(/!\[/);
+      // Nothing was installed or started: neither command left its tag.
+      expect(gitIn(folderPath, ["tag", "--list"])).toBe("");
     },
     TEST_TIMEOUT_MS,
   );

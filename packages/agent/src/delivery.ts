@@ -2,6 +2,7 @@ import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 import {
+  DELIVERY_SCREENS_MAX_COUNT,
   type DeliveryAgentConfig,
   type DeliveryAgentError,
   err,
@@ -9,6 +10,9 @@ import {
   type ImplementRequest,
   type ImplementTicketSet,
   ok,
+  PickedScreen,
+  type PickScreens,
+  type PickScreensRequest,
   PULL_REQUEST_WRITTEN_BODY_MAX_LENGTH,
   type PullRequestRequest,
   type Result,
@@ -40,6 +44,8 @@ import {
   buildPullRequestSystemPrompt,
   buildReviewerPrompt,
   buildReviewerSystemPrompt,
+  buildScreenPickerPrompt,
+  buildScreenPickerSystemPrompt,
 } from "./delivery-prompt.ts";
 import { createImplementStreamParser } from "./delivery-stream.ts";
 import { checkDeliverySkills, checkSkill, deliverySkills, type DeliverySkills } from "./skills.ts";
@@ -131,15 +137,46 @@ function pullRequestSettings(fastMode: boolean | undefined): string {
 }
 
 /**
- * The pull request writer's structured output: the body, whole. Its root key `pullRequestBody` is
- * how the e2e stand-in tells the writer from the other calls.
+ * The pull request writer's structured output: the body, whole, and whether the change is visible
+ * in the app. Its root key `pullRequestBody` is how the e2e stand-in tells the writer from the
+ * other calls.
  */
 const PULL_REQUEST_OUTPUT = structuredOutput(
-  z.strictObject({ pullRequestBody: z.string().min(1).max(PULL_REQUEST_WRITTEN_BODY_MAX_LENGTH) }),
+  z.strictObject({
+    pullRequestBody: z.string().min(1).max(PULL_REQUEST_WRITTEN_BODY_MAX_LENGTH),
+    visibleChange: z.boolean(),
+  }),
 );
 
 /** The pull request writer's `--json-schema`. */
 export const PULL_REQUEST_JSON_SCHEMA = PULL_REQUEST_OUTPUT.jsonSchema;
+
+/** The screen picker reads the diff, the spec and the worktree's files; it runs no command. */
+const SCREEN_PICKER_TOOLS = ["Read", "Grep", "Glob"].join(",");
+
+const SCREEN_PICKER_DISALLOWED_TOOLS = [
+  "Bash",
+  "Write",
+  "Edit",
+  "NotebookEdit",
+  "WebFetch",
+  "WebSearch",
+  SUBAGENT_TOOL,
+].join(",");
+
+/**
+ * The screen picker's structured output: the changed screens, none when nothing a person sees
+ * changed. Its root key `changedScreens` is how the e2e stand-in tells the picker from the other
+ * calls.
+ */
+const SCREEN_PICKER_OUTPUT = structuredOutput(
+  z.strictObject({
+    changedScreens: z.array(PickedScreen).max(DELIVERY_SCREENS_MAX_COUNT),
+  }),
+);
+
+/** The screen picker's `--json-schema`. */
+export const SCREEN_PICKER_JSON_SCHEMA = SCREEN_PICKER_OUTPUT.jsonSchema;
 
 /**
  * The CLI's print mode stops background tasks still running this long after the session's last
@@ -167,6 +204,8 @@ const REVIEWER_PROMPT_FILE = "reviewer-prompt.md";
 const REVIEWER_OUTPUT_FILE = "reviewer.json";
 const PULL_REQUEST_PROMPT_FILE = "pr-writer-prompt.md";
 const PULL_REQUEST_OUTPUT_FILE = "pr-writer.json";
+const SCREEN_PICKER_PROMPT_FILE = "screen-picker-prompt.md";
+const SCREEN_PICKER_OUTPUT_FILE = "screen-picker.json";
 
 /**
  * One `--allowedTools` flag per command, built from the pinned text exactly: the command alone or
@@ -302,6 +341,88 @@ function pullRequestArgs(
 }
 
 /**
+ * The screen picker's argv: the reviewer's model, effort and turns, and only the read tools Read,
+ * Grep and Glob, with no command, subagent or web tool.
+ */
+function screenPickerArgs(
+  config: DeliveryAgentConfig,
+  request: PickScreensRequest,
+  prompt: string,
+  systemPromptFile: string,
+): string[] {
+  return [
+    "-p",
+    prompt,
+    "--output-format",
+    "json",
+    "--model",
+    config.model,
+    "--effort",
+    config.effort,
+    "--max-turns",
+    String(config.reviewerMaxTurns),
+    ...fastModeArgs(config.fastMode),
+    "--setting-sources",
+    "project",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    SCREEN_PICKER_TOOLS,
+    "--allowedTools",
+    SCREEN_PICKER_TOOLS,
+    "--disallowedTools",
+    SCREEN_PICKER_DISALLOWED_TOOLS,
+    "--add-dir",
+    request.runDir,
+    "--append-system-prompt-file",
+    systemPromptFile,
+    "--json-schema",
+    SCREEN_PICKER_JSON_SCHEMA,
+  ];
+}
+
+/**
+ * The screen picker session through the Claude Code CLI at `config.claudePath`, under the
+ * reviewer's model, effort, turn and timeout settings: no config key of its own. It reads the
+ * change and the spec and lists the screens the change makes look different, up to
+ * `DELIVERY_SCREENS_MAX_COUNT`; none listed is no visible change.
+ */
+export function claudeCodePickScreens(config: DeliveryAgentConfig): PickScreens {
+  const call: CliCall = {
+    claudePath: config.claudePath,
+    timeoutSeconds: config.reviewerTimeoutMinutes * 60,
+    who: "The screen picker",
+    sessionsDir: config.sessionsDir,
+    // A read-only session after the review, under the reviewer's settings: recorded as one.
+    kind: "reviewer",
+  };
+  return async (request, signal) => {
+    const systemPromptFile = join(request.runDir, SCREEN_PICKER_PROMPT_FILE);
+    writeFileSync(systemPromptFile, buildScreenPickerSystemPrompt());
+    const stdoutFile = join(request.runDir, SCREEN_PICKER_OUTPUT_FILE);
+    writeFileSync(stdoutFile, "");
+    const run = await runSession(
+      call,
+      screenPickerArgs(config, request, buildScreenPickerPrompt(request), systemPromptFile),
+      request.worktreePath,
+      {
+        env: { ...gitIdentityEnv(request.gitIdentity), ...NO_BACKGROUND_WAIT_CEILING },
+        signal,
+        stdoutFile,
+        onStdout: null,
+        processGroup: true,
+      },
+    );
+    if (!run.ok) return run;
+    const picked = interpretExit(call, run.value, SCREEN_PICKER_OUTPUT.schema);
+    if (!picked.ok) return picked;
+    const [first, ...rest] = picked.value.changedScreens;
+    if (first === undefined) return ok({ kind: "no_visible_change" });
+    return ok({ kind: "screens", screens: [first, ...rest] });
+  };
+}
+
+/**
  * The delivery orchestrator session through the Claude Code CLI at `config.claudePath`, following
  * the skills in `config.skillsDir`.
  */
@@ -362,9 +483,9 @@ export function writePullRequestWith(
       },
     );
     if (!run.ok) return run;
-    const body = interpretExit(call, run.value, PULL_REQUEST_OUTPUT.schema);
-    if (!body.ok) return body;
-    return ok(body.value.pullRequestBody);
+    const written = interpretExit(call, run.value, PULL_REQUEST_OUTPUT.schema);
+    if (!written.ok) return written;
+    return ok({ body: written.value.pullRequestBody, visibleChange: written.value.visibleChange });
   };
 }
 

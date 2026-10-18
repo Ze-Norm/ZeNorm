@@ -271,10 +271,35 @@ describe("the example executor", () => {
       new AbortController().signal,
     );
 
-    expect(body).toEqual({ ok: true, value: EXAMPLE_PULL_REQUEST_BODY });
+    expect(body).toEqual({
+      ok: true,
+      value: { body: EXAMPLE_PULL_REQUEST_BODY, visibleChange: false },
+    });
     expect(EXAMPLE_PULL_REQUEST_BODY.startsWith("## Why\n")).toBe(true);
     expect(EXAMPLE_PULL_REQUEST_BODY).toContain("## Tests");
     expect(EXAMPLE_PULL_REQUEST_BODY).toContain("## Risks");
+    expect(calls).toEqual({ implement: 0, review: 0 });
+  });
+
+  test("its screen picker reports no visible change", async () => {
+    const calls: ExecutorCalls = { implement: 0, review: 0 };
+    const finalCommit = git(worktree, ["rev-parse", "HEAD"]);
+
+    const picked = await exampleExecutor(calls).pickScreens(
+      {
+        runDir: join(root, "run"),
+        worktreePath: worktree,
+        baseCommit,
+        finalCommit,
+        specPath: join(root, "run", "spec.md"),
+        diffPath: join(root, "run", "diff.patch"),
+        changedFiles: [],
+        gitIdentity: IDENTITY,
+      },
+      new AbortController().signal,
+    );
+
+    expect(picked).toEqual({ ok: true, value: { kind: "no_visible_change" } });
     expect(calls).toEqual({ implement: 0, review: 0 });
   });
 });
