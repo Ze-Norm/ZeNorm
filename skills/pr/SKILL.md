@@ -65,7 +65,7 @@ Aim for 250 words or fewer. A larger change can run longer in What, but Why, Tes
 
 ## Output
 
-Return the body through the structured output the session names, as one markdown string.
+Return the body through the structured output the session names, as one markdown string. Beside it, say whether the change is visible: whether a person using the project's app would see something different on a screen, page or view once it merges. Docs, tests, tooling, configuration and backend code no screen shows are not visible. This answer is not part of the body; don't mention it there.
 
 ## License
 

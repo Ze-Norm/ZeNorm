@@ -674,6 +674,14 @@ export const PublishFailureCode = z.enum([
 export type PublishFailureCode = z.infer<typeof PublishFailureCode>;
 
 /**
+ * Why a passing run's screenshot capture failed: the screen picker session failed or timed out
+ * (`capture_picker_failed`). A capture failure is an activity line with its code, and the run still
+ * opens its pull request and ends passed, so these are never a `DeliveryFailureCode`.
+ */
+export const CaptureFailureCode = z.enum(["capture_picker_failed"]);
+export type CaptureFailureCode = z.infer<typeof CaptureFailureCode>;
+
+/**
  * Codes `delivery.checkPullRequest` (Check now) returns, in the order they are checked; each writes
  * nothing: no such run, a run that opened no pull request, then gh's sign-in check (gh cannot run,
  * gh is not signed in to github.com, or GitHub could not be reached, which reading the pull
@@ -790,6 +798,7 @@ export const DomainCode = z.enum([
   "delivery_branch_missing",
   "delivery_no_pull_request",
   ...DeliveryFailureCode.exclude([...DeliveryAgentErrorCode.options]).options,
+  ...CaptureFailureCode.options,
   "hatch_message_empty",
   ...HatchRefusal.exclude(["map_uncleared"]).options,
   ...AccessErrorCode.options,

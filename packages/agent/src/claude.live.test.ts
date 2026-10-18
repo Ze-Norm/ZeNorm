@@ -2067,12 +2067,13 @@ test(
       );
       process.stdout.write(`pull request writer: ${String(Date.now() - writeStarted)} ms\n`);
       if (!written.ok) throw new Error(`${written.error.code}: ${written.error.message}`);
-      process.stdout.write(`${written.value}\n`);
-      expect(written.value.startsWith("## Why")).toBe(true);
-      expect(written.value).toMatch(/^## What$/m);
-      expect(written.value).toMatch(/^## Tests$/m);
-      expect(written.value).toMatch(/^## Risks$/m);
-      expect(written.value).not.toContain("Generated with [Claude Code]");
+      const { body, visibleChange } = written.value;
+      process.stdout.write(`${body}\nvisible change: ${String(visibleChange)}\n`);
+      expect(body.startsWith("## Why")).toBe(true);
+      expect(body).toMatch(/^## What$/m);
+      expect(body).toMatch(/^## Tests$/m);
+      expect(body).toMatch(/^## Risks$/m);
+      expect(body).not.toContain("Generated with [Claude Code]");
       expect(gitIn(worktreePath, "rev-parse", branch)).toBe(finalCommit);
       expect(gitIn(worktreePath, "status", "--porcelain")).toBe("");
     } finally {

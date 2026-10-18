@@ -405,19 +405,26 @@ export {
   VerdictSeverity,
 } from "./delivery.ts";
 export {
+  DELIVERY_SCREENS_MAX_COUNT,
   GitIdentity,
   gitIdentityEnv,
   ImplementRequest,
   LOCAL_EXECUTOR,
+  PICKED_SCREEN_TEXT_MAX_LENGTH,
+  PickedScreen,
+  PickedScreens,
+  PickScreensRequest,
   PullRequestRequest,
   ReviewRequest,
   ticketBranchName,
+  WrittenPullRequest,
 } from "./delivery-agent.ts";
 export type { DeliveryRunState } from "./delivery.ts";
 export { ImplementEvent } from "./delivery-agent.ts";
 export type {
   DeliveryExecutor,
   ImplementTicketSet,
+  PickScreens,
   RepairRequest,
   ResumedFrom,
   ReviewDelivery,
@@ -447,6 +454,7 @@ export {
   PluginStartupCode,
   CancelDeliveryErrorCode,
   CancelDeliveryErrorData,
+  CaptureFailureCode,
   CheckPullRequestErrorCode,
   CheckPullRequestErrorData,
   ConfirmProposalErrorCode,

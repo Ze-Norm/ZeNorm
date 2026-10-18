@@ -450,6 +450,7 @@ describe("reopen", () => {
           repairLimit: 0,
           repairAttempts: 0,
           fixCommands: [],
+          appSetupCommands: [],
           startedAt: new Date().toISOString(),
           endedAt: null,
           finalCommit: null,

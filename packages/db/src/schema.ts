@@ -927,6 +927,17 @@ export const deliveryRuns = sqliteTable(
      * the column's SQL DEFAULT, which only backfills; every insert sets it.
      */
     fixCommands: projectFixCommandsColumn("fix_commands").notNull(),
+    /**
+     * The project's app start command and URL, pinned at the start: capture is on for the run
+     * exactly when both are set. Null on the runs before `0037`, which publish with capture off.
+     */
+    appStartCommand: text("app_start_command"),
+    appUrl: text("app_url"),
+    /**
+     * The project's app setup commands, pinned at the start. `0037` sets `[]` on the runs before it
+     * by the column's SQL DEFAULT, which only backfills; every insert sets it.
+     */
+    appSetupCommands: projectAppSetupCommandsColumn("app_setup_commands").notNull(),
   },
   (t) => [
     unique("delivery_runs_spec_number_uq").on(t.specificationId, t.number),

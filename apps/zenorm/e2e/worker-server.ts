@@ -8,6 +8,9 @@ import { fileURLToPath } from "node:url";
 import { test as base } from "@playwright/test";
 
 import {
+  CAPTURE_FLOWS,
+  CAPTURE_ORIGIN_URL,
+  captureRepo,
   DELIVERY_FLOWS,
   deliveryRepo,
   deliveryRunsRepo,
@@ -98,6 +101,14 @@ function createWorkerRoot(port: number): string {
   git(["init", "-q", "--bare", pushTargetRepo()]);
   git(["-C", pullRequestRepo, "remote", "add", "origin", GITHUB_ORIGIN_URL]);
   git(["-C", pullRequestRepo, "config", `url.${pushTargetRepo()}.insteadOf`, GITHUB_ORIGIN_URL]);
+  // The capture flows' origins are on github.com too, pushed to the same bare repository.
+  for (const flow of CAPTURE_FLOWS) {
+    const repo = captureRepo(flow);
+    git(["init", "-q", "-b", "main", repo]);
+    git(["-C", repo, "commit", "-q", "--allow-empty", "-m", "init"]);
+    git(["-C", repo, "remote", "add", "origin", CAPTURE_ORIGIN_URL]);
+    git(["-C", repo, "config", `url.${pushTargetRepo()}.insteadOf`, CAPTURE_ORIGIN_URL]);
+  }
   // The fake gh the server runs, first on its PATH.
   mkdirSync(ghBinDir());
   mkdirSync(ghStateDir());

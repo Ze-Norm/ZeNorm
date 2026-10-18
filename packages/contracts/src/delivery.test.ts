@@ -6,9 +6,11 @@ import {
   checkNeedsShell,
   cutAgentText,
   CHECK_COMMAND_MAX_LENGTH,
+  CaptureFailureCode,
   CheckCommand,
   CheckPullRequestErrorCode,
   DELIVERY_CHECKS_MAX_COUNT,
+  DELIVERY_SCREENS_MAX_COUNT,
   DeliveryAgentErrorCode,
   DeliveryChecks,
   DeliveryFailureCode,
@@ -17,6 +19,7 @@ import {
   DomainCode,
   ImplementEvent,
   MarkMergedErrorCode,
+  PickedScreens,
   PlanningAgentErrorCode,
   ProjectAppSetupCommands,
   ProjectChecks,
@@ -578,6 +581,39 @@ describe("delivery codes", () => {
       expect(DomainCode.options).toContain(code);
     }
     expect(new Set(DomainCode.options).size).toBe(DomainCode.options.length);
+  });
+
+  test("a capture failure code is a domain code and never a delivery failure code", () => {
+    expect(CaptureFailureCode.options).toContain("capture_picker_failed");
+    for (const code of CaptureFailureCode.options) {
+      expect(DomainCode.options).toContain(code);
+      expect(DeliveryFailureCode.options).not.toContain(code);
+    }
+  });
+});
+
+describe("PickedScreens", () => {
+  const screen = { where: "/settings", changed: "A new App section.", isNew: false };
+
+  test("no visible change, or one to six screens", () => {
+    expect(PickedScreens.safeParse({ kind: "no_visible_change" }).success).toBe(true);
+    expect(PickedScreens.safeParse({ kind: "screens", screens: [screen] }).success).toBe(true);
+    expect(
+      PickedScreens.safeParse({
+        kind: "screens",
+        screens: Array.from({ length: DELIVERY_SCREENS_MAX_COUNT }, () => screen),
+      }).success,
+    ).toBe(true);
+  });
+
+  test("refuses no screens listed and more than six", () => {
+    expect(PickedScreens.safeParse({ kind: "screens", screens: [] }).success).toBe(false);
+    expect(
+      PickedScreens.safeParse({
+        kind: "screens",
+        screens: Array.from({ length: DELIVERY_SCREENS_MAX_COUNT + 1 }, () => screen),
+      }).success,
+    ).toBe(false);
   });
 });
 

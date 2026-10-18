@@ -1,22 +1,34 @@
 import { execFileSync } from "node:child_process";
-import { writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 
 import type { Page } from "@playwright/test";
-import { DeliveryRun } from "@zenorm/contracts";
+import { DeliveryRun, PULL_REQUEST_FOOTER } from "@zenorm/contracts";
 import type { SpecRun } from "@zenorm/contracts";
 
-import { deliveryRunsRepo, repairReleaseFile } from "./fixture.ts";
 import {
+  captureRepo,
+  deliveryRunsRepo,
+  pullRequestBody,
+  repairReleaseFile,
+  screenPickerCallsFile,
+} from "./fixture.ts";
+import type { CaptureFlow } from "./fixture.ts";
+import {
+  addProject,
   addProjectInNewPage,
   approvedMap,
+  deliveryActivityTexts,
+  gitIn,
   inboxGroup,
   mapOverview,
   mapRowLink,
   runStep,
   saveChecks,
+  saveChecksAndAppSettings,
   saveChecksAndRepairLimit,
   startDeliveryForm,
 } from "./flows.ts";
+import type { AppSettings } from "./flows.ts";
 import { expect, test } from "./worker-server.ts";
 
 /**
@@ -306,4 +318,113 @@ test("a failing check fails the run; a blocking finding blocks the next one", as
   await expect(
     startDeliveryForm(page).getByRole("button", { name: "Start again from clean" }),
   ).toBeVisible();
+});
+
+/**
+ * App settings that turn screenshots on. The setup and start commands would each leave a tag in
+ * the repository, so a run that installs or starts nothing leaves none.
+ */
+const CAPTURE_ON: AppSettings = {
+  appStartCommand: "git tag zenorm-app-started",
+  appUrl: "http://localhost:5173",
+  appSetupCommands: ["git tag zenorm-setup-ran"],
+};
+const CAPTURE_OFF: AppSettings = { appStartCommand: null, appUrl: null, appSetupCommands: [] };
+const NO_VISIBLE_CHANGE_LINE =
+  "The screen picker found no visible change, so the pull request has no screenshots and nothing was installed or started.";
+const SETUP_HINT_LINE =
+  "This change is visible in the app. Save an app start command and its URL in Project settings to show screenshots of the changed screens in pull requests.";
+
+/** The final commits the stand-in's screen picker was called on, in this worker. */
+function screenPickerCalls(): string[] {
+  const file = screenPickerCallsFile();
+  if (!existsSync(file)) return [];
+  return readFileSync(file, "utf8")
+    .split("\n")
+    .filter((line) => line !== "");
+}
+
+/** The lines naming the capture: the picker's answer, its failure or the setup hint. */
+function captureLines(texts: readonly string[]): string[] {
+  return texts.filter(
+    (text) =>
+      text.startsWith("The screen picker") ||
+      text.startsWith("Screenshots are missing") ||
+      text.includes("Project settings"),
+  );
+}
+
+/**
+ * Adds the capture flow's project (its origin on github.com), plans an approved set from `idea`,
+ * saves a passing check and `app`, delivers it and waits for the run to pass. Returns the passed
+ * run and its activity.
+ */
+async function passedCaptureRun(
+  page: Page,
+  flow: CaptureFlow,
+  idea: string,
+  app: AppSettings,
+): Promise<{ passed: SpecRun; texts: string[] }> {
+  await addProject(page, captureRepo(flow));
+  const mapId = await approvedMap(page, captureRepo(flow), idea);
+  await saveChecksAndAppSettings(page, mapId, [PASSING_CHECK], app);
+  await page.goto(`/maps/${mapId}/delivery`);
+  await startDelivery(page, "Start delivery");
+  const passed = await expectRunState(page, mapId, 1, "passed");
+  expect(passed.phase).toBe("publishing");
+  expect(passed.failure).toBeNull();
+  expect(passed.pullRequest?.url).toMatch(/^https:\/\/github\.com\/acme\/screens\/pull\/\d+$/);
+  return { passed, texts: await deliveryActivityTexts(page, passed.id) };
+}
+
+test("capture on: no visible change says so, installs and starts nothing, and the pull request opens", async ({
+  page,
+}) => {
+  const { passed, texts } = await passedCaptureRun(
+    page,
+    "capture-none",
+    "Deliver the CSV export behind the scenes",
+    CAPTURE_ON,
+  );
+
+  expect(captureLines(texts)).toEqual([NO_VISIBLE_CHANGE_LINE]);
+  expect(screenPickerCalls()).toContain(passed.finalCommit);
+  expect(gitIn(captureRepo("capture-none"), ["tag", "--list"])).toBe("");
+  expect(pullRequestBody(passed.branch)).toContain("## Why");
+});
+
+test("capture on: the screens the picker lists are named, and the pull request opens", async ({
+  page,
+}) => {
+  const { passed, texts } = await passedCaptureRun(
+    page,
+    "capture-screens",
+    "Deliver the CSV export page [fake:screens]",
+    CAPTURE_ON,
+  );
+
+  expect(captureLines(texts)).toEqual([
+    "The screen picker picked 2 changed screens: /export (new), /projects.",
+  ]);
+  expect(screenPickerCalls()).toContain(passed.finalCommit);
+});
+
+test("capture off: no picker runs, and a visible change adds the setup hint with the body unchanged", async ({
+  page,
+}) => {
+  const { passed, texts } = await passedCaptureRun(
+    page,
+    "capture-off",
+    "Deliver the CSV export button [fake:visible-change]",
+    CAPTURE_OFF,
+  );
+
+  expect(captureLines(texts)).toEqual([SETUP_HINT_LINE]);
+  expect(screenPickerCalls()).not.toContain(passed.finalCommit);
+  // The stand-in writer's body, with ZeNorm's footer and nothing else added.
+  const body = pullRequestBody(passed.branch);
+  expect(body.startsWith("## Why\n")).toBe(true);
+  expect(body).toContain(`at ${(passed.finalCommit ?? "").slice(0, 7)}`);
+  expect(body.endsWith(PULL_REQUEST_FOOTER)).toBe(true);
+  expect(body).not.toContain("Project settings");
 });

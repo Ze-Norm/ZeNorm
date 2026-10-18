@@ -321,7 +321,8 @@ export interface StartedDelivery {
  * `project_repair_limit_missing`, `delivery_in_progress`; the folder comes from the checkout seam),
  * then `delivery_branch_exists`, then the admission seam's `delivery_not_admitted`. Otherwise it
  * resolves the base commit and stores run `latest + 1` with the project's checks, base branch,
- * repair limit and fix commands pinned and no repair attempt, in `preparing`, and one ticket row
+ * repair limit, fix commands and app settings (start command, URL, setup commands) pinned and no
+ * repair attempt, in `preparing`, and one ticket row
  * per pinned ticket in order, re-checking in the same transaction; the run stores `executor`, the
  * executor carrying it. Starts no session and touches no file. Returns the run with the folder the
  * checkout seam gave: the one folder the run's git works in until it ends.
@@ -588,6 +589,10 @@ async function startRun<E extends CodedError<string>>(
     repairLimit,
     repairAttempts: 0,
     fixCommands: [...fixCommands],
+    // The project's app settings, pinned: capture uses these even when settings change mid-run.
+    appStartCommand: project.appStartCommand,
+    appUrl: project.appUrl,
+    appSetupCommands: [...project.appSetupCommands],
     // A run opens its pull request, if any, at its end.
     prNumber: null,
     prUrl: null,

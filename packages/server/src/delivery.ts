@@ -11,6 +11,8 @@ import type {
   ImplementEvent,
   ImplementRequest,
   ImplementTicketSet,
+  PickedScreens,
+  PickScreens,
   PullRequest,
   PullRequestRequest,
   Result,
@@ -71,6 +73,11 @@ export interface DeliveryRunnerOptions {
   readonly reviewDelivery: ReviewDelivery;
   /** Writes the body of a passing run's pull request on a GitHub project. */
   readonly writePullRequest: WritePullRequest;
+  /**
+   * Lists the screens a passing run's change makes look different, before its pull request is
+   * written, on a run that pinned an app start command and URL.
+   */
+  readonly pickScreens: PickScreens;
   /** Each check's bound. */
   readonly checkTimeoutMinutes: number;
   /**
@@ -219,6 +226,24 @@ function verdictLine(verdict: Verdict): string {
 /** Where the runner writes a pull request's body for gh's `--body-file`, in the run folder. */
 const PULL_REQUEST_BODY_FILE = "pull-request.md";
 
+/** ZeNorm's line for the screen picker's answer: no visible change, or the screens it picked. */
+function pickedLine(picked: PickedScreens): string {
+  switch (picked.kind) {
+    case "no_visible_change":
+      return "The screen picker found no visible change, so the pull request has no screenshots and nothing was installed or started.";
+    case "screens":
+      return `The screen picker picked ${plural(picked.screens.length, "changed screen")}: ${picked.screens
+        .map((screen) => `${screen.where}${screen.isNew ? " (new)" : ""}`)
+        .join(", ")}.`;
+  }
+}
+
+/**
+ * ZeNorm's line when a run without screenshots changed something visible: where to turn them on.
+ */
+const CAPTURE_SETUP_HINT =
+  "This change is visible in the app. Save an app start command and its URL in Project settings to show screenshots of the changed screens in pull requests.";
+
 /** Whether a verdict passes: no blocking finding. */
 function passes(verdict: Verdict): boolean {
   return !verdict.findings.some((finding) => finding.severity === "blocking");
@@ -256,6 +281,7 @@ export function createDeliveryRunner({
   implementTicketSet,
   reviewDelivery,
   writePullRequest,
+  pickScreens,
   checkTimeoutMinutes,
   onEnd,
   log,
@@ -669,10 +695,13 @@ export function createDeliveryRunner({
   }
 
   /**
-   * The publishing step of a passing run on a GitHub project: the pull request writer writes the
-   * body, ZeNorm adds its footer, then gh's sign-in is checked, the run branch is pushed to origin
-   * and the pull request is opened on origin's repository against the pinned base, titled with the
-   * spec's title. The first failure is the run's; nothing pushed or opened is ever undone. Each
+   * The publishing step of a passing run on a GitHub project: on a run that pinned an app start
+   * command and URL, the screen picker first lists the changed screens, which one line says (none,
+   * the screens, or `capture_picker_failed`, which never fails the run); then the pull request
+   * writer writes the body, and on a run without that capture a visible change adds the line
+   * suggesting the app settings; ZeNorm adds its footer, then gh's sign-in is checked, the run
+   * branch is pushed to origin and the pull request is opened on origin's repository against the
+   * pinned base, titled with the spec's title. The first failure is the run's; nothing pushed or opened is ever undone. Each
    * step stops once the run is aborted, and the driver then stores nothing.
    */
   async function publish(input: {
@@ -689,11 +718,40 @@ export function createDeliveryRunner({
     const { signal } = entry.controller;
     const { folder } = entry;
     const repository = `${origin.owner}/${origin.name}`;
+    // Capture is on for a run that pinned both an app start command and its URL.
+    const captureOn = run.appStartCommand !== null && run.appUrl !== null;
+    if (captureOn) {
+      const { request } = input;
+      const picked = await pickScreens(
+        {
+          runDir: request.runDir,
+          worktreePath: request.worktreePath,
+          baseCommit: request.baseCommit,
+          finalCommit: request.finalCommit,
+          specPath: request.specPath,
+          diffPath: request.diffPath,
+          changedFiles: request.changedFiles,
+          gitIdentity: request.gitIdentity,
+        },
+        signal,
+      );
+      // A cancel stops the publishing step; any other failure is the capture's alone.
+      if (!picked.ok && signal.aborted) return picked;
+      say(
+        picked.ok
+          ? pickedLine(picked.value)
+          : `Screenshots are missing (capture_picker_failed): the screen picker failed: ${picked.error.message}`,
+      );
+    }
     say(`Writing the pull request for ${repository}.`);
     const written = await writePullRequest(input.request, signal);
     if (!written.ok) return written;
+    const { body, visibleChange } = written.value;
+    if (!captureOn && visibleChange) {
+      say(CAPTURE_SETUP_HINT);
+    }
     const bodyFile = join(input.request.runDir, PULL_REQUEST_BODY_FILE);
-    await writeFile(bodyFile, `${written.value.trimEnd()}${PULL_REQUEST_FOOTER}`);
+    await writeFile(bodyFile, `${body.trimEnd()}${PULL_REQUEST_FOOTER}`);
     const signedIn = await checkGitHubSignIn({ folder, signal });
     if (!signedIn.ok) return signedIn;
     say(`Pushing ${run.branch} to origin.`);
