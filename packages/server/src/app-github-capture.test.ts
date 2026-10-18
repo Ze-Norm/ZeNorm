@@ -153,11 +153,11 @@ describe("a run that pinned an app start command and URL picks its changed scree
       changedFiles: write?.changedFiles,
       gitIdentity: write?.gitIdentity,
     });
-    expect(captureLines(texts)).toEqual([
-      "The screen picker found no visible change, so the pull request has no screenshots and nothing was installed or started.",
-    ]);
+    const pickerLine =
+      "The screen picker found no visible change, so the pull request has no screenshots and nothing was installed or started.";
+    expect(captureLines(texts)).toEqual([pickerLine]);
     // The picker's line comes before the writer's.
-    expect(texts.indexOf(captureLines(texts)[0] ?? "")).toBeLessThan(
+    expect(texts.indexOf(pickerLine)).toBeLessThan(
       texts.indexOf("Writing the pull request for acme/numbers."),
     );
     expect(readFileSync(join(ghState, "body"), "utf8")).toBe(

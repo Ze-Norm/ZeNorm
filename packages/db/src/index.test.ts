@@ -171,7 +171,7 @@ describe("migrateDatabase", () => {
     expect(db.$client.prepare("select type, name, sql from sqlite_master").all()).toEqual(
       schemaBefore,
     );
-    expect(db.$client.prepare("select count(*) from zenorm_migrations").pluck().get()).toBe(37);
+    expect(db.$client.prepare("select count(*) from zenorm_migrations").pluck().get()).toBe(38);
   });
 
   test("returns migration_failed when a migration cannot apply", () => {
@@ -350,7 +350,7 @@ describe("a database newer than the build", () => {
   });
 
   test("an earlier migration set migrates forward", async () => {
-    await migrateUpTo("0035_agent_decided");
+    await migrateUpTo("0036_project_app_settings");
     expect(migrationRows()).toHaveLength(TAGS.length - 1);
     expect(migrateDatabase(db, MIGRATIONS_FOLDER)).toEqual({ ok: true, value: undefined });
     expect(migrationRows()).toHaveLength(TAGS.length);

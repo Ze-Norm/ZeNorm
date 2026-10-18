@@ -296,7 +296,7 @@ export function fakeGhScript(state: string): string {
     '    if [ "$prev" = "--body-file" ]; then body="$arg"; fi',
     '    prev="$arg"',
     "  done",
-    '  cp "$body" "$state/body-$(printf \'%s\' "$head" | tr \'/\' \'_\')"',
+    "  cp \"$body\" \"$state/body-$(printf '%s' \"$head\" | tr '/' '_')\"",
     '  echo "$repo" >> "$state/opened"',
     '  number=$(grep -c -x -F "$repo" "$state/opened")',
     '  echo "https://github.com/$repo/pull/$number"',

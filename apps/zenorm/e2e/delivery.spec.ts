@@ -423,8 +423,9 @@ test("capture off: no picker runs, and a visible change adds the setup hint with
   expect(screenPickerCalls()).not.toContain(passed.finalCommit);
   // The stand-in writer's body, with ZeNorm's footer and nothing else added.
   const body = pullRequestBody(passed.branch);
+  if (passed.finalCommit === null) throw new Error("a passed run has a final commit");
   expect(body.startsWith("## Why\n")).toBe(true);
-  expect(body).toContain(`at ${(passed.finalCommit ?? "").slice(0, 7)}`);
+  expect(body).toContain(`at ${passed.finalCommit.slice(0, 7)}`);
   expect(body.endsWith(PULL_REQUEST_FOOTER)).toBe(true);
   expect(body).not.toContain("Project settings");
 });
