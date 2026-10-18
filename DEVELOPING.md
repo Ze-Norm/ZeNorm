@@ -4,7 +4,7 @@ How to work on ZeNorm itself. To install and run it, see [SETUP.md](SETUP.md).
 
 ## Running from a checkout
 
-You need Node.js 26.11.1 or later (pinned in [`.nvmrc`](.nvmrc)), pnpm 10.33.2 (`packageManager` in [`package.json`](package.json); for example `npm install -g pnpm@10.33.2`), git, and Claude Code installed and signed in.
+You need Node.js 26.11.1 or later (pinned in [`.nvmrc`](.nvmrc); the published `zenorm` command runs on 22.14 or later, but working on ZeNorm needs 26), pnpm 10.33.2 (`packageManager` in [`package.json`](package.json); for example `npm install -g pnpm@10.33.2`), git, and Claude Code installed and signed in.
 
 ```sh
 git clone https://github.com/Ze-Norm/ZeNorm.git zenorm

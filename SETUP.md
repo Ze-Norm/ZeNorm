@@ -5,7 +5,7 @@ This guide covers installing the `zenorm` command, writing its config file and r
 ## Requirements
 
 - macOS or Linux. On Windows, use WSL 2; ZeNorm refuses to run on native Windows.
-- Node.js 26.11.1 or later. Node 26 is the Current release line, not yet LTS, so an LTS installer gives you Node 24; install 26 with `nvm install 26` (or `fnm install 26`).
+- Node.js 22.14 or later. Node 22, 24 and 26 are each tested.
 - [Claude Code](https://docs.claude.com/en/docs/claude-code), installed and on your `PATH`. ZeNorm runs it for planning and delivery; `zenorm init` signs it in if it isn't.
 - git
 
