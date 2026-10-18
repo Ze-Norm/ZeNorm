@@ -97,16 +97,13 @@ function nonEmpty(value: string | undefined): string | undefined {
 
 /** Playwright's per-user cache folder, by platform; null on a platform it does not support. */
 function cacheDirectory(env: BrowserEnv): string | null {
-  switch (process.platform) {
-    case "linux":
-      return nonEmpty(env.XDG_CACHE_HOME) ?? join(homedir(), ".cache");
-    case "darwin":
-      return join(homedir(), "Library", "Caches");
-    case "win32":
-      return nonEmpty(env.LOCALAPPDATA) ?? join(homedir(), "AppData", "Local");
-    default:
-      return null;
+  const platform = process.platform;
+  if (platform === "linux") return nonEmpty(env.XDG_CACHE_HOME) ?? join(homedir(), ".cache");
+  if (platform === "darwin") return join(homedir(), "Library", "Caches");
+  if (platform === "win32") {
+    return nonEmpty(env.LOCALAPPDATA) ?? join(homedir(), "AppData", "Local");
   }
+  return null;
 }
 
 /**
@@ -155,23 +152,21 @@ const DARWIN_MACOS_11 = 20;
 
 /** Playwright's short platform for this machine, as its host platform computes it. */
 function shortPlatform(): string | null {
-  switch (process.platform) {
-    case "darwin": {
-      // The release is `<major>.<minor>.<patch>`; parsing stops at the first dot.
-      const darwinMajor = Number.parseInt(release(), 10);
-      const appleSilicon =
-        darwinMajor >= DARWIN_MACOS_11 && cpus().some((cpu) => cpu.model.includes("Apple"));
-      return appleSilicon ? "mac-arm64" : "mac-x64";
-    }
-    case "linux":
-      if (process.arch === "x64") return "linux-x64";
-      if (process.arch === "arm64") return "linux-arm64";
-      return null;
-    case "win32":
-      return "win-x64";
-    default:
-      return null;
+  const platform = process.platform;
+  if (platform === "darwin") {
+    // The release is `<major>.<minor>.<patch>`; parsing stops at the first dot.
+    const darwinMajor = Number.parseInt(release(), 10);
+    const appleSilicon =
+      darwinMajor >= DARWIN_MACOS_11 && cpus().some((cpu) => cpu.model.includes("Apple"));
+    return appleSilicon ? "mac-arm64" : "mac-x64";
   }
+  if (platform === "linux") {
+    if (process.arch === "x64") return "linux-x64";
+    if (process.arch === "arm64") return "linux-arm64";
+    return null;
+  }
+  if (platform === "win32") return "win-x64";
+  return null;
 }
 
 const BrowsersJson = z.looseObject({
