@@ -101,7 +101,7 @@ jobs:
           echo "static: ${{ needs.static.result }}, test: ${{ needs.test.result }}" >&2
           exit 1
 
-  smoke:
+  smoke-node:
     # The install smoke test: the packed @ze-norm/cli installed with npm into an empty
     # folder outside the repository, with better-sqlite3's prebuild. Packed on the .nvmrc Node,
     # then installed and run on each Node the package supports: the oldest (`engines.node`), Node
@@ -128,3 +128,14 @@ jobs:
         working-directory: apps/cli
         env:
           NODE_OPTIONS: --experimental-strip-types --no-warnings=ExperimentalWarning
+
+  # The required status check for the smoke test: passes only when it passed on every Node.
+  smoke:
+    needs: [smoke-node]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - if: needs.smoke-node.result != 'success'
+        run: |
+          echo "smoke: ${{ needs.smoke-node.result }}" >&2
+          exit 1
