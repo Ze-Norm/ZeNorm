@@ -28,6 +28,7 @@ import type {
   QuestionRoundDraft,
   RunActor,
   RunEvent,
+  SaveProjectSettingsInput,
   SpecReviewFinding,
   SpecHoldKind,
   SpecReviewOutcome,
@@ -332,6 +333,9 @@ export async function addProject(context: TestContext, name: string): Promise<Pr
     requiredChecks: [],
     repairLimit: null,
     fixCommands: [],
+    appStartCommand: null,
+    appUrl: null,
+    appSetupCommands: [],
     createdAt: new Date().toISOString(),
   };
   writeTestData(context, (tx) => tx.insert(projects).values(row).run());
@@ -1260,9 +1264,15 @@ export const REQUIRED_CHECKS = ["git status --short"];
 /** The repair limit the delivery helpers save: 0, no repair, so a failing check ends the run. */
 export const REPAIR_LIMIT = 0;
 
+/** The app settings of a project that takes no screenshots: no start command, URL or setup. */
+export const NO_APP_SETTINGS: Pick<
+  SaveProjectSettingsInput,
+  "appStartCommand" | "appUrl" | "appSetupCommands"
+> = { appStartCommand: null, appUrl: null, appSetupCommands: [] };
+
 /**
  * Saves `project`'s settings with its base branch kept, `checks` as its required checks, the
- * repair limit `REPAIR_LIMIT` and no fix commands.
+ * repair limit `REPAIR_LIMIT`, no fix commands and no app settings.
  */
 export async function saveChecks(
   context: TestContext,
@@ -1275,6 +1285,7 @@ export async function saveChecks(
     requiredChecks: [...checks],
     repairLimit: REPAIR_LIMIT,
     fixCommands: [],
+    ...NO_APP_SETTINGS,
   });
   if (!saved.ok) throw new Error(saved.error.code);
   return saved.value;

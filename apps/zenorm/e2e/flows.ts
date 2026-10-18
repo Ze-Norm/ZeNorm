@@ -277,6 +277,9 @@ export async function saveChecksAndRepairLimit(
       requiredChecks: checks,
       repairLimit,
       fixCommands: [],
+      appStartCommand: null,
+      appUrl: null,
+      appSetupCommands: [],
     }),
   );
 }

@@ -1,7 +1,7 @@
 import { realpath, stat } from "node:fs/promises";
 import { basename } from "node:path";
 
-import { checkNeedsShell, err, ok } from "@zenorm/contracts";
+import { APP_URL_HOSTS, checkNeedsShell, err, ok } from "@zenorm/contracts";
 import type {
   ActiveRun,
   Actor,
@@ -262,6 +262,9 @@ export async function createProject(
     requiredChecks: [],
     repairLimit: null,
     fixCommands: [],
+    appStartCommand: null,
+    appUrl: null,
+    appSetupCommands: [],
     createdAt: new Date().toISOString(),
   };
   let refusal: InspectProjectError | null;
@@ -312,20 +315,82 @@ export async function getProject(
   return ok(await toProject(db, row));
 }
 
+/** Whether `url` is an http(s) URL whose host is localhost or 127.0.0.1. */
+function isLocalAppUrl(url: string): boolean {
+  if (!URL.canParse(url)) {
+    return false;
+  }
+  const parsed = new URL(url);
+  return (
+    (parsed.protocol === "http:" || parsed.protocol === "https:") &&
+    APP_URL_HOSTS.includes(parsed.hostname)
+  );
+}
+
 /**
- * Saves a project's settings: the base branch, the required checks, the repair limit and the fix
- * commands, in one write. A branch name `git check-ref-format --branch` refuses is
- * `project_branch_invalid`, a check that needs a shell (quotes, `&&`, pipes, redirects…) is
- * `project_check_invalid`, and a fix command that needs one is `project_fix_command_invalid`; each
- * writes nothing. A missing folder or a branch without commits does not refuse a save (they are
- * start blockers), and a running run keeps what it pinned at its start.
+ * The refusal for the app settings of a save (in this order, first wins), else null: one of the
+ * start command and URL without the other, a URL that is not local, a start command or else a
+ * setup command that needs a shell.
+ */
+function appSettingsRefusal(
+  input: Pick<SaveProjectSettingsInput, "appStartCommand" | "appUrl" | "appSetupCommands">,
+): SaveProjectSettingsError | null {
+  const { appStartCommand, appUrl, appSetupCommands } = input;
+  if ((appStartCommand === null) !== (appUrl === null)) {
+    const missing = appStartCommand === null ? "appStartCommand" : "appUrl";
+    return {
+      code: "project_app_settings_incomplete",
+      message: "The app start command and the app URL are saved together or not at all",
+      data: { missing },
+    };
+  }
+  if (appUrl !== null && !isLocalAppUrl(appUrl)) {
+    return {
+      code: "project_app_url_invalid",
+      message: `${appUrl} is not an http address on localhost or 127.0.0.1`,
+      data: { url: appUrl },
+    };
+  }
+  const commands =
+    appStartCommand === null ? appSetupCommands : [appStartCommand, ...appSetupCommands];
+  const needsShell = commands.find((command) => checkNeedsShell(command));
+  if (needsShell !== undefined) {
+    return {
+      code: "project_app_command_invalid",
+      message: `${needsShell} needs a shell; app commands run without one`,
+      data: { command: needsShell },
+    };
+  }
+  return null;
+}
+
+/**
+ * Saves a project's settings: the base branch, the required checks, the repair limit, the fix
+ * commands and the app start command, URL and setup commands, in one write. A branch name
+ * `git check-ref-format --branch` refuses is `project_branch_invalid`, a check that needs a shell
+ * (quotes, `&&`, pipes, redirects…) is `project_check_invalid`, a fix command that needs one is
+ * `project_fix_command_invalid`, one of the app start command and URL without the other is
+ * `project_app_settings_incomplete`, an app URL not on localhost or 127.0.0.1 is
+ * `project_app_url_invalid`, and an app start or setup command that needs a shell is
+ * `project_app_command_invalid`; each writes nothing. A missing folder or a branch without commits
+ * does not refuse a save (they are start blockers), and a running run keeps what it pinned at its
+ * start.
  */
 export async function saveProjectSettings(
   actor: Actor,
   db: ZeNormDatabase,
   input: SaveProjectSettingsInput,
 ): Promise<Result<Project, SaveProjectSettingsError>> {
-  const { projectId, baseBranch, requiredChecks, repairLimit, fixCommands } = input;
+  const {
+    projectId,
+    baseBranch,
+    requiredChecks,
+    repairLimit,
+    fixCommands,
+    appStartCommand,
+    appUrl,
+    appSetupCommands,
+  } = input;
   const row = db.select().from(projects).where(eq(projects.id, projectId)).get();
   if (row === undefined) {
     return err({
@@ -360,10 +425,22 @@ export async function saveProjectSettings(
       data: { command: fixNeedsShell },
     });
   }
+  const appRefusal = appSettingsRefusal(input);
+  if (appRefusal !== null) {
+    return err(appRefusal);
+  }
   write(db, actor, (tx) =>
     tx
       .update(projects)
-      .set({ baseBranch, requiredChecks, repairLimit, fixCommands })
+      .set({
+        baseBranch,
+        requiredChecks,
+        repairLimit,
+        fixCommands,
+        appStartCommand,
+        appUrl,
+        appSetupCommands,
+      })
       .where(eq(projects.id, projectId))
       .run(),
   );

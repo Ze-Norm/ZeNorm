@@ -27,6 +27,7 @@ import {
   closeTestContext,
   deliveredSpec,
   insertNextRevision,
+  NO_APP_SETTINGS,
   commitOnRunBranch,
   deliverableTicketSet,
   endRun,
@@ -79,6 +80,7 @@ describe("delivery.start pins the project's checks and base branch", () => {
       requiredChecks: ["pnpm test"],
       repairLimit: 3,
       fixCommands: ["pnpm format"],
+      ...NO_APP_SETTINGS,
     });
 
     const stored = await getDeliveryRun(context.db, run.id);
@@ -152,6 +154,7 @@ describe("delivery.start refuses in order, writing nothing", () => {
       requiredChecks: REQUIRED_CHECKS,
       repairLimit: 0,
       fixCommands: [],
+      ...NO_APP_SETTINGS,
     });
     const lifted = await getProject(context.db, project.id);
     expect(lifted.ok && lifted.value.startDeliveryBlockers).toEqual([]);
@@ -183,6 +186,7 @@ describe("delivery.start refuses in order, writing nothing", () => {
       requiredChecks: [],
       repairLimit: 0,
       fixCommands: [],
+      ...NO_APP_SETTINGS,
     });
     expect((await getProject(context.db, project.id)).ok).toBe(true);
     expect(await start(set.ticketSetId)).toMatchObject({

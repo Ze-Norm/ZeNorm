@@ -59,6 +59,7 @@ import type {
   ReviewSpecRequest,
   ReviewTicketSetRequest,
   RunEvent,
+  SaveProjectSettingsInput,
   SpecReviewOutcome,
   TaskOutcome,
   TicketSetContent,
@@ -756,9 +757,16 @@ export async function startRunWithRepairs(
     requiredChecks: [...checks],
     repairLimit,
     fixCommands: [],
+    ...NO_APP_SETTINGS,
   });
   return await client.delivery.start({ ticketSetId });
 }
+
+/** The app settings of a project that takes no screenshots: no start command, URL or setup. */
+export const NO_APP_SETTINGS: Pick<
+  SaveProjectSettingsInput,
+  "appStartCommand" | "appUrl" | "appSetupCommands"
+> = { appStartCommand: null, appUrl: null, appSetupCommands: [] };
 
 /** The run with this id as `map.overview` reports it in spec 1's runs. */
 export async function deliveryRun(mapId: string, runId: string): Promise<SpecRun> {

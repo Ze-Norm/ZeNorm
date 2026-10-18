@@ -461,6 +461,9 @@ async function deliverOneMap(smoke: Smoke, repo: string): Promise<void> {
       // A project needs a saved repair limit before it can start delivery; 0 is no repair.
       repairLimit: 0,
       fixCommands: [],
+      appStartCommand: null,
+      appUrl: null,
+      appSetupCommands: [],
     }),
   );
   const run = DeliveryRun.parse(await rpc(smoke, "delivery/start", { ticketSetId: ticketSet.id }));

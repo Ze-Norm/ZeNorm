@@ -16,7 +16,7 @@ import {
   listProjects,
   saveProjectSettings,
 } from "./project.ts";
-import { testContextOf } from "./test-support.ts";
+import { NO_APP_SETTINGS, testContextOf } from "./test-support.ts";
 import type { TestContext } from "./test-support.ts";
 
 let root: string;
@@ -252,6 +252,9 @@ describe("createProject", () => {
       requiredChecks: [],
       repairLimit: null,
       fixCommands: [],
+      appStartCommand: null,
+      appUrl: null,
+      appSetupCommands: [],
       folder: "present",
       startDeliveryBlockers: ["project_checks_missing", "project_repair_limit_missing"],
       activeRun: null,
@@ -411,8 +414,8 @@ describe("project reads", () => {
 describe("saveProjectSettings", () => {
   const CHECKS = ["pnpm test", "pnpm lint"];
   const FIXES = ["pnpm format", "pnpm lint --fix"];
-  /** The repair settings every save below carries unless it says otherwise. */
-  const REPAIR = { repairLimit: 2, fixCommands: FIXES };
+  /** The repair settings and no app settings: what every save below carries unless it says so. */
+  const REPAIR = { repairLimit: 2, fixCommands: FIXES, ...NO_APP_SETTINGS };
 
   function storedRow(projectId: string): unknown {
     return db.$client
@@ -465,6 +468,7 @@ describe("saveProjectSettings", () => {
       requiredChecks: CHECKS,
       repairLimit: 0,
       fixCommands: [],
+      ...NO_APP_SETTINGS,
     });
 
     expect(saved.ok && saved.value).toMatchObject({
@@ -514,6 +518,7 @@ describe("saveProjectSettings", () => {
         requiredChecks: ["pnpm typecheck"],
         repairLimit: 5,
         fixCommands: ["pnpm format", command],
+        ...NO_APP_SETTINGS,
       });
 
       expect(saved).toMatchObject({
@@ -620,4 +625,217 @@ describe("saveProjectSettings", () => {
     });
     expect(saved.ok || saved.error.code).toBe("project_not_found");
   });
+});
+
+describe("saveProjectSettings: app settings", () => {
+  const BASE = {
+    baseBranch: "main",
+    requiredChecks: ["pnpm test"],
+    repairLimit: 2,
+    fixCommands: [],
+  };
+  const APP = {
+    appStartCommand: "pnpm dev",
+    appUrl: "http://localhost:5173",
+    appSetupCommands: ["pnpm install"],
+  };
+
+  function storedApp(projectId: string): unknown {
+    return db.$client
+      .prepare("select app_start_command, app_url, app_setup_commands from projects where id = ?")
+      .get(projectId);
+  }
+
+  const UNSET = { app_start_command: null, app_url: null, app_setup_commands: "[]" };
+
+  test("a new project has no app start command, URL or setup commands", async () => {
+    const project = await added(await makeRepo("repo"), "main");
+    expect(project).toMatchObject({ appStartCommand: null, appUrl: null, appSetupCommands: [] });
+    expect(storedApp(project.id)).toEqual(UNSET);
+  });
+
+  test("a project stored before the app settings reads them unset", async () => {
+    const repo = await realpath(await makeRepo("repo"));
+    const id = "0199a1b2-c3d4-7e5f-8a9b-0c1d2e3fa036";
+    // The row as 0036 leaves a project that predates it: the app columns take their backfill.
+    db.$client
+      .prepare(
+        "insert into projects (id, folder_path, base_branch, created_at, required_checks, repair_limit, fix_commands) values (?, ?, 'main', ?, '[]', null, '[]')",
+      )
+      .run(id, repo, new Date().toISOString());
+
+    const read = await getProject(db, id);
+
+    expect(read.ok && read.value).toMatchObject({
+      appStartCommand: null,
+      appUrl: null,
+      appSetupCommands: [],
+    });
+  });
+
+  test("stores the start command, URL and setup commands with the other settings in one save", async () => {
+    const project = await added(await makeRepo("repo"), "main");
+
+    const saved = await saveProjectSettings(context.user, db, {
+      projectId: project.id,
+      ...BASE,
+      ...APP,
+    });
+
+    expect(saved.ok && saved.value).toMatchObject({ ...BASE, ...APP });
+    expect(storedApp(project.id)).toEqual({
+      app_start_command: "pnpm dev",
+      app_url: "http://localhost:5173",
+      app_setup_commands: '["pnpm install"]',
+    });
+    expect(await getProject(db, project.id)).toEqual(saved);
+  });
+
+  test.each(["http://127.0.0.1:3000/", "https://localhost/app", "http://LOCALHOST:8080"])(
+    "the local URL %j saves",
+    async (appUrl) => {
+      const project = await added(await makeRepo("repo"), "main");
+      const saved = await saveProjectSettings(context.user, db, {
+        projectId: project.id,
+        ...BASE,
+        ...APP,
+        appUrl,
+      });
+      expect(saved.ok && saved.value.appUrl).toBe(appUrl);
+    },
+  );
+
+  test("10 unique setup commands save, and an empty list saves", async () => {
+    const project = await added(await makeRepo("repo"), "main");
+    const ten = Array.from({ length: 10 }, (_, index) => `setup ${String(index)}`);
+
+    const full = await saveProjectSettings(context.user, db, {
+      projectId: project.id,
+      ...BASE,
+      ...APP,
+      appSetupCommands: ten,
+    });
+    expect(full.ok && full.value.appSetupCommands).toEqual(ten);
+
+    const empty = await saveProjectSettings(context.user, db, {
+      projectId: project.id,
+      ...BASE,
+      ...APP,
+      appSetupCommands: [],
+    });
+    expect(empty.ok && empty.value.appSetupCommands).toEqual([]);
+    expect(storedApp(project.id)).toMatchObject({ app_setup_commands: "[]" });
+  });
+
+  test("saving both unset again turns the app settings off", async () => {
+    const project = await added(await makeRepo("repo"), "main");
+    await saveProjectSettings(context.user, db, { projectId: project.id, ...BASE, ...APP });
+
+    const saved = await saveProjectSettings(context.user, db, {
+      projectId: project.id,
+      ...BASE,
+      ...NO_APP_SETTINGS,
+    });
+
+    expect(saved.ok && saved.value).toMatchObject({
+      appStartCommand: null,
+      appUrl: null,
+      appSetupCommands: [],
+    });
+    expect(storedApp(project.id)).toEqual(UNSET);
+  });
+
+  test.each([
+    ["a start command without a URL", { appUrl: null }, "appUrl"],
+    ["a URL without a start command", { appStartCommand: null }, "appStartCommand"],
+  ] as const)(
+    "%s is project_app_settings_incomplete, and nothing is written",
+    async (_, change, missing) => {
+      const project = await added(await makeRepo("repo"), "main");
+      const before = db.$client.prepare("select * from projects where id = ?").get(project.id);
+
+      const saved = await saveProjectSettings(context.user, db, {
+        projectId: project.id,
+        ...BASE,
+        ...APP,
+        ...change,
+      });
+
+      expect(saved).toMatchObject({
+        ok: false,
+        error: { code: "project_app_settings_incomplete", data: { missing } },
+      });
+      expect(db.$client.prepare("select * from projects where id = ?").get(project.id)).toEqual(
+        before,
+      );
+    },
+  );
+
+  test.each([
+    "http://example.com:3000",
+    "http://192.168.1.10:3000",
+    "http://localhost.example.com",
+    "http://[::1]:3000",
+    "ftp://localhost/",
+    "localhost:3000",
+    "not a url",
+  ])("the URL %j is project_app_url_invalid, and nothing is written", async (appUrl) => {
+    const project = await added(await makeRepo("repo"), "main");
+    const before = storedApp(project.id);
+
+    const saved = await saveProjectSettings(context.user, db, {
+      projectId: project.id,
+      ...BASE,
+      ...APP,
+      appUrl,
+    });
+
+    expect(saved).toMatchObject({
+      ok: false,
+      error: { code: "project_app_url_invalid", data: { url: appUrl } },
+    });
+    expect(storedApp(project.id)).toEqual(before);
+  });
+
+  test.each(["pnpm dev && open", "PORT=3000 pnpm dev | tee log", "node -e 'serve()'"])(
+    "the start command %j needs a shell: project_app_command_invalid naming it, and nothing is written",
+    async (command) => {
+      const project = await added(await makeRepo("repo"), "main");
+      const before = storedApp(project.id);
+
+      const saved = await saveProjectSettings(context.user, db, {
+        projectId: project.id,
+        ...BASE,
+        ...APP,
+        appStartCommand: command,
+      });
+
+      expect(saved).toMatchObject({
+        ok: false,
+        error: { code: "project_app_command_invalid", data: { command } },
+      });
+      expect(storedApp(project.id)).toEqual(before);
+    },
+  );
+
+  test.each(["pnpm install && pnpm build", "cp .env.example .env > log", "echo $HOME"])(
+    "the setup command %j needs a shell: project_app_command_invalid naming it, and nothing is written",
+    async (command) => {
+      const project = await added(await makeRepo("repo"), "main");
+      const before = storedApp(project.id);
+
+      const saved = await saveProjectSettings(context.user, db, {
+        projectId: project.id,
+        ...BASE,
+        ...APP,
+        appSetupCommands: ["pnpm install", command],
+      });
+
+      expect(saved).toMatchObject({
+        ok: false,
+        error: { code: "project_app_command_invalid", data: { command } },
+      });
+      expect(storedApp(project.id)).toEqual(before);
+    },
+  );
 });

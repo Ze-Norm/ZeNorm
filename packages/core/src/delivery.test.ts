@@ -38,7 +38,14 @@ import type { DeliveryEnd, StoredDeliveryRun } from "./delivery.ts";
 import { approveTicketSet, rejectTicketSet } from "./planning.ts";
 import { saveProjectSettings } from "./project.ts";
 import { recordTicketMerged } from "./run-progress.ts";
-import { addProject, openTestContext, reviewedTicketSet, runFolder, SPEC } from "./test-support.ts";
+import {
+  addProject,
+  NO_APP_SETTINGS,
+  openTestContext,
+  reviewedTicketSet,
+  runFolder,
+  SPEC,
+} from "./test-support.ts";
 import type { TestContext } from "./test-support.ts";
 
 let root: string;
@@ -90,6 +97,7 @@ async function seed(options: { approve: boolean }): Promise<Seeded> {
     requiredChecks: CHECKS,
     repairLimit: 0,
     fixCommands: [],
+    ...NO_APP_SETTINGS,
   });
   if (!project.ok) throw new Error(project.error.code);
   const { mapId, specificationId, ticketSetId } = await reviewedTicketSet(context, project.value);
@@ -443,6 +451,7 @@ describe("repair rules pinned on a run", () => {
       requiredChecks: CHECKS,
       repairLimit,
       fixCommands,
+      ...NO_APP_SETTINGS,
     });
     if (!saved.ok) throw new Error(saved.error.code);
   }

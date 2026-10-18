@@ -15,11 +15,14 @@ import {
   approvedMap,
   checkFolder,
   expectQuietRow,
+  idFrom,
   inboxGroup,
   mapRowLink,
   nextCard,
   openAddProject,
+  PROJECT_URL,
   projectBlockers,
+  projectDetail,
   startDeliveryForm,
 } from "./flows.ts";
 import { expect, test } from "./worker-server.ts";
@@ -43,6 +46,48 @@ test("a project is still listed in the switcher after a reload, under its derive
   await expect(
     page.getByRole("heading", { name: "projects-repo", level: 1, exact: true }),
   ).toBeVisible();
+});
+
+test("Project settings save an app start command, its URL and a setup command, read back after a reload", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Project switcher" }).click();
+  await page
+    .getByRole("menu")
+    .getByRole("menuitem")
+    .filter({ hasText: projectsRepo() })
+    .click();
+  await expect(page).toHaveURL(PROJECT_URL);
+  const projectId = idFrom(PROJECT_URL, page.url());
+  await page.getByRole("link", { name: "Settings", exact: true }).click();
+  await expect(page).toHaveURL(`/projects/${projectId}/settings`);
+
+  const start = page.getByLabel("App start command");
+  const url = page.getByLabel("App URL");
+  await expect(start).toHaveValue("");
+  await expect(url).toHaveValue("");
+  await expect(page.getByText("None. The app needs no setup.")).toBeVisible();
+
+  await page.getByLabel("Repair limit").fill("0");
+  await start.fill("pnpm dev");
+  await url.fill("http://localhost:5173");
+  await page.getByLabel("App setup commands").fill("pnpm install");
+  await page.getByRole("button", { name: "Add setup command" }).click();
+  const setup = page.getByRole("button", { name: "Remove setup command pnpm install" });
+  await expect(setup).toBeVisible();
+  await page.getByRole("button", { name: "Save settings" }).click();
+  await expect(page.getByText("saved", { exact: true })).toBeVisible();
+
+  await page.reload();
+  await expect(start).toHaveValue("pnpm dev");
+  await expect(url).toHaveValue("http://localhost:5173");
+  await expect(setup).toBeVisible();
+  expect(await projectDetail(page, projectId)).toMatchObject({
+    appStartCommand: "pnpm dev",
+    appUrl: "http://localhost:5173",
+    appSetupCommands: ["pnpm install"],
+  });
 });
 
 test("refuses a folder inside a project by code, and accepts a repository nested in one", async ({
