@@ -906,6 +906,9 @@ export function createDeliveryRunner({
     };
     const captured = await shoot();
     if (signal.aborted) return { kind: "off" };
+    if (!captured.ok && captured.error.code === "capture_browser_missing") {
+      return failed(captured.error);
+    }
     if (!captured.ok) {
       return failed({
         code: "capture_session_failed",

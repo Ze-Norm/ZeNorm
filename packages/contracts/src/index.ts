@@ -430,6 +430,7 @@ export {
 export type { DeliveryRunState } from "./delivery.ts";
 export { ImplementEvent } from "./delivery-agent.ts";
 export type {
+  CaptureBrowserMissingError,
   CaptureScreens,
   DeliveryExecutor,
   ImplementTicketSet,

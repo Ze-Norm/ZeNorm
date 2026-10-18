@@ -16,7 +16,7 @@ All packages are `@zenorm/<dir>`, ESM, exporting TypeScript source, except the p
 - `apps/zenorm` → contracts, agent, db, server, web (only `webDistDir`). The app entry and its Playwright e2e.
 - `examples/plugin-example` → plugin-sdk, contracts. Exercises every extension point; `examples/bad-plugins/` has one bad plugin per startup error code.
 - `apps/zenorm-example` → contracts, server, web, plugin-sdk, the example plugin, apps/zenorm.
-- `apps/cli` → contracts, agent, apps/zenorm, web (only `webDistDir`, at build time). The published `zenorm` command. `COMMANDS` in `src/commands.ts` is the one command table; read `buildProgram`'s comment in `src/cli.ts` before touching commander. better-sqlite3 is its only `dependencies` entry; everything else it imports, workspace or not, is a devDependency the esbuild bundle inlines.
+- `apps/cli` → contracts, agent, apps/zenorm, web (only `webDistDir`, at build time). The published `zenorm` command. `COMMANDS` in `src/commands.ts` is the one command table; read `buildProgram`'s comment in `src/cli.ts` before touching commander. better-sqlite3 and playwright-core (the screenshot capture's Playwright MCP server) are its only `dependencies` entries; everything else it imports, workspace or not, is a devDependency the esbuild bundle inlines.
 
 `skills/` and `CONTEXT.md` are outside the workspace and every check.
 

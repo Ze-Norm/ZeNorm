@@ -59,13 +59,25 @@ zenorm run
 
 Then open the host and port from your config (`http://127.0.0.1:4310` with the one `zenorm init` writes). Add a project by pointing ZeNorm at a git repository on your machine, then start a map for the change you have in mind.
 
-If ZeNorm won't start, run `zenorm doctor`. It checks Node, the platform, the config, the data folder, Claude Code and its sign-in, git, the web build and the database, changes nothing, and lists every failing check with its code.
+If ZeNorm won't start, run `zenorm doctor`. It checks Node, the platform, the config, the data folder, Claude Code and its sign-in, git, the web build, the database and the screenshot browser, changes nothing, and lists every failing check with its code. A missing screenshot browser fails doctor only when some project has screenshots on; otherwise doctor notes it (`note  capture_browser: capture_browser_missing`) and still exits 0.
 
 ## Before your first delivery
 
 Before a project's first delivery, save a **Repair limit** in its Project settings: how many times a run whose required checks fail goes back to fix them, from 0 (no repair) to 10. Delivery can't start until one is saved. **Fix commands**, such as `pnpm format`, are optional.
 
 When a delivery run passes on a project whose origin is on github.com, it ends by opening a pull request. That needs [gh](https://cli.github.com) installed and signed in.
+
+### Screenshots in pull requests
+
+Save an **App start command** and its local **App URL** (on `localhost` or `127.0.0.1`) in a project's Project settings, with any **App setup commands** the app needs first, and a passing run whose change is visible starts the app from its worktree, screenshots the changed screens and shows them in its pull request.
+
+The `zenorm` command ships the Playwright MCP server that takes the screenshots (`playwright-core` 1.63.0), but never downloads the browser it drives. Install that Chromium build once, on the machine that runs ZeNorm:
+
+```sh
+npx playwright-core@1.63.0 install --no-shell chromium
+```
+
+On Linux, Chromium also needs its system libraries; `sudo npx playwright-core@1.63.0 install-deps chromium` installs them. The browser goes where Playwright keeps its browsers (`~/Library/Caches/ms-playwright` on macOS, `~/.cache/ms-playwright` on Linux, or `PLAYWRIGHT_BROWSERS_PATH` when set in the environment you run `zenorm` from). Without it, a run's capture fails with `capture_browser_missing`: the pull request still opens, saying the screenshots are missing, and `zenorm doctor` reports it. After upgrading ZeNorm, run `zenorm doctor`: a new version may need a new Chromium build, and doctor names the command that installs it.
 
 ## Plugins
 

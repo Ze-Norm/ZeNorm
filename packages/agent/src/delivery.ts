@@ -55,7 +55,11 @@ import {
   buildScreenPickerSystemPrompt,
 } from "./delivery-prompt.ts";
 import { createImplementStreamParser } from "./delivery-stream.ts";
-import { PLAYWRIGHT_MCP_SERVER_NAME, playwrightMcpLaunch } from "./playwright-mcp.ts";
+import {
+  checkCaptureBrowser,
+  type McpServerLaunch,
+  PLAYWRIGHT_MCP_SERVER_NAME,
+} from "./playwright-mcp.ts";
 import { checkDeliverySkills, checkSkill, deliverySkills, type DeliverySkills } from "./skills.ts";
 
 /** A delivery session's config: the agent's, and the skills folder the entry passes in. */
@@ -256,12 +260,11 @@ export function appOrigin(appUrl: string): string {
 }
 
 /**
- * The capture session's MCP config: the pinned Playwright MCP server alone, headless Chromium in an
- * isolated, in-memory profile, its requests limited to the app's origin and its files written to
- * the run's screenshots folder.
+ * The capture session's MCP config: the pinned Playwright MCP server alone (started by `launch`),
+ * headless Chromium in an isolated, in-memory profile, its requests limited to the app's origin and
+ * its files written to the run's screenshots folder.
  */
-export function captureMcpConfig(request: CaptureScreensRequest): string {
-  const launch = playwrightMcpLaunch();
+export function captureMcpConfig(request: CaptureScreensRequest, launch: McpServerLaunch): string {
   return JSON.stringify({
     mcpServers: {
       [PLAYWRIGHT_MCP_SERVER_NAME]: {
@@ -581,8 +584,10 @@ export function claudeCodePickScreens(config: DeliveryAgentConfig): PickScreens 
  * reviewer's model, effort, turn and timeout settings: no config key of its own. Its one MCP server
  * is the pinned Playwright MCP server, driving headless Chromium that may request only the app's
  * origin; it screenshots the picked screens into the request's screenshots folder and runs no
- * command. A screenshot its output names that is not a file in that folder is
- * `agent_output_invalid`.
+ * command. Before any session starts, the server and the Chromium build it drives must be
+ * installed where the server, run in the worktree with this process's environment, looks for them
+ * (`checkCaptureBrowser`): `capture_browser_missing` otherwise. A screenshot its output names that
+ * is not a file in that folder is `agent_output_invalid`.
  */
 export function claudeCodeCaptureScreens(config: DeliveryAgentConfig): CaptureScreens {
   const call: CliCall = {
@@ -594,10 +599,12 @@ export function claudeCodeCaptureScreens(config: DeliveryAgentConfig): CaptureSc
     kind: "reviewer",
   };
   return async (request, signal) => {
+    const browser = checkCaptureBrowser(process.env, request.worktreePath);
+    if (!browser.ok) return browser;
     const systemPromptFile = join(request.runDir, CAPTURE_PROMPT_FILE);
     writeFileSync(systemPromptFile, buildCaptureSystemPrompt(request));
     const mcpConfigFile = join(request.runDir, CAPTURE_MCP_CONFIG_FILE);
-    writeFileSync(mcpConfigFile, captureMcpConfig(request));
+    writeFileSync(mcpConfigFile, captureMcpConfig(request, browser.value.server.launch));
     const stdoutFile = join(request.runDir, CAPTURE_OUTPUT_FILE);
     writeFileSync(stdoutFile, "");
     const run = await runSession(

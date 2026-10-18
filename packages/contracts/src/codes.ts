@@ -677,7 +677,9 @@ export type PublishFailureCode = z.infer<typeof PublishFailureCode>;
  * Why a passing run's screenshot capture failed: the screen picker session failed or timed out
  * (`capture_picker_failed`); a setup command failed (`capture_setup_failed`); the app URL did not
  * answer within two minutes of the start (`capture_app_not_ready`) or already answered before it
- * (`capture_app_url_in_use`); the browser capture session failed (`capture_session_failed`); the
+ * (`capture_app_url_in_use`); the Chromium build the pinned Playwright MCP server expects is not
+ * installed, or the server itself is missing (`capture_browser_missing`, also a `StartupCode`
+ * `zenorm doctor` reports); the browser capture session failed (`capture_session_failed`); the
  * capture returned images of more screens than a pull request shows (`capture_too_many_screens`);
  * or pushing the pr-assets branch failed (`capture_push_failed`). A capture failure is an activity
  * line with its code, and the run still opens its pull request and ends passed, so these are never
@@ -688,6 +690,7 @@ export const CaptureFailureCode = z.enum([
   "capture_setup_failed",
   "capture_app_not_ready",
   "capture_app_url_in_use",
+  "capture_browser_missing",
   "capture_session_failed",
   "capture_too_many_screens",
   "capture_push_failed",
@@ -854,7 +857,9 @@ export type PluginStartupCode = z.infer<typeof PluginStartupCode>;
  * `server_listen_failed` when the server cannot bind its host and port (before any run is marked
  * interrupted or relaunched). `zenorm doctor` reports these codes per check, except the three only
  * `zenorm run` can meet (`data_dir_in_use`, `server_port_in_use`, `server_listen_failed`), and
- * `git_missing` when git cannot run.
+ * `git_missing` when git cannot run, and `capture_browser_missing` (a capture failure code too)
+ * when the Chromium build the pinned Playwright MCP server expects is not installed, which fails
+ * doctor only when some project has screenshot capture on.
  */
 export const StartupCode = z.enum([
   "platform_unsupported",
@@ -879,6 +884,7 @@ export const StartupCode = z.enum([
   "change_feed_missing",
   "server_port_in_use",
   "server_listen_failed",
+  "capture_browser_missing",
   ...PluginStartupCode.options,
 ]);
 export type StartupCode = z.infer<typeof StartupCode>;

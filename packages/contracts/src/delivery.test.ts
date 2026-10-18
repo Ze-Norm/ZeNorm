@@ -589,6 +589,7 @@ describe("delivery codes", () => {
       "capture_setup_failed",
       "capture_app_not_ready",
       "capture_app_url_in_use",
+      "capture_browser_missing",
       "capture_session_failed",
       "capture_too_many_screens",
       "capture_push_failed",

@@ -11,8 +11,9 @@ import {
 } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
-import { delimiter, join } from "node:path";
+import { delimiter, dirname, join } from "node:path";
 
+import { locateCaptureBrowser } from "@zenorm/agent";
 import { SONNET_LIMITS } from "@zenorm/contracts";
 import type { StartupError } from "@zenorm/contracts";
 import { SOURCE_ASSETS } from "@zenorm/zenorm/source-assets";
@@ -72,9 +73,68 @@ function zenorm(argv: readonly string[], env: Env): Promise<CommandEnd> {
   });
 }
 
-/** `HOME` at the test's folder and the process's `PATH`, where git is. */
+/**
+ * `HOME` at the test's folder, the process's `PATH`, where git is, and Playwright's browsers in the
+ * test's folder.
+ */
 function machineEnv(): Env {
-  return { HOME: home, PATH: process.env.PATH };
+  return { HOME: home, PATH: process.env.PATH, PLAYWRIGHT_BROWSERS_PATH: browsersDir() };
+}
+
+/** The test's Playwright browsers folder. */
+function browsersDir(): string {
+  return join(home, "browsers");
+}
+
+/** Where the pinned Playwright MCP server looks for its Chromium build under `machineEnv`. */
+function browserExecutable(): string {
+  const located = locateCaptureBrowser(machineEnv(), home);
+  if (!located.ok) throw new Error(located.error.message);
+  return located.value.executablePath;
+}
+
+/** A stand-in Chromium build where the server looks for it. */
+async function installBrowser(): Promise<void> {
+  const executable = browserExecutable();
+  await mkdir(dirname(executable), { recursive: true });
+  await writeFile(executable, "#!/bin/sh\n", { mode: 0o755 });
+}
+
+/**
+ * `zenorm run`'s startup on the config, then a project saved with an app start command and URL
+ * (screenshot capture on); then closed.
+ */
+async function migrateWithCaptureOn(): Promise<void> {
+  const started = await startup({
+    args: ["--config", configFile],
+    env: {},
+    standardConfigPath: null,
+    webDistDir,
+    skillsDir: SOURCE_ASSETS.skillsDir,
+    migrationsFolder: SOURCE_ASSETS.migrationsFolder,
+    log: () => undefined,
+  });
+  if (!started.ok) throw new Error(`${started.error.code}: ${started.error.message}`);
+  const client = started.value.db.$client;
+  try {
+    // The feed's trigger refuses a write outside core's `write`; it lives on this connection only.
+    client.exec("DROP TRIGGER temp.change_feed_projects_insert");
+    client
+      .prepare(
+        "insert into projects (id, folder_path, base_branch, created_at, required_checks, app_start_command, app_url) values (?, ?, ?, ?, ?, ?, ?)",
+      )
+      .run(
+        "0199a1b2-c3d4-7e5f-8a9b-0c1d2e3fd001",
+        join(home, "repo"),
+        "main",
+        "2026-10-18T12:00:00.000Z",
+        "[]",
+        "pnpm dev",
+        "http://localhost:5173",
+      );
+  } finally {
+    client.close();
+  }
 }
 
 /** A config as `zenorm init` writes it, with the stand-in claude and `dataDir`. */
@@ -162,6 +222,7 @@ beforeEach(async () => {
   claudePath = join(home, "claude");
   await writeFile(claudePath, standInScript(""));
   await chmod(claudePath, 0o755);
+  await installBrowser();
 });
 
 afterEach(async () => {
@@ -278,6 +339,68 @@ describe("zenorm doctor", () => {
     expect(await zenorm(["doctor", "--config", configFile], env)).toBe(1);
     expect(failures()).toEqual([{ name: "config", code: "config_file_invalid" }]);
     expect(kinds()).toMatchObject({ claude: "passed", sign_in: "skipped", database: "skipped" });
+  });
+
+  /** The screenshot browser check's outcome kind and code, null for a check with no code. */
+  function captureBrowser(): { kind: string; code: string | null } {
+    const check = checks.find(({ name }) => name === "capture_browser");
+    if (check === undefined) throw new Error("doctor reported no capture_browser check");
+    const { outcome } = check;
+    if (outcome.kind === "failed" || outcome.kind === "reported") {
+      return { kind: outcome.kind, code: outcome.error.code };
+    }
+    return { kind: outcome.kind, code: null };
+  }
+
+  test("a missing browser with a project capturing screens fails capture_browser_missing, exit 1", async () => {
+    await writeConfig(dataDir);
+    await migrateWithCaptureOn();
+    await rm(browsersDir(), { recursive: true, force: true });
+    const databaseBefore = await readFile(join(dataDir, DATABASE_FILE));
+
+    expect(await zenorm(["doctor", "--config", configFile], machineEnv())).toBe(1);
+    expect(failures()).toEqual([{ name: "capture_browser", code: "capture_browser_missing" }]);
+    expect(await readFile(join(dataDir, DATABASE_FILE))).toEqual(databaseBefore);
+    expect(await readdir(home)).not.toContain("browsers");
+  });
+
+  test("a missing browser with no project capturing screens is reported, exit 0", async () => {
+    await writeConfig(dataDir);
+    await migrate(SOURCE_ASSETS.migrationsFolder);
+    await rm(browsersDir(), { recursive: true, force: true });
+
+    expect(await zenorm(["doctor", "--config", configFile], machineEnv())).toBe(0);
+    expect(failures()).toEqual([]);
+    expect(captureBrowser()).toEqual({ kind: "reported", code: "capture_browser_missing" });
+  });
+
+  test("a missing browser with no database yet is reported, exit 0", async () => {
+    await writeConfig(dataDir);
+    await rm(browsersDir(), { recursive: true, force: true });
+
+    expect(await zenorm(["doctor", "--config", configFile], machineEnv())).toBe(0);
+    expect(captureBrowser()).toEqual({ kind: "reported", code: "capture_browser_missing" });
+    expect(await readdir(dataDir)).toEqual([]);
+  });
+
+  test("a present browser passes with a project capturing screens", async () => {
+    await writeConfig(dataDir);
+    await migrateWithCaptureOn();
+
+    expect(await zenorm(["doctor", "--config", configFile], machineEnv())).toBe(0);
+    expect(captureBrowser()).toEqual({ kind: "passed", code: null });
+    const check = checks.find(({ name }) => name === "capture_browser");
+    expect(check?.outcome).toEqual({ kind: "passed", detail: browserExecutable() });
+  });
+
+  test("a failed database check skips the browser check", async () => {
+    await writeConfig(dataDir);
+    await migrate(await newerMigrations());
+    await rm(browsersDir(), { recursive: true, force: true });
+
+    expect(await zenorm(["doctor", "--config", configFile], machineEnv())).toBe(1);
+    expect(failures()).toEqual([{ name: "database", code: "database_newer_than_build" }]);
+    expect(captureBrowser()).toEqual({ kind: "skipped", code: null });
   });
 
   test("an unknown flag is arguments_invalid, with no check run", async () => {

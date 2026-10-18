@@ -2,10 +2,11 @@ import { execFileSync, spawn } from "node:child_process";
 import type { ChildProcess } from "node:child_process";
 import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { delimiter, join } from "node:path";
+import { delimiter, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { test as base } from "@playwright/test";
+import { locateCaptureBrowser } from "@zenorm/agent";
 
 import {
   CAPTURE_FLOWS,
@@ -57,6 +58,11 @@ const HOST = "127.0.0.1";
 /** How long a stopped server has to exit on SIGTERM before it is killed. */
 const STOP_WAIT_MS = 15_000;
 const appDir = fileURLToPath(new URL("..", import.meta.url));
+
+/** The worker's Playwright browsers folder, holding the stand-in screenshot browser. */
+function browsersDir(root: string): string {
+  return join(root, "browsers");
+}
 
 function git(args: readonly string[]): void {
   execFileSync("git", ["-c", "user.name=e2e", "-c", "user.email=e2e@example.invalid", ...args], {
@@ -113,6 +119,12 @@ function createWorkerRoot(port: number): string {
   mkdirSync(ghBinDir());
   mkdirSync(ghStateDir());
   writeFileSync(join(ghBinDir(), "gh"), fakeGhScript(ghStateDir()), { mode: 0o755 });
+  // A stand-in for the screenshot browser where the capture's browser check looks for it: the fake
+  // claude's capture session never starts the browser.
+  const browser = locateCaptureBrowser({ PLAYWRIGHT_BROWSERS_PATH: browsersDir(root) }, root);
+  if (!browser.ok) throw new Error(browser.error.message);
+  mkdirSync(dirname(browser.value.executablePath), { recursive: true });
+  writeFileSync(browser.value.executablePath, "#!/bin/sh\n", { mode: 0o755 });
   const dataDir = join(root, "data");
   mkdirSync(dataDir);
   const run: unknown = JSON.parse(readFileSync(join(e2eRunRoot(), "config.json"), "utf8"));
@@ -144,6 +156,7 @@ async function startServer(root: string, url: string): Promise<Server> {
       ...process.env,
       PATH: `${ghBinDir()}${delimiter}${path}`,
       ZENORM_CONFIG: join(root, "config.json"),
+      PLAYWRIGHT_BROWSERS_PATH: browsersDir(root),
     },
     stdio: ["ignore", "pipe", "pipe"],
   });

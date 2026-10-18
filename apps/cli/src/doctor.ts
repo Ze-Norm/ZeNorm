@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { err, ok } from "@zenorm/contracts";
 import type { InstanceConfig, Result, StartupError } from "@zenorm/contracts";
 import {
+  checkCaptureBrowser,
   checkClaudePath,
   checkDatabase,
   checkDataDir,
@@ -30,13 +31,18 @@ export const DOCTOR_CHECKS = [
   "git",
   "web_build",
   "database",
+  "capture_browser",
 ] as const;
 export type DoctorCheckName = (typeof DOCTOR_CHECKS)[number];
 
-/** A check passed, failed with its code, or could not run because a check it needs failed. */
+/**
+ * A check passed, failed with its code, found a problem it only reports (with its code; doctor
+ * still exits 0), or could not run because a check it needs failed.
+ */
 export type DoctorOutcome =
   | { readonly kind: "passed"; readonly detail: string }
   | { readonly kind: "failed"; readonly error: StartupError }
+  | { readonly kind: "reported"; readonly error: StartupError }
   | { readonly kind: "skipped"; readonly reason: string };
 
 export interface DoctorCheck {
@@ -100,10 +106,25 @@ async function readConfig(context: CommandContext): Promise<Result<LoadedConfig,
   return ok({ file: resolve(path.value), config: config.value });
 }
 
-/** The checks of what the config names; the database's comes last in the report. */
+/** The checks of what the config names; the database's and the browser's come last. */
 interface ConfigChecks {
   readonly before: readonly DoctorCheck[];
   readonly database: DoctorCheck;
+  readonly captureBrowser: DoctorCheck;
+}
+
+/**
+ * The screenshot browser's check, once the database check passed: the Chromium build found
+ * passes; missing, it fails doctor only when some project has screenshot capture on, and is
+ * reported otherwise.
+ */
+function captureBrowserCheck(context: CommandContext, dataDir: string): DoctorCheck {
+  const name = "capture_browser";
+  const checked = checkCaptureBrowser(dataDir, context.assets.migrationsFolder, context.env);
+  if (!checked.ok) return { name, outcome: { kind: "failed", error: checked.error } };
+  const { captureOn, browser } = checked.value;
+  if (browser.ok) return passed(name, browser.value.executablePath);
+  return { name, outcome: { kind: captureOn ? "failed" : "reported", error: browser.error } };
 }
 
 /**
@@ -121,6 +142,7 @@ async function withoutConfig(env: Env): Promise<ConfigChecks> {
       skipped("sign_in", "needs a valid config"),
     ],
     database: skipped("database", "needs a valid config"),
+    captureBrowser: skipped("capture_browser", "needs the database check"),
   };
 }
 
@@ -151,6 +173,10 @@ async function configChecks(
     const state = checkDatabase(dataDir, context.assets.migrationsFolder);
     database = outcome("database", state, (found) => DATABASE_DETAIL[found]);
   }
+  const captureBrowser =
+    database.outcome.kind === "passed"
+      ? captureBrowserCheck(context, dataDir)
+      : skipped("capture_browser", "needs the database check");
   return {
     before: [
       outcome("data_dir", dataDirChecked, () => dataDir),
@@ -158,6 +184,7 @@ async function configChecks(
       signIn,
     ],
     database,
+    captureBrowser,
   };
 }
 
@@ -181,21 +208,24 @@ export async function runDoctor(context: CommandContext): Promise<readonly Docto
     outcome("git", git, (version) => version),
     outcome("web_build", web, () => context.assets.webDistDir),
     ofConfig.database,
+    ofConfig.captureBrowser,
   ];
 }
 
-/** Whether any check failed; doctor then exits 1. */
+/** Whether any check failed; doctor then exits 1. A reported check is not a failure. */
 export function anyFailed(checks: readonly DoctorCheck[]): boolean {
   return checks.some((check) => check.outcome.kind === "failed");
 }
 
-/** One line per check: `ok`, `FAIL` with its code, or `skip`. */
+/** One line per check: `ok`, `FAIL` with its code, `note` with its code, or `skip`. */
 export function formatDoctorCheck({ name, outcome: result }: DoctorCheck): string {
   switch (result.kind) {
     case "passed":
       return `ok    ${name}: ${result.detail}`;
     case "failed":
       return `FAIL  ${name}: ${result.error.code}: ${result.error.message}`;
+    case "reported":
+      return `note  ${name}: ${result.error.code}: ${result.error.message}`;
     case "skipped":
       return `skip  ${name}: ${result.reason}`;
   }

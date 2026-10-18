@@ -41,7 +41,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "better-sqlite3": "catalog:"
+    "better-sqlite3": "catalog:",
+    "playwright-core": "catalog:"
   },
   "devDependencies": {
     "@clack/prompts": "catalog:",

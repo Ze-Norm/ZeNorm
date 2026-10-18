@@ -11,6 +11,7 @@ import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import { z } from "zod";
 
 import {
+  anyProjectCapturesScreens,
   checkDatabaseFile,
   claimInstanceLock,
   INSTANCE_LOCK_FILE,
@@ -5049,6 +5050,51 @@ describe("migration 0036", () => {
         app_setup_commands: "[]",
       },
     ]);
+  });
+});
+
+describe("anyProjectCapturesScreens", () => {
+  const at = "2026-10-18T12:00:00.000Z";
+  const path = (): string => join(dir, "zenorm.sqlite");
+
+  function insertProject(id: string, appStartCommand: string | null, appUrl: string | null): void {
+    db.$client
+      .prepare(
+        "insert into projects (id, folder_path, base_branch, created_at, required_checks, app_start_command, app_url) values (?, ?, ?, ?, ?, ?, ?)",
+      )
+      .run(id, `/repo-${id}`, "main", at, "[]", appStartCommand, appUrl);
+  }
+
+  test("an absent file has no project capturing screens, and stays absent", () => {
+    const absent = join(dir, "none.sqlite");
+    expect(anyProjectCapturesScreens(absent)).toEqual(ok(false));
+    expect(existsSync(absent)).toBe(false);
+  });
+
+  test("a database not yet migrated to the app settings has none", async () => {
+    await migrateUpTo("0035_agent_decided");
+    expect(anyProjectCapturesScreens(path())).toEqual(ok(false));
+  });
+
+  test("only a project with both a start command and a URL saved captures, and the file is unchanged", async () => {
+    expect(migrateDatabase(db, MIGRATIONS_FOLDER).ok).toBe(true);
+    insertProject("0199a1b2-c3d4-7e5f-8a9b-0c1d2e3fc001", null, null);
+    expect(anyProjectCapturesScreens(path())).toEqual(ok(false));
+    insertProject("0199a1b2-c3d4-7e5f-8a9b-0c1d2e3fc002", "pnpm dev", null);
+    expect(anyProjectCapturesScreens(path())).toEqual(ok(false));
+
+    insertProject("0199a1b2-c3d4-7e5f-8a9b-0c1d2e3fc003", "pnpm dev", "http://localhost:5173");
+    db.$client.pragma("wal_checkpoint(TRUNCATE)");
+    const before = await readFile(path());
+    expect(anyProjectCapturesScreens(path())).toEqual(ok(true));
+    expect(await readFile(path())).toEqual(before);
+  });
+
+  test("a file that is not SQLite is database_open_failed", async () => {
+    const notSqlite = join(dir, "not-sqlite.sqlite");
+    await writeFile(notSqlite, "this is not a SQLite database file. ".repeat(20));
+    const read = anyProjectCapturesScreens(notSqlite);
+    expect(!read.ok && read.error.code).toBe("database_open_failed");
   });
 });
 
