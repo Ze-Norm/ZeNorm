@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { parseArgs } from "node:util";
 
 import {
+  claudeCodeCaptureScreens,
   claudeCodeImplementTicketSet,
   claudeCodePickScreens,
   claudeCodePlanningAgent,
@@ -25,7 +26,7 @@ import {
   users,
 } from "@zenorm/db";
 import type { DatabaseFileState, ZeNormDatabase } from "@zenorm/db";
-import { checkPlugins, createApp, createChangeBus } from "@zenorm/server";
+import { APP_READY_TIMEOUT_MS, checkPlugins, createApp, createChangeBus } from "@zenorm/server";
 import type { Log, ServerPlugin, ZeNormApp } from "@zenorm/server";
 
 import { sweepRunFolders, sweepSessions } from "./sweeps.ts";
@@ -502,6 +503,7 @@ export function localExecutor(
     reviewDelivery: claudeCodeReviewDelivery(deliveryAgent),
     writePullRequest: claudeCodeWritePullRequest(deliveryAgent),
     pickScreens: claudeCodePickScreens(deliveryAgent),
+    captureScreens: claudeCodeCaptureScreens(deliveryAgent),
   };
 }
 
@@ -561,6 +563,8 @@ export async function startZeNorm(
     delivery: {
       runsDir: join(config.dataDir, RUNS_DIR),
       checkTimeoutMinutes: config.delivery.checkTimeoutMinutes,
+      sessionsDir,
+      appReadyTimeoutMs: APP_READY_TIMEOUT_MS,
     },
   });
   if (!created.ok) {

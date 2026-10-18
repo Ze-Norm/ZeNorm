@@ -9,6 +9,7 @@ import {
   rmSync,
   writeFileSync,
 } from "node:fs";
+import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -40,6 +41,7 @@ import { afterAll, beforeAll, expect, test } from "vitest";
 import { z } from "zod";
 
 import {
+  claudeCodeCaptureScreens,
   claudeCodeImplementTicketSet,
   claudeCodeReviewDelivery,
   claudeCodeWritePullRequest,
@@ -2061,6 +2063,7 @@ test(
             },
           ],
           verdict: reviewed.value,
+          capture: { kind: "off" },
           gitIdentity,
         },
         new AbortController().signal,
@@ -2077,6 +2080,71 @@ test(
       expect(gitIn(worktreePath, "rev-parse", branch)).toBe(finalCommit);
       expect(gitIn(worktreePath, "status", "--porcelain")).toBe("");
     } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  },
+);
+
+/** A one-page app the live capture serves: a settings screen with a heading and a form. */
+const LIVE_CAPTURE_PAGE = [
+  "<!doctype html>",
+  "<html><head><title>Settings</title></head>",
+  "<body><h1>Settings</h1><form><label>App URL <input value='http://localhost:5173'></label></form></body>",
+  "</html>",
+].join("");
+
+test(
+  "live CaptureScreens: under the named allow list the browser tools run, headless Chromium starts and the screenshots land in the run's screenshots folder",
+  { timeout: 900_000 },
+  async () => {
+    const model = requiredEnv("ZENORM_LIVE_DELIVERY_MODEL");
+    const effort = AgentEffort.parse(requiredEnv("ZENORM_LIVE_DELIVERY_EFFORT"));
+    const root = realpathSync(mkdtempSync(join(tmpdir(), "zenorm-capture-live-")));
+    const server = createServer((_request, response) => {
+      response.setHeader("content-type", "text/html");
+      response.end(LIVE_CAPTURE_PAGE);
+    });
+    try {
+      await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+      const address = server.address();
+      if (address === null || typeof address === "string") throw new Error("No port was bound");
+      const runDir = join(root, "runs", "run-1");
+      const worktreePath = join(runDir, "worktree");
+      const screenshotsDir = join(runDir, "screenshots");
+      mkdirSync(worktreePath, { recursive: true });
+      mkdirSync(screenshotsDir);
+
+      const captured = await claudeCodeCaptureScreens({
+        claudePath,
+        model,
+        effort,
+        orchestratorMaxTurns: 100,
+        orchestratorTimeoutMinutes: 15,
+        reviewerMaxTurns: 30,
+        reviewerTimeoutMinutes: 10,
+        checkTimeoutMinutes: 5,
+        sessionsDir,
+      })(
+        {
+          runDir,
+          worktreePath,
+          appUrl: `http://127.0.0.1:${String(address.port)}/`,
+          screens: [{ where: "/", changed: "The settings page shows an App URL field.", isNew: true }],
+          screenshotsDir,
+          gitIdentity: { name: "ZeNorm delivery", email: "run-live-capture@zenorm.invalid" },
+        },
+        new AbortController().signal,
+      );
+      process.stdout.write(`capture.json: ${readFileSync(join(runDir, "capture.json"), "utf8")}\n`);
+      if (!captured.ok) throw new Error(`${captured.error.code}: ${captured.error.message}`);
+      process.stdout.write(`${JSON.stringify(captured.value, null, 2)}\n`);
+      expect(captured.value.images.length).toBeGreaterThan(0);
+      for (const image of captured.value.images) {
+        expect(existsSync(join(screenshotsDir, image.file))).toBe(true);
+      }
+      expect(readdirSync(worktreePath)).toEqual([]);
+    } finally {
+      await new Promise<void>((resolve) => server.close(() => resolve()));
       rmSync(root, { recursive: true, force: true });
     }
   },

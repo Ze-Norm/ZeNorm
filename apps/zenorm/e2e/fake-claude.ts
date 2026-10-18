@@ -70,7 +70,13 @@
  *   tools are exactly Read, Grep and Glob with Bash denied, appends its prompt's `Final commit:` to
  *   `fake-screen-picker-calls` under `$ZENORM_E2E_ROOT` (so an e2e can tell that no picker ran),
  *   and answers no changed screen, or, when the spec file its prompt names contains
- *   `[fake:screens]`, the two screens `SCREENS`; `[fake:picker-fails]` there fails the session.
+ *   `[fake:screens]`, the three screens `SCREENS`; `[fake:picker-fails]` there fails the session.
+ * - Capture (a `--json-schema` with the root property `screenshots`): checks `--strict-mcp-config`,
+ *   the read tools and only `mcp__playwright__browser_*` tools allowed, an MCP config naming the
+ *   `playwright` server alone limited to the prompt's `App URL:` origin, and that the app answers
+ *   there; then writes the first screen's PNG into the server's `--output-dir` and skips the second.
+ *   The pull request writer copies a captured run's `Image of`, `Skipped:` and `Not shown:` prompt
+ *   lines into What as bullets.
  *
  * Every spec the planning stand-in writes has the fixed problem sentence followed by the idea's
  * `[fake:…]` markers, so the delivery markers above ride in the idea.
@@ -323,7 +329,15 @@ const SCREEN_PICKER_CALLS_FILE = "fake-screen-picker-calls";
 const SCREENS = [
   { where: "/export", changed: "The new Export page lists every record.", isNew: true },
   { where: "/projects", changed: "The project page has an Export button.", isNew: false },
+  { where: "/settings", changed: "Settings name the export folder.", isNew: false },
 ];
+/** A minimal PNG file's bytes: the signature, enough for a stand-in screenshot. */
+const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+/** The capture's read tools; its other allowed tools are the Playwright MCP server's browser tools. */
+const CAPTURE_READ_TOOLS = "Read,Grep,Glob";
+const CAPTURE_BROWSER_TOOL_PREFIX = "mcp__playwright__browser_";
+/** A writer prompt's capture lines (`packages/agent/src/delivery-prompt.ts`'s `captureLines`). */
+const CAPTURE_PROMPT_LINE = /^(Image of |Skipped: |Not shown: )/;
 /** The screen picker's tools: the read tools alone. */
 const SCREEN_PICKER_TOOLS = "Read,Grep,Glob";
 /** The file under `$ZENORM_E2E_ROOT` that releases a held repair (`fixture.ts` names it too). */
@@ -879,7 +893,13 @@ function callPrompt(): string {
 
 const prompt = callPrompt();
 
-type Role = "orchestrator" | "reviewer" | "pull-request-writer" | "screen-picker" | "planning";
+type Role =
+  | "orchestrator"
+  | "reviewer"
+  | "pull-request-writer"
+  | "screen-picker"
+  | "capture"
+  | "planning";
 
 /** The root `properties` of the `--json-schema`, which must be an object schema. */
 function schemaProperties(): object {
@@ -916,6 +936,9 @@ function detectRole(): Role {
   }
   if (args.includes("--json-schema") && "changedScreens" in schemaProperties()) {
     return "screen-picker";
+  }
+  if (args.includes("--json-schema") && "screenshots" in schemaProperties()) {
+    return "capture";
   }
   return "planning";
 }
@@ -988,6 +1011,33 @@ function checkScreenPickerFlags(): void {
   }
 }
 
+/**
+ * The capture has its MCP config's server alone (`--strict-mcp-config`), the read tools and only
+ * the Playwright MCP server's browser tools, with Bash, Edit and Write denied.
+ */
+function checkCaptureFlags(): void {
+  expectFlags([
+    ...DELIVERY_FLAGS,
+    ["--output-format", "json"],
+    ["--tools", CAPTURE_READ_TOOLS],
+  ]);
+  if (!args.includes("--strict-mcp-config")) {
+    mismatch("the capture has no --strict-mcp-config");
+  }
+  const reads = CAPTURE_READ_TOOLS.split(",");
+  for (const tool of flagValue(args, "--allowedTools").split(",")) {
+    if (!reads.includes(tool) && !tool.startsWith(CAPTURE_BROWSER_TOOL_PREFIX)) {
+      mismatch(`the capture's --allowedTools allow ${tool}`);
+    }
+  }
+  const denied = flagValue(args, "--disallowedTools").split(",");
+  for (const tool of ["Bash", "Edit", "Write"]) {
+    if (!denied.includes(tool)) {
+      mismatch(`the capture's --disallowedTools ${JSON.stringify(denied.join(","))} lack ${tool}`);
+    }
+  }
+}
+
 const role = detectRole();
 switch (role) {
   case "orchestrator":
@@ -999,6 +1049,9 @@ switch (role) {
     break;
   case "screen-picker":
     checkScreenPickerFlags();
+    break;
+  case "capture":
+    checkCaptureFlags();
     break;
   case "planning":
     expectFlags([
@@ -1531,6 +1584,8 @@ function pullRequestBody(): string {
     "",
     `- The stand-in delivered every ticket at ${finalCommit.slice(0, 7)}: each ticket's file is committed.`,
     "",
+    // A captured run's images and screen lines, as the prompt gives them, in What only.
+    ...capturedLines(),
     "## Tests",
     "",
     "The stand-in ran no tests.",
@@ -1540,6 +1595,84 @@ function pullRequestBody(): string {
     "None: the change only adds files.",
     "",
   ].join("\n");
+}
+
+/** The writer prompt's capture lines, one bullet each, then a blank line; none without them. */
+function capturedLines(): string[] {
+  const lines = prompt.split("\n").filter((line) => CAPTURE_PROMPT_LINE.test(line));
+  return lines.length === 0 ? [] : [...lines.map((line) => `- ${line}`), ""];
+}
+
+/** The screens of a capture prompt: each `Screen <n>, its screenshot's file name <file>:` and its `Where:`. */
+function captureScreens(): { where: string; file: string }[] {
+  const lines = prompt.split("\n");
+  return lines.flatMap((line, index) => {
+    const file = /^Screen \d+, its screenshot's file name (\S+):$/.exec(line)?.[1];
+    if (file === undefined) return [];
+    const where = lines
+      .slice(index + 1)
+      .find((candidate) => candidate.startsWith("Where: "))
+      ?.slice("Where: ".length);
+    if (where === undefined) {
+      mismatch(`the capture prompt's screen ${file} has no \`Where:\` line`);
+    }
+    return [{ where, file }];
+  });
+}
+
+/**
+ * The capture: its MCP config names the Playwright server alone, limited to the prompt's
+ * `App URL:` origin and writing to an output folder; the app must answer there. It writes the
+ * first screen's screenshot into that folder and skips the second; any further screen it neither
+ * shoots nor skips.
+ */
+async function capture(): Promise<{ screenshots: unknown[]; skippedScreens: unknown[] }> {
+  const appUrl = /^App URL: (\S+)$/m.exec(prompt)?.[1];
+  if (appUrl === undefined) {
+    mismatch("the capture prompt has no `App URL:` line");
+  }
+  const config: unknown = JSON.parse(readFileSync(flagValue(args, "--mcp-config"), "utf8"));
+  if (
+    typeof config !== "object" ||
+    config === null ||
+    !("mcpServers" in config) ||
+    typeof config.mcpServers !== "object" ||
+    config.mcpServers === null ||
+    Object.keys(config.mcpServers).join(",") !== "playwright" ||
+    !("playwright" in config.mcpServers) ||
+    typeof config.mcpServers.playwright !== "object" ||
+    config.mcpServers.playwright === null ||
+    !("args" in config.mcpServers.playwright) ||
+    !Array.isArray(config.mcpServers.playwright.args)
+  ) {
+    mismatch("the capture's --mcp-config does not name the playwright server alone");
+  }
+  const serverArgs = config.mcpServers.playwright.args.map(String);
+  if (flagValue(serverArgs, "--allowed-origins") !== new URL(appUrl).origin) {
+    mismatch(`the capture's browser is not limited to ${new URL(appUrl).origin}`);
+  }
+  const outputDir = flagValue(serverArgs, "--output-dir");
+  const answer = await fetch(appUrl).then(
+    (response) => response.ok,
+    () => false,
+  );
+  if (!answer) {
+    mismatch(`the app does not answer at ${appUrl}`);
+  }
+  const [first, second] = captureScreens();
+  if (first === undefined) {
+    mismatch("the capture prompt lists no screen");
+  }
+  writeFileSync(join(outputDir, first.file), PNG_SIGNATURE);
+  return {
+    screenshots: [
+      { screen: first.where, file: first.file, caption: `${first.where} after the change.` },
+    ],
+    skippedScreens:
+      second === undefined
+        ? []
+        : [{ screen: second.where, reason: "The stand-in capture skips it." }],
+  };
 }
 
 /**
@@ -2842,6 +2975,9 @@ switch (role) {
       is_error: false,
       structured_output: { changedScreens: changedScreens() },
     });
+    break;
+  case "capture":
+    print({ type: "result", subtype: "success", is_error: false, structured_output: await capture() });
     break;
   case "planning":
     print({

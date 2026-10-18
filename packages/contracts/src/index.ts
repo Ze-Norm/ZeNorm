@@ -405,6 +405,11 @@ export {
   VerdictSeverity,
 } from "./delivery.ts";
 export {
+  CAPTURE_TEXT_MAX_LENGTH,
+  CAPTURED_IMAGES_MAX_COUNT,
+  CapturedImage,
+  CapturedScreens,
+  CaptureScreensRequest,
   DELIVERY_SCREENS_MAX_COUNT,
   GitIdentity,
   gitIdentityEnv,
@@ -414,14 +419,18 @@ export {
   PickedScreen,
   PickedScreens,
   PickScreensRequest,
+  PullRequestCapture,
   PullRequestRequest,
   ReviewRequest,
+  ScreenshotFile,
+  SkippedScreen,
   ticketBranchName,
   WrittenPullRequest,
 } from "./delivery-agent.ts";
 export type { DeliveryRunState } from "./delivery.ts";
 export { ImplementEvent } from "./delivery-agent.ts";
 export type {
+  CaptureScreens,
   DeliveryExecutor,
   ImplementTicketSet,
   PickScreens,

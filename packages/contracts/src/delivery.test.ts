@@ -584,7 +584,15 @@ describe("delivery codes", () => {
   });
 
   test("a capture failure code is a domain code and never a delivery failure code", () => {
-    expect(CaptureFailureCode.options).toContain("capture_picker_failed");
+    expect(CaptureFailureCode.options).toEqual([
+      "capture_picker_failed",
+      "capture_setup_failed",
+      "capture_app_not_ready",
+      "capture_app_url_in_use",
+      "capture_session_failed",
+      "capture_too_many_screens",
+      "capture_push_failed",
+    ]);
     for (const code of CaptureFailureCode.options) {
       expect(DomainCode.options).toContain(code);
       expect(DeliveryFailureCode.options).not.toContain(code);

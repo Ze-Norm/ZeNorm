@@ -230,6 +230,38 @@ describe("sweepSessions", () => {
     expect(logLines).toHaveLength(1);
   });
 
+  test("stops the group of an app a capture left running, as its record names it", async () => {
+    // A started app's group: the start command leads it, with a child (its dev server, say).
+    const script = join(root, "app.sh");
+    await writeFile(script, ["sleep 600 &", "sleep 600 & wait", ""].join("\n"));
+    const pid = await orphan(["/bin/sh", script], true);
+    let child: number | undefined;
+    await until(async () => {
+      child = descendantsOf(pid, await processTable())[0];
+      return child !== undefined;
+    }, "the app's child");
+    if (child === undefined) throw new Error("unreachable");
+    spawnedPids.push(child);
+    // Core's app record: the command as `ps` showed it after the start, kind `app`.
+    const record = {
+      pid,
+      command: await psCommand(pid),
+      startedAt: new Date().toISOString(),
+      kind: "app",
+      ...(await goneServer()),
+    };
+    await writeFile(join(sessionsDir, `${String(pid)}.json`), JSON.stringify(record));
+
+    await sweepSessions(sessionsDir, log);
+
+    await until(() => !alive(pid), "the app to be gone");
+    const appChild = child;
+    await until(() => !alive(appChild), "the app's child to be gone");
+    expect(await readdir(sessionsDir)).toEqual([]);
+    expect(logLines).toHaveLength(1);
+    expect(logLines[0]).toContain("app session");
+  });
+
   test("signals the pid alone when it does not lead its own group", async () => {
     // Without setsid, the orphan stays in this test runner's group.
     const pid = await orphan(["/bin/sleep", "600"], false);

@@ -14,6 +14,9 @@ test("the exported names and values", () => {
   expect(Object.keys(sdk).sort()).toMatchInlineSnapshot(`
     [
       "CaptureFailureCode",
+      "CaptureScreensRequest",
+      "CapturedImage",
+      "CapturedScreens",
       "DELIVERY_SCREENS_MAX_COUNT",
       "DeliveryAgentErrorCode",
       "ImplementEvent",
@@ -21,11 +24,13 @@ test("the exported names and values", () => {
       "PickScreensRequest",
       "PickedScreen",
       "PickedScreens",
+      "PullRequestCapture",
       "PullRequestRequest",
       "ReviewRequest",
       "SDK_VERSION",
       "SEAM_NAMES",
       "SLOT_NAMES",
+      "SkippedScreen",
       "Verdict",
       "WrittenPullRequest",
       "definePlugin",

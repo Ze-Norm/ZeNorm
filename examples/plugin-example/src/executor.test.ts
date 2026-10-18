@@ -266,6 +266,7 @@ describe("the example executor", () => {
         implementerReports: [{ ticket: "T1", report: null }],
         checkResults: [],
         verdict: { reviewedCommit: finalCommit, summary: "Fine.", findings: [] },
+        capture: { kind: "no_visible_change" },
         gitIdentity: IDENTITY,
       },
       new AbortController().signal,
@@ -300,6 +301,25 @@ describe("the example executor", () => {
     );
 
     expect(picked).toEqual({ ok: true, value: { kind: "no_visible_change" } });
+    expect(calls).toEqual({ implement: 0, review: 0 });
+  });
+
+  test("its capture returns no images", async () => {
+    const calls: ExecutorCalls = { implement: 0, review: 0 };
+
+    const captured = await exampleExecutor(calls).captureScreens(
+      {
+        runDir: join(root, "run"),
+        worktreePath: worktree,
+        appUrl: "http://localhost:5173",
+        screens: [{ where: "/", changed: "A new heading.", isNew: false }],
+        screenshotsDir: join(root, "run", "screenshots"),
+        gitIdentity: IDENTITY,
+      },
+      new AbortController().signal,
+    );
+
+    expect(captured).toEqual({ ok: true, value: { images: [], skipped: [] } });
     expect(calls).toEqual({ implement: 0, review: 0 });
   });
 });
