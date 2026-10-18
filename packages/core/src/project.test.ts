@@ -16,7 +16,7 @@ import {
   listProjects,
   saveProjectSettings,
 } from "./project.ts";
-import { NO_APP_SETTINGS, testContextOf } from "./test-support.ts";
+import { NO_APP_SETTINGS, testContextOf, writeTestData } from "./test-support.ts";
 import type { TestContext } from "./test-support.ts";
 
 let root: string;
@@ -658,11 +658,13 @@ describe("saveProjectSettings: app settings", () => {
     const repo = await realpath(await makeRepo("repo"));
     const id = "0199a1b2-c3d4-7e5f-8a9b-0c1d2e3fa036";
     // The row as 0036 leaves a project that predates it: the app columns take their backfill.
-    db.$client
-      .prepare(
-        "insert into projects (id, folder_path, base_branch, created_at, required_checks, repair_limit, fix_commands) values (?, ?, 'main', ?, '[]', null, '[]')",
-      )
-      .run(id, repo, new Date().toISOString());
+    writeTestData(context, () =>
+      db.$client
+        .prepare(
+          "insert into projects (id, folder_path, base_branch, created_at, required_checks, repair_limit, fix_commands) values (?, ?, 'main', ?, '[]', null, '[]')",
+        )
+        .run(id, repo, new Date().toISOString()),
+    );
 
     const read = await getProject(db, id);
 

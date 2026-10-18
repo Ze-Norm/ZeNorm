@@ -230,10 +230,14 @@ describe("ProjectChecks and SaveProjectSettingsInput", () => {
 
   test("an app start command or URL on two lines is refused", () => {
     expect(
-      issues(SaveProjectSettingsInput.safeParse({ ...input, appStartCommand: "a\nb", appUrl: "x" })),
+      issues(
+        SaveProjectSettingsInput.safeParse({ ...input, appStartCommand: "a\nb", appUrl: "x" }),
+      ),
     ).toEqual([{ code: "invalid_format", path: ["appStartCommand"] }]);
     expect(
-      issues(SaveProjectSettingsInput.safeParse({ ...input, appStartCommand: "a", appUrl: "x\ny" })),
+      issues(
+        SaveProjectSettingsInput.safeParse({ ...input, appStartCommand: "a", appUrl: "x\ny" }),
+      ),
     ).toEqual([{ code: "invalid_format", path: ["appUrl"] }]);
   });
 });

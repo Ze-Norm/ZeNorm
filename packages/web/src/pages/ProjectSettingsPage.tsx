@@ -182,6 +182,14 @@ function blankAsNull(value: string): string | null {
   return value.trim() === "" ? null : value;
 }
 
+/** A saved one-line value as typed: null (not saved) is a blank input. */
+function nullAsBlank(value: string | null): string {
+  if (value === null) {
+    return "";
+  }
+  return value;
+}
+
 /** A field's issue line, under its input and named by its `aria-describedby`. */
 function FieldIssue({ id, issue }: { id: string; issue: string | null }) {
   if (issue === null) {
@@ -294,10 +302,8 @@ function ProjectSettingsForm({ project }: { project: ProjectDetail }) {
   const [fixes, setFixes] = useState<string[]>(project.fixCommands);
   const [fixDraft, setFixDraft] = useState("");
   // The app start command and URL as typed: blank until a person saves them (screenshots off).
-  const [appStart, setAppStart] = useState(
-    project.appStartCommand === null ? "" : project.appStartCommand,
-  );
-  const [appUrl, setAppUrl] = useState(project.appUrl === null ? "" : project.appUrl);
+  const [appStart, setAppStart] = useState(nullAsBlank(project.appStartCommand));
+  const [appUrl, setAppUrl] = useState(nullAsBlank(project.appUrl));
   const [setups, setSetups] = useState<string[]>(project.appSetupCommands);
   const [setupDraft, setSetupDraft] = useState("");
   /** The one field whose value was refused, with the sentence shown under it; null when none. */
@@ -414,7 +420,7 @@ function ProjectSettingsForm({ project }: { project: ProjectDetail }) {
    * refusal (the project is gone, access denied) shows by Save settings.
    */
   const refusedField: SettingsField | null =
-    save.error !== null && isDefinedError(save.error) && save.variables !== undefined
+    save.error !== null && isDefinedError(save.error)
       ? fieldOfRefusal(save.error, save.variables.appStartCommand)
       : null;
   const fieldIssue = (field: SettingsField): string | null => {

@@ -53,11 +53,7 @@ test("Project settings save an app start command, its URL and a setup command, r
 }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Project switcher" }).click();
-  await page
-    .getByRole("menu")
-    .getByRole("menuitem")
-    .filter({ hasText: projectsRepo() })
-    .click();
+  await page.getByRole("menu").getByRole("menuitem").filter({ hasText: projectsRepo() }).click();
   await expect(page).toHaveURL(PROJECT_URL);
   const projectId = idFrom(PROJECT_URL, page.url());
   await page.getByRole("link", { name: "Settings", exact: true }).click();
