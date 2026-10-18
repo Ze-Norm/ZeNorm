@@ -30,7 +30,10 @@ export {
   githubOrigin,
   githubRepositoryOf,
   openPullRequest,
+  prAssetsBranchName,
+  prAssetSource,
   pushRunBranch,
+  pushScreenshots,
   readPullRequestState,
 } from "./github.ts";
 export type {
@@ -38,7 +41,20 @@ export type {
   GitHubSignInError,
   PublishError,
   PullRequestReadError,
+  ScreenshotPushError,
+  ScreenshotToPush,
 } from "./github.ts";
+export {
+  APP_READY_TIMEOUT_MS,
+  APP_STOP_GRACE_MS,
+  appLogPath,
+  appSetupLogPath,
+  groupRuns,
+  runAppSetup,
+  startApp,
+  urlAnswers,
+} from "./app-session.ts";
+export type { AppSetupError, AppStartError, RunningApp } from "./app-session.ts";
 export type {
   AcceptVerdictError,
   DeliveryEnd,

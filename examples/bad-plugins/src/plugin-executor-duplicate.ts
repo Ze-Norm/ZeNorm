@@ -25,6 +25,7 @@ export const pluginExecutorDuplicate: BadServerCase = {
           reviewDelivery: () => Promise.resolve(err(NOT_RUN)),
           writePullRequest: () => Promise.resolve(err(NOT_RUN)),
           pickScreens: () => Promise.resolve(err(NOT_RUN)),
+          captureScreens: () => Promise.resolve(err(NOT_RUN)),
         },
       ],
     }),

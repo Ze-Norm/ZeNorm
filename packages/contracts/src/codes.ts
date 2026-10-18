@@ -675,10 +675,23 @@ export type PublishFailureCode = z.infer<typeof PublishFailureCode>;
 
 /**
  * Why a passing run's screenshot capture failed: the screen picker session failed or timed out
- * (`capture_picker_failed`). A capture failure is an activity line with its code, and the run still
- * opens its pull request and ends passed, so these are never a `DeliveryFailureCode`.
+ * (`capture_picker_failed`); a setup command failed (`capture_setup_failed`); the app URL did not
+ * answer within two minutes of the start (`capture_app_not_ready`) or already answered before it
+ * (`capture_app_url_in_use`); the browser capture session failed (`capture_session_failed`); the
+ * capture returned images of more screens than a pull request shows (`capture_too_many_screens`);
+ * or pushing the pr-assets branch failed (`capture_push_failed`). A capture failure is an activity
+ * line with its code, and the run still opens its pull request and ends passed, so these are never
+ * a `DeliveryFailureCode`.
  */
-export const CaptureFailureCode = z.enum(["capture_picker_failed"]);
+export const CaptureFailureCode = z.enum([
+  "capture_picker_failed",
+  "capture_setup_failed",
+  "capture_app_not_ready",
+  "capture_app_url_in_use",
+  "capture_session_failed",
+  "capture_too_many_screens",
+  "capture_push_failed",
+]);
 export type CaptureFailureCode = z.infer<typeof CaptureFailureCode>;
 
 /**

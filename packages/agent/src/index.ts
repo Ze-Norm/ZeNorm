@@ -1,4 +1,5 @@
 export {
+  claudeCodeCaptureScreens,
   claudeCodeImplementTicketSet,
   claudeCodePickScreens,
   claudeCodeReviewDelivery,
@@ -7,6 +8,8 @@ export {
 } from "./delivery.ts";
 export { claudeCodePlanningAgent, type PlanningAgent } from "./planning-agent.ts";
 export { SKILLS_DIR } from "./skills.ts";
+export { PLAYWRIGHT_MCP_PACKAGE, playwrightMcpLaunch } from "./playwright-mcp.ts";
+export type { McpServerLaunch } from "./playwright-mcp.ts";
 export type { SessionKind, SessionRecord } from "./claude.ts";
 export {
   LOGIN_ARGS,

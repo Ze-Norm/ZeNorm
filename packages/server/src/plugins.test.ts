@@ -68,6 +68,7 @@ const LOCAL: DeliveryExecutor = {
   reviewDelivery: notCalled,
   writePullRequest: notCalled,
   pickScreens: notCalled,
+  captureScreens: notCalled,
 };
 
 function executorNamed(name: string): DeliveryExecutor {
@@ -77,6 +78,7 @@ function executorNamed(name: string): DeliveryExecutor {
     reviewDelivery: notCalled,
     writePullRequest: notCalled,
     pickScreens: notCalled,
+    captureScreens: notCalled,
   };
 }
 
@@ -401,7 +403,12 @@ describe("plugins in the app", () => {
       reviewTicketSet: notCalled,
       replyThroughHatch: notCalled,
       plugins,
-      delivery: { runsDir: join(root, "runs"), checkTimeoutMinutes: 1 },
+      delivery: {
+        runsDir: join(root, "runs"),
+        checkTimeoutMinutes: 1,
+        sessionsDir: join(root, "sessions"),
+        appReadyTimeoutMs: 1000,
+      },
     };
   }
 

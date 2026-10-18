@@ -2,8 +2,8 @@ import type { ChangeEntityType, ChangeEvent, CheckAccess, DeliveryExecutor, Iden
 import type { Hono } from "hono";
 import type { ComponentType } from "react";
 export { err, gitIdentityEnv, ok, ticketBranchName } from "@zenorm/contracts";
-export { CaptureFailureCode, DELIVERY_SCREENS_MAX_COUNT, DeliveryAgentErrorCode, ImplementEvent, ImplementRequest, PickedScreen, PickedScreens, PickScreensRequest, PullRequestRequest, ReviewRequest, Verdict, WrittenPullRequest, } from "@zenorm/contracts";
-export type { AdmitRun, DeliveryAgentError, GitIdentity, Result, ChangeEntityType, ChangeEvent, CheckAccess, Checkout, CheckoutProject, DeliveryExecutor, ExecutorEnv, ExecutorEnvRun, Identify, ImplementTicketSet, PickScreens, ReviewDelivery, RunAdmissionRefusal, RunAdmissionRequest, SeamRequest, Seams, SeamWrappers, WritePullRequest, } from "@zenorm/contracts";
+export { CaptureFailureCode, CapturedImage, CapturedScreens, CaptureScreensRequest, DELIVERY_SCREENS_MAX_COUNT, DeliveryAgentErrorCode, ImplementEvent, ImplementRequest, PickedScreen, PickedScreens, PickScreensRequest, PullRequestCapture, PullRequestRequest, SkippedScreen, ReviewRequest, Verdict, WrittenPullRequest, } from "@zenorm/contracts";
+export type { AdmitRun, CaptureScreens, DeliveryAgentError, GitIdentity, Result, ChangeEntityType, ChangeEvent, CheckAccess, Checkout, CheckoutProject, DeliveryExecutor, ExecutorEnv, ExecutorEnvRun, Identify, ImplementTicketSet, PickScreens, ReviewDelivery, RunAdmissionRefusal, RunAdmissionRequest, SeamRequest, Seams, SeamWrappers, WritePullRequest, } from "@zenorm/contracts";
 export declare const SDK_VERSION = "0.1.0";
 export interface ConfigSchema<Config> {
     safeParse(input: unknown): {

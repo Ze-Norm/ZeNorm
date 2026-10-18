@@ -1140,9 +1140,9 @@ function tail(output: string): string {
 /**
  * Runs one check in its own process group, writing its whole output to `logPath`; resolves when it
  * has exited, closed its output and the log is written. A log write failure is said at the end of
- * the output tail.
+ * the output tail. The capture's app setup commands run through it too.
  */
-function runCheck(
+export function runCheck(
   command: string,
   options: {
     cwd: string;

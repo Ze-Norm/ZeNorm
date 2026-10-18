@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@zenorm/contracts": "workspace:*",
+    "playwright-core": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

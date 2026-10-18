@@ -17,12 +17,13 @@ const sessionFields = {
   pid: z.number().int().positive(),
   command: z.string().min(1),
   startedAt: z.iso.datetime(),
-  kind: z.enum(["auth", "planning", "orchestrator", "reviewer"]),
+  kind: z.enum(["auth", "planning", "orchestrator", "reviewer", "app"]),
 };
 
 /**
- * A `claude` session record, `<sessionsDir>/<pid>.json`, written by `packages/agent`'s
- * `runProcess`; `startedAt` is an ISO string. It names the server that spawned it, or,
+ * A session record, `<sessionsDir>/<pid>.json`: a `claude` session's, written by `packages/agent`'s
+ * `runProcess`, or (kind `app`) a capture's started app's, written by `packages/core`'s `startApp`
+ * with the command `ps` showed for it; `startedAt` is an ISO string. It names the server that spawned it, or,
  * written before records did, carries neither server field. Each shape is strict, so a
  * record with one server field and not the other is broken, never read as the older shape.
  */

@@ -45,6 +45,8 @@ import type {
   PlanningAgentError,
   PlanningCallSession,
   PlanningRunUsage,
+  CapturedScreens,
+  CaptureScreens,
   PickedScreens,
   PickScreens,
   PickScreensRequest,
@@ -366,8 +368,19 @@ export function localExecutor(): DeliveryExecutor {
   const reviewDelivery: ReviewDelivery = reviewPort.port;
   const writePullRequest: WritePullRequest = pullRequestPort.port;
   const pickScreens: PickScreens = pickScreensPort.port;
-  return { name: "local", implementTicketSet, reviewDelivery, writePullRequest, pickScreens };
+  const captureScreens: CaptureScreens = () => Promise.resolve(ok(NO_IMAGES));
+  return {
+    name: "local",
+    implementTicketSet,
+    reviewDelivery,
+    writePullRequest,
+    pickScreens,
+    captureScreens,
+  };
 }
+
+/** What a stand-in capture that shoots nothing returns. */
+export const NO_IMAGES: CapturedScreens = { images: [], skipped: [] };
 
 /** `plugins` checked as the app entry checks them, with `executors` and the one `executor` names. */
 export function checked(
@@ -385,9 +398,17 @@ export function checked(
 export function deliveryOptions() {
   return {
     plugins: checked([], [localExecutor()], "local"),
-    delivery: { runsDir: join(root, "runs"), checkTimeoutMinutes: 1 },
+    delivery: {
+      runsDir: join(root, "runs"),
+      checkTimeoutMinutes: 1,
+      sessionsDir: join(root, "sessions"),
+      appReadyTimeoutMs: APP_READY_TEST_TIMEOUT_MS,
+    },
   };
 }
+
+/** How long a test run's capture waits for its stand-in app's URL: the fixed two minutes, cut short. */
+export const APP_READY_TEST_TIMEOUT_MS = 3000;
 
 /** The app over `options`, started and launched as the app entry does; a refusal fails the test. */
 export async function appOf(options: AppOptions): Promise<ZeNormApp> {
@@ -467,6 +488,7 @@ export function setUpAppTests(): void {
     await writeFile(join(webDistDir, "index.html"), INDEX_HTML);
     await writeFile(join(webDistDir, "asset.js"), "export {};");
     await mkdir(join(root, "runs"));
+    await mkdir(join(root, "sessions"));
     const file = join(root, "zenorm.sqlite");
     await copyFile(inject("migratedDatabase"), file);
     const opened = openDatabase(file);
@@ -905,6 +927,10 @@ export function standInExecutor(calls: string[]): DeliveryExecutor {
       calls.push("pick screens");
       return Promise.resolve(ok({ kind: "no_visible_change" }));
     },
+    captureScreens: () => {
+      calls.push("capture");
+      return Promise.resolve(ok(NO_IMAGES));
+    },
   };
 }
 
@@ -964,6 +990,7 @@ export function repairingExecutor(requests: ImplementRequest[]): DeliveryExecuto
     reviewDelivery: (request) => Promise.resolve(ok(verdictFor(request.finalCommit, false))),
     writePullRequest: () => Promise.resolve(ok(PULL_REQUEST_WRITTEN)),
     pickScreens: () => Promise.resolve(ok({ kind: "no_visible_change" })),
+    captureScreens: () => Promise.resolve(ok(NO_IMAGES)),
   };
 }
 

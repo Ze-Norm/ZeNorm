@@ -1,19 +1,32 @@
-import { writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
-import { gitIdentityEnv, LOCAL_EXECUTOR, ok, PULL_REQUEST_FOOTER } from "@zenorm/contracts";
+import {
+  DELIVERY_SCREENS_MAX_COUNT,
+  err,
+  gitIdentityEnv,
+  LOCAL_EXECUTOR,
+  ok,
+  PULL_REQUEST_FOOTER,
+} from "@zenorm/contracts";
 import type {
   Actor,
+  CaptureFailureCode,
+  CaptureScreens,
   CheckoutError,
   CheckResult,
+  CodedError,
+  DeliveryAgentError,
   DeliveryFailureCode,
   DeliveryPhase,
   ImplementEvent,
   ImplementRequest,
   ImplementTicketSet,
+  PickedScreen,
   PickedScreens,
   PickScreens,
   PullRequest,
+  PullRequestCapture,
   PullRequestRequest,
   Result,
   ResumedFrom,
@@ -38,15 +51,19 @@ import {
   getDeliveryRun,
   githubOrigin,
   openPullRequest,
+  prAssetSource,
   prepareDelivery,
   prepareReview,
   pushRunBranch,
+  pushScreenshots,
   readRunTicketRows,
   recordTicketMerged,
   recordTicketStarted,
+  runAppSetup,
   runChecksReporting,
   seamsOf,
   setDeliveryPhase,
+  startApp,
   storeCheckResults,
   ticketBranchName,
   verifyDelivery,
@@ -78,8 +95,14 @@ export interface DeliveryRunnerOptions {
    * written, on a run that pinned an app start command and URL.
    */
   readonly pickScreens: PickScreens;
-  /** Each check's bound. */
+  /** Screenshots the picked screens in the app the runner started from the run worktree. */
+  readonly captureScreens: CaptureScreens;
+  /** Each check's bound, and each app setup command's. */
   readonly checkTimeoutMinutes: number;
+  /** Where a started app's session record is kept until its process group is stopped. */
+  readonly sessionsDir: string;
+  /** How long the runner waits for a started app's URL to answer (`APP_READY_TIMEOUT_MS`). */
+  readonly appReadyTimeoutMs: number;
   /**
    * Called after each landed end write: the end may have started planning work on any map (a
    * release run), which the planning runner launches.
@@ -226,6 +249,19 @@ function verdictLine(verdict: Verdict): string {
 /** Where the runner writes a pull request's body for gh's `--body-file`, in the run folder. */
 const PULL_REQUEST_BODY_FILE = "pull-request.md";
 
+/** The run folder's folder the capture writes its screenshots to. */
+const SCREENSHOTS_DIR = "screenshots";
+
+/** The scratch index the screenshots' commit is built in, in the run folder. */
+const PR_ASSETS_INDEX_FILE = "pr-assets.index";
+
+/** What the publishing step returns once a cancel stopped it during the capture; nothing stores it. */
+const CAPTURE_CANCELLED: DeliveryAgentError = {
+  code: "agent_cancelled",
+  message: "The run was cancelled while ZeNorm was taking its screenshots.",
+  data: {},
+};
+
 /** ZeNorm's line for the screen picker's answer: no visible change, or the screens it picked. */
 function pickedLine(picked: PickedScreens): string {
   switch (picked.kind) {
@@ -282,7 +318,10 @@ export function createDeliveryRunner({
   reviewDelivery,
   writePullRequest,
   pickScreens,
+  captureScreens,
   checkTimeoutMinutes,
+  sessionsDir,
+  appReadyTimeoutMs,
   onEnd,
   log,
 }: DeliveryRunnerOptions): DeliveryRunner {
@@ -697,8 +736,10 @@ export function createDeliveryRunner({
   /**
    * The publishing step of a passing run on a GitHub project: on a run that pinned an app start
    * command and URL, the screen picker first lists the changed screens, which one line says (none,
-   * the screens, or `capture_picker_failed`, which never fails the run); then the pull request
-   * writer writes the body, and on a run without that capture a visible change adds the line
+   * the screens, or `capture_picker_failed`, which never fails the run); listed screens are then
+   * captured (`captureScreensOf`), any capture failure one line with its code; then the pull
+   * request writer writes the body from the capture outcome, and on a run without that capture a
+   * visible change adds the line
    * suggesting the app settings; ZeNorm adds its footer, then gh's sign-in is checked, the run
    * branch is pushed to origin and the pull request is opened on origin's repository against the
    * pinned base, titled with the spec's title. The first failure is the run's; nothing pushed or opened is ever undone. Each
@@ -709,7 +750,8 @@ export function createDeliveryRunner({
     readonly entry: HeldRun;
     readonly origin: GitHubRepository;
     readonly title: string;
-    readonly request: PullRequestRequest;
+    /** The writer's request but its capture outcome, which this step adds. */
+    readonly request: Omit<PullRequestRequest, "capture">;
     readonly say: (text: string) => void;
   }): Promise<
     Result<PullRequest, { readonly code: DeliveryFailureCode; readonly message: string }>
@@ -719,7 +761,9 @@ export function createDeliveryRunner({
     const { folder } = entry;
     const repository = `${origin.owner}/${origin.name}`;
     // Capture is on for a run that pinned both an app start command and its URL.
-    const captureOn = run.appStartCommand !== null && run.appUrl !== null;
+    const { appStartCommand, appUrl } = run;
+    const captureOn = appStartCommand !== null && appUrl !== null;
+    let capture: PullRequestCapture = { kind: "off" };
     if (captureOn) {
       const { request } = input;
       const picked = await pickScreens(
@@ -737,14 +781,31 @@ export function createDeliveryRunner({
       );
       // A cancel stops the publishing step; any other failure is the capture's alone.
       if (!picked.ok && signal.aborted) return picked;
-      say(
-        picked.ok
-          ? pickedLine(picked.value)
-          : `Screenshots are missing (capture_picker_failed): the screen picker failed: ${picked.error.message}`,
-      );
+      if (!picked.ok) {
+        say(
+          `Screenshots are missing (capture_picker_failed): the screen picker failed: ${picked.error.message}`,
+        );
+        capture = { kind: "failed", code: "capture_picker_failed" };
+      } else {
+        say(pickedLine(picked.value));
+        capture =
+          picked.value.kind === "no_visible_change"
+            ? { kind: "no_visible_change" }
+            : await captureScreensOf({
+                run,
+                folder,
+                request,
+                appStartCommand,
+                appUrl,
+                screens: picked.value.screens,
+                signal,
+                say,
+              });
+        if (signal.aborted) return err(CAPTURE_CANCELLED);
+      }
     }
     say(`Writing the pull request for ${repository}.`);
-    const written = await writePullRequest(input.request, signal);
+    const written = await writePullRequest({ ...input.request, capture }, signal);
     if (!written.ok) return written;
     const { body, visibleChange } = written.value;
     if (!captureOn && visibleChange) {
@@ -767,6 +828,130 @@ export function createDeliveryRunner({
       bodyFile,
       signal,
     });
+  }
+
+  /**
+   * The capture of the picked screens, after the picker listed them: the run's pinned setup
+   * commands under the check bound, the app started from the run worktree and waited for, the
+   * capture port called once with the screens, the app's process group stopped whatever happened,
+   * the six-screen cap enforced on the images, and the images pushed to the run's pr-assets branch.
+   * Each step that fails ends the capture with one line naming its code, and the writer is told the
+   * capture failed; nothing here fails the run. Once aborted it returns at once, and the caller
+   * stops the publishing step.
+   */
+  async function captureScreensOf(input: {
+    readonly run: StoredDeliveryRun;
+    readonly folder: string;
+    readonly request: Omit<PullRequestRequest, "capture">;
+    readonly appStartCommand: string;
+    readonly appUrl: string;
+    readonly screens: readonly PickedScreen[];
+    readonly signal: AbortSignal;
+    readonly say: (text: string) => void;
+  }): Promise<PullRequestCapture> {
+    const { run, request, appStartCommand, appUrl, screens, signal, say } = input;
+    const failed = (error: CodedError<CaptureFailureCode>): PullRequestCapture => {
+      say(`Screenshots are missing (${error.code}): ${error.message}`);
+      return { kind: "failed", code: error.code };
+    };
+    if (run.appSetupCommands.length > 0) {
+      say(
+        `Setting up the app with ${run.appSetupCommands.map((command) => `\`${command}\``).join(", ")}.`,
+      );
+    }
+    const setUp = await runAppSetup({
+      worktreePath: request.worktreePath,
+      runDir: request.runDir,
+      commands: run.appSetupCommands,
+      timeoutMs: checkTimeoutMinutes * MS_PER_MINUTE,
+      env: process.env,
+      signal,
+    });
+    if (signal.aborted) return { kind: "off" };
+    if (!setUp.ok) return failed(setUp.error);
+    say(`Starting the app with \`${appStartCommand}\` and waiting for ${appUrl} to answer.`);
+    const started = await startApp({
+      worktreePath: request.worktreePath,
+      runDir: request.runDir,
+      command: appStartCommand,
+      url: appUrl,
+      env: process.env,
+      sessionsDir,
+      readyTimeoutMs: appReadyTimeoutMs,
+      signal,
+    });
+    if (signal.aborted) return { kind: "off" };
+    if (!started.ok) return failed(started.error);
+    const app = started.value;
+    const screenshotsDir = join(request.runDir, SCREENSHOTS_DIR);
+    const shoot = async (): ReturnType<CaptureScreens> => {
+      try {
+        await mkdir(screenshotsDir, { recursive: true });
+        say(`The app answers at ${appUrl}. A browser session is taking the screenshots.`);
+        return await captureScreens(
+          {
+            runDir: request.runDir,
+            worktreePath: request.worktreePath,
+            appUrl,
+            screens: [...screens],
+            screenshotsDir,
+            gitIdentity: request.gitIdentity,
+          },
+          signal,
+        );
+      } finally {
+        // Whatever the capture came to, the app's whole process group stops before anything else.
+        await app.stop();
+      }
+    };
+    const captured = await shoot();
+    if (signal.aborted) return { kind: "off" };
+    if (!captured.ok) {
+      return failed({
+        code: "capture_session_failed",
+        message: `the capture session failed: ${captured.error.message}`,
+      });
+    }
+    const { images, skipped } = captured.value;
+    const shown = new Set(images.map((image) => image.screen));
+    if (shown.size > DELIVERY_SCREENS_MAX_COUNT) {
+      return failed({
+        code: "capture_too_many_screens",
+        message: `the capture returned images of ${plural(shown.size, "screen")}, more than the ${String(DELIVERY_SCREENS_MAX_COUNT)} a pull request shows.`,
+      });
+    }
+    const skippedScreens = new Set(skipped.map((screen) => screen.screen));
+    const notShown = screens.filter(
+      (screen) => !shown.has(screen.where) && !skippedScreens.has(screen.where),
+    );
+    if (images.length === 0) {
+      say(
+        `The browser session took no screenshot${skipped.length === 0 ? "" : `; it skipped ${plural(skipped.length, "screen")}`}.`,
+      );
+      return { kind: "captured", images: [], skipped, notShown };
+    }
+    const pushed = await pushScreenshots({
+      folder: input.folder,
+      runBranch: run.branch,
+      files: images.map((image) => ({ path: join(screenshotsDir, image.file), name: image.file })),
+      env: gitIdentityEnv(request.gitIdentity),
+      indexFile: join(request.runDir, PR_ASSETS_INDEX_FILE),
+      signal,
+    });
+    if (signal.aborted) return { kind: "off" };
+    if (!pushed.ok) return failed(pushed.error);
+    const { branch } = pushed.value;
+    say(`Pushed ${plural(images.length, "screenshot")} to ${branch} on origin.`);
+    return {
+      kind: "captured",
+      images: images.map((image) => ({
+        screen: image.screen,
+        caption: image.caption,
+        src: prAssetSource(branch, image.file),
+      })),
+      skipped,
+      notShown,
+    };
   }
 
   /** An unexpected throw: logged, then stored as `delivery_internal_error` unless cancelled. */

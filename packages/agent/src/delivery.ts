@@ -1,7 +1,11 @@
-import { writeFileSync } from "node:fs";
+import { existsSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 import {
+  CAPTURED_IMAGES_MAX_COUNT,
+  CapturedImage,
+  type CaptureScreens,
+  type CaptureScreensRequest,
   DELIVERY_SCREENS_MAX_COUNT,
   type DeliveryAgentConfig,
   type DeliveryAgentError,
@@ -18,6 +22,7 @@ import {
   type Result,
   type ReviewDelivery,
   type ReviewRequest,
+  SkippedScreen,
   Verdict,
   type WritePullRequest,
 } from "@zenorm/contracts";
@@ -38,6 +43,8 @@ import {
   structuredOutput,
 } from "./claude.ts";
 import {
+  buildCapturePrompt,
+  buildCaptureSystemPrompt,
   buildOrchestratorPrompt,
   buildOrchestratorSystemPrompt,
   buildPullRequestPrompt,
@@ -48,6 +55,7 @@ import {
   buildScreenPickerSystemPrompt,
 } from "./delivery-prompt.ts";
 import { createImplementStreamParser } from "./delivery-stream.ts";
+import { PLAYWRIGHT_MCP_SERVER_NAME, playwrightMcpLaunch } from "./playwright-mcp.ts";
 import { checkDeliverySkills, checkSkill, deliverySkills, type DeliverySkills } from "./skills.ts";
 
 /** A delivery session's config: the agent's, and the skills folder the entry passes in. */
@@ -178,6 +186,149 @@ const SCREEN_PICKER_OUTPUT = structuredOutput(
 /** The screen picker's `--json-schema`. */
 export const SCREEN_PICKER_JSON_SCHEMA = SCREEN_PICKER_OUTPUT.jsonSchema;
 
+/** The browser tools the capture session may use, by the Playwright MCP server's tool names. */
+export const CAPTURE_BROWSER_TOOLS = [
+  "browser_navigate",
+  "browser_navigate_back",
+  "browser_snapshot",
+  "browser_click",
+  "browser_hover",
+  "browser_type",
+  "browser_fill_form",
+  "browser_press_key",
+  "browser_select_option",
+  "browser_handle_dialog",
+  "browser_wait_for",
+  "browser_resize",
+  "browser_take_screenshot",
+  "browser_close",
+] as const;
+
+/** The capture session's read tools, to find documented test logins and the screens' routes. */
+const CAPTURE_READ_TOOLS = ["Read", "Grep", "Glob"];
+
+/**
+ * The capture session's allowed tools: its read tools and the named browser tools, each as the CLI
+ * names an MCP tool, `mcp__<server>__<tool>`.
+ */
+export const CAPTURE_ALLOWED_TOOLS = [
+  ...CAPTURE_READ_TOOLS,
+  ...CAPTURE_BROWSER_TOOLS.map((tool) => `mcp__${PLAYWRIGHT_MCP_SERVER_NAME}__${tool}`),
+].join(",");
+
+/**
+ * What the capture session is denied: every command, edit, web and subagent tool, and reading a
+ * real env file or a key file (logins come only from docs and example env files).
+ */
+const CAPTURE_DISALLOWED_TOOLS = [
+  "Bash",
+  "Write",
+  "Edit",
+  "NotebookEdit",
+  "WebFetch",
+  "WebSearch",
+  SUBAGENT_TOOL,
+  "Read(**/.env)",
+  "Read(**/.env.local)",
+  "Read(**/.env.*.local)",
+  "Read(**/*.pem)",
+  "Read(**/*.key)",
+].join(",");
+
+/**
+ * The capture session's structured output: each screenshot it took, with the picked screen it
+ * shows and its caption, and each picked screen it could not reach. Its root key `screenshots` is
+ * how the e2e stand-in tells the capture from the other calls.
+ */
+const CAPTURE_OUTPUT = structuredOutput(
+  z.strictObject({
+    screenshots: z.array(CapturedImage).max(CAPTURED_IMAGES_MAX_COUNT),
+    skippedScreens: z.array(SkippedScreen).max(DELIVERY_SCREENS_MAX_COUNT),
+  }),
+);
+
+/** The capture session's `--json-schema`. */
+export const CAPTURE_JSON_SCHEMA = CAPTURE_OUTPUT.jsonSchema;
+
+/** The origin of the app URL, the one origin the capture's browser may request. */
+export function appOrigin(appUrl: string): string {
+  return new URL(appUrl).origin;
+}
+
+/**
+ * The capture session's MCP config: the pinned Playwright MCP server alone, headless Chromium in an
+ * isolated, in-memory profile, its requests limited to the app's origin and its files written to
+ * the run's screenshots folder.
+ */
+export function captureMcpConfig(request: CaptureScreensRequest): string {
+  const launch = playwrightMcpLaunch();
+  return JSON.stringify({
+    mcpServers: {
+      [PLAYWRIGHT_MCP_SERVER_NAME]: {
+        type: "stdio",
+        command: launch.command,
+        args: [
+          ...launch.args,
+          "--headless",
+          "--browser",
+          "chromium",
+          "--isolated",
+          "--allowed-origins",
+          appOrigin(request.appUrl),
+          "--output-dir",
+          request.screenshotsDir,
+        ],
+      },
+    },
+  });
+}
+
+/**
+ * The capture session's argv: the reviewer's model, effort and turns; only its MCP config's server
+ * (`--strict-mcp-config`, so the project's own MCP servers are kept out); only the read tools and
+ * the named browser tools, no command.
+ */
+export function captureArgs(
+  config: DeliveryAgentConfig,
+  request: CaptureScreensRequest,
+  prompt: string,
+  systemPromptFile: string,
+  mcpConfigFile: string,
+): string[] {
+  return [
+    "-p",
+    prompt,
+    "--output-format",
+    "json",
+    "--model",
+    config.model,
+    "--effort",
+    config.effort,
+    "--max-turns",
+    String(config.reviewerMaxTurns),
+    ...fastModeArgs(config.fastMode),
+    "--setting-sources",
+    "project",
+    "--permission-mode",
+    "dontAsk",
+    "--strict-mcp-config",
+    "--mcp-config",
+    mcpConfigFile,
+    "--tools",
+    CAPTURE_READ_TOOLS.join(","),
+    "--allowedTools",
+    CAPTURE_ALLOWED_TOOLS,
+    "--disallowedTools",
+    CAPTURE_DISALLOWED_TOOLS,
+    "--add-dir",
+    request.runDir,
+    "--append-system-prompt-file",
+    systemPromptFile,
+    "--json-schema",
+    CAPTURE_JSON_SCHEMA,
+  ];
+}
+
 /**
  * The CLI's print mode stops background tasks still running this long after the session's last
  * turn (10 minutes by default); "0" waits for them. Delivery sessions run their subagents in the
@@ -206,6 +357,9 @@ const PULL_REQUEST_PROMPT_FILE = "pr-writer-prompt.md";
 const PULL_REQUEST_OUTPUT_FILE = "pr-writer.json";
 const SCREEN_PICKER_PROMPT_FILE = "screen-picker-prompt.md";
 const SCREEN_PICKER_OUTPUT_FILE = "screen-picker.json";
+const CAPTURE_PROMPT_FILE = "capture-prompt.md";
+const CAPTURE_OUTPUT_FILE = "capture.json";
+const CAPTURE_MCP_CONFIG_FILE = "capture-mcp.json";
 
 /**
  * One `--allowedTools` flag per command, built from the pinned text exactly: the command alone or
@@ -419,6 +573,60 @@ export function claudeCodePickScreens(config: DeliveryAgentConfig): PickScreens 
     const [first, ...rest] = picked.value.changedScreens;
     if (first === undefined) return ok({ kind: "no_visible_change" });
     return ok({ kind: "screens", screens: [first, ...rest] });
+  };
+}
+
+/**
+ * The browser capture session through the Claude Code CLI at `config.claudePath`, under the
+ * reviewer's model, effort, turn and timeout settings: no config key of its own. Its one MCP server
+ * is the pinned Playwright MCP server, driving headless Chromium that may request only the app's
+ * origin; it screenshots the picked screens into the request's screenshots folder and runs no
+ * command. A screenshot its output names that is not a file in that folder is
+ * `agent_output_invalid`.
+ */
+export function claudeCodeCaptureScreens(config: DeliveryAgentConfig): CaptureScreens {
+  const call: CliCall = {
+    claudePath: config.claudePath,
+    timeoutSeconds: config.reviewerTimeoutMinutes * 60,
+    who: "The capture session",
+    sessionsDir: config.sessionsDir,
+    // A read-only session after the review, under the reviewer's settings: recorded as one.
+    kind: "reviewer",
+  };
+  return async (request, signal) => {
+    const systemPromptFile = join(request.runDir, CAPTURE_PROMPT_FILE);
+    writeFileSync(systemPromptFile, buildCaptureSystemPrompt(request));
+    const mcpConfigFile = join(request.runDir, CAPTURE_MCP_CONFIG_FILE);
+    writeFileSync(mcpConfigFile, captureMcpConfig(request));
+    const stdoutFile = join(request.runDir, CAPTURE_OUTPUT_FILE);
+    writeFileSync(stdoutFile, "");
+    const run = await runSession(
+      call,
+      captureArgs(config, request, buildCapturePrompt(request), systemPromptFile, mcpConfigFile),
+      request.worktreePath,
+      {
+        env: { ...gitIdentityEnv(request.gitIdentity), ...NO_BACKGROUND_WAIT_CEILING },
+        signal,
+        stdoutFile,
+        onStdout: null,
+        processGroup: true,
+      },
+    );
+    if (!run.ok) return run;
+    const captured = interpretExit(call, run.value, CAPTURE_OUTPUT.schema);
+    if (!captured.ok) return captured;
+    const missing = captured.value.screenshots.find(
+      (image) => !existsSync(join(request.screenshotsDir, image.file)),
+    );
+    if (missing !== undefined) {
+      return err(
+        outputInvalid(
+          `The capture session named the screenshot ${missing.file}, which is not in ${request.screenshotsDir}.`,
+          run.value.stderrTail,
+        ),
+      );
+    }
+    return ok({ images: captured.value.screenshots, skipped: captured.value.skippedScreens });
   };
 }
 

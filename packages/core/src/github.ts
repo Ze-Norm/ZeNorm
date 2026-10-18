@@ -373,6 +373,120 @@ export async function openPullRequest(input: {
   }
 }
 
+/**
+ * The branch on origin a run's screenshots are pushed to: `pr-assets-<run branch tail>`, the run
+ * branch's last path segment after `pr-assets-`, so `zenorm/dark-mode-2e3f4a5b-run-1` gives
+ * `pr-assets-dark-mode-2e3f4a5b-run-1`. One per run, never the run branch, and never deleted. The
+ * name holds no slash: whether GitHub renders a raw blob image from a branch whose name holds one
+ * was not checked, so the name that cannot break it is used.
+ */
+export function prAssetsBranchName(runBranch: string): string {
+  const tail = runBranch.slice(runBranch.lastIndexOf("/") + 1);
+  if (tail === "") {
+    throw new Error(`Run branch ${JSON.stringify(runBranch)} has no last segment`);
+  }
+  return `pr-assets-${tail}`;
+}
+
+/**
+ * The path a pull request body embeds a screenshot pushed to `branch` with: a raw blob image
+ * relative to the pull request's page, `../blob/<branch>/<file>?raw=true`, which resolves to the
+ * file on the repository the pull request is opened on.
+ */
+export function prAssetSource(branch: string, file: string): string {
+  return `../blob/${branch}/${file}?raw=true`;
+}
+
+/** Why pushing a run's screenshots failed; the message carries git's output. */
+export type ScreenshotPushError = CodedError<"capture_push_failed">;
+
+/** One screenshot to push: its file on disk and its name at the pr-assets branch's root. */
+export interface ScreenshotToPush {
+  readonly path: string;
+  readonly name: string;
+}
+
+/**
+ * Pushes `files` to the run's pr-assets branch on `origin`, from the project's folder, as one
+ * commit holding only them, made with git's plumbing and a scratch index at `indexFile`: no local
+ * branch is created, no worktree or index of the run is touched, and the run branch never holds an
+ * image. The push never forces, so an existing pr-assets branch is never overwritten, and no remote
+ * branch is ever deleted. `capture_push_failed` with git's output when a step fails. Returns the
+ * branch and its commit.
+ */
+export async function pushScreenshots(input: {
+  readonly folder: string;
+  readonly runBranch: string;
+  readonly files: readonly ScreenshotToPush[];
+  readonly env: Readonly<Record<string, string>>;
+  readonly indexFile: string;
+  readonly signal: AbortSignal;
+}): Promise<Result<{ branch: string; commit: string }, ScreenshotPushError>> {
+  const branch = prAssetsBranchName(input.runBranch);
+  const env: NodeJS.ProcessEnv = {
+    ...process.env,
+    ...input.env,
+    LC_ALL: "C",
+    GIT_TERMINAL_PROMPT: "0",
+    GIT_INDEX_FILE: input.indexFile,
+  };
+  /** One git step: its trimmed stdout, or the push failure naming the step. */
+  const git = async (
+    step: string,
+    rest: readonly string[],
+  ): Promise<Result<string, ScreenshotPushError>> => {
+    const outcome = await runCommand("git", [step, ...rest], {
+      cwd: input.folder,
+      env,
+      timeoutMs: null,
+      signal: input.signal,
+    });
+    switch (outcome.kind) {
+      case "missing":
+        throw new Error(`git cannot run in ${input.folder}: ${outcome.cause}`);
+      case "timed_out":
+        throw new Error("Pushing the screenshots has no time bound, so it cannot time out");
+      case "aborted":
+        return err({
+          code: "capture_push_failed",
+          message: "The run was cancelled while ZeNorm was pushing its screenshots.",
+        });
+      case "exited":
+        if (outcome.exitCode === 0) {
+          return ok(outcome.stdout.trim());
+        }
+        return err({
+          code: "capture_push_failed",
+          message: `git ${step} for the screenshots branch ${branch} ${exitWords(outcome.exitCode)}.\n${outputTail(outcome)}`,
+        });
+    }
+  };
+  // A fresh scratch index: `read-tree --empty` clears whatever an earlier attempt left in it.
+  const emptied = await git("read-tree", ["--empty"]);
+  if (!emptied.ok) return emptied;
+  for (const file of input.files) {
+    const blob = await git("hash-object", ["-w", "--", file.path]);
+    if (!blob.ok) return blob;
+    const added = await git("update-index", [
+      "--add",
+      "--cacheinfo",
+      `100644,${blob.value},${file.name}`,
+    ]);
+    if (!added.ok) return added;
+  }
+  const tree = await git("write-tree", []);
+  if (!tree.ok) return tree;
+  const commit = await git("commit-tree", [
+    tree.value,
+    "-m",
+    `Screenshots of the changed screens of ${input.runBranch}`,
+  ]);
+  if (!commit.ok) return commit;
+  const pushed = await git("push", ["--quiet", "origin", `${commit.value}:refs/heads/${branch}`]);
+  if (!pushed.ok) return pushed;
+  return ok({ branch, commit: commit.value });
+}
+
 /** Why reading a recorded pull request's state failed: gh cannot run, or GitHub's answer. */
 export type PullRequestReadError = GitHubSignInError;
 
