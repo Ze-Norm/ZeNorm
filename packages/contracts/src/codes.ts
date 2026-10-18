@@ -478,6 +478,9 @@ export const SaveProjectSettingsErrorCode = z.enum([
   "project_branch_invalid",
   "project_check_invalid",
   "project_fix_command_invalid",
+  "project_app_settings_incomplete",
+  "project_app_url_invalid",
+  "project_app_command_invalid",
 ]);
 export type SaveProjectSettingsErrorCode = z.infer<typeof SaveProjectSettingsErrorCode>;
 
@@ -488,6 +491,14 @@ export const SaveProjectSettingsErrorData = {
   project_check_invalid: z.strictObject({ command: z.string() }),
   /** The first fix command that needs a shell. */
   project_fix_command_invalid: z.strictObject({ command: z.string() }),
+  /** Only one of the app start command and URL was given; `missing` names the other. */
+  project_app_settings_incomplete: z.strictObject({
+    missing: z.enum(["appStartCommand", "appUrl"]),
+  }),
+  /** The app URL is not an http(s) URL on localhost or 127.0.0.1. */
+  project_app_url_invalid: z.strictObject({ url: z.string() }),
+  /** The app start command, or else the first app setup command, that needs a shell. */
+  project_app_command_invalid: z.strictObject({ command: z.string() }),
 } satisfies Record<SaveProjectSettingsErrorCode, z.ZodType>;
 
 export type SaveProjectSettingsError = {
@@ -663,6 +674,30 @@ export const PublishFailureCode = z.enum([
 export type PublishFailureCode = z.infer<typeof PublishFailureCode>;
 
 /**
+ * Why a passing run's screenshot capture failed: the screen picker session failed or timed out
+ * (`capture_picker_failed`); a setup command failed (`capture_setup_failed`); the app URL did not
+ * answer within two minutes of the start (`capture_app_not_ready`) or already answered before it
+ * (`capture_app_url_in_use`); the Chromium build the pinned Playwright MCP server expects is not
+ * installed, or the server itself is missing (`capture_browser_missing`, also a `StartupCode`
+ * `zenorm doctor` reports); the browser capture session failed (`capture_session_failed`); the
+ * capture returned images of more screens than a pull request shows (`capture_too_many_screens`);
+ * or pushing the pr-assets branch failed (`capture_push_failed`). A capture failure is an activity
+ * line with its code, and the run still opens its pull request and ends passed, so these are never
+ * a `DeliveryFailureCode`.
+ */
+export const CaptureFailureCode = z.enum([
+  "capture_picker_failed",
+  "capture_setup_failed",
+  "capture_app_not_ready",
+  "capture_app_url_in_use",
+  "capture_browser_missing",
+  "capture_session_failed",
+  "capture_too_many_screens",
+  "capture_push_failed",
+]);
+export type CaptureFailureCode = z.infer<typeof CaptureFailureCode>;
+
+/**
  * Codes `delivery.checkPullRequest` (Check now) returns, in the order they are checked; each writes
  * nothing: no such run, a run that opened no pull request, then gh's sign-in check (gh cannot run,
  * gh is not signed in to github.com, or GitHub could not be reached, which reading the pull
@@ -769,6 +804,9 @@ export const DomainCode = z.enum([
   "project_repair_limit_missing",
   "project_check_invalid",
   "project_fix_command_invalid",
+  "project_app_settings_incomplete",
+  "project_app_url_invalid",
+  "project_app_command_invalid",
   ...CancelDeliveryErrorCode.options,
   "delivery_not_passed",
   "delivery_already_merged",
@@ -776,6 +814,7 @@ export const DomainCode = z.enum([
   "delivery_branch_missing",
   "delivery_no_pull_request",
   ...DeliveryFailureCode.exclude([...DeliveryAgentErrorCode.options]).options,
+  ...CaptureFailureCode.options,
   "hatch_message_empty",
   ...HatchRefusal.exclude(["map_uncleared"]).options,
   ...AccessErrorCode.options,
@@ -818,7 +857,9 @@ export type PluginStartupCode = z.infer<typeof PluginStartupCode>;
  * `server_listen_failed` when the server cannot bind its host and port (before any run is marked
  * interrupted or relaunched). `zenorm doctor` reports these codes per check, except the three only
  * `zenorm run` can meet (`data_dir_in_use`, `server_port_in_use`, `server_listen_failed`), and
- * `git_missing` when git cannot run.
+ * `git_missing` when git cannot run, and `capture_browser_missing` (a capture failure code too)
+ * when the Chromium build the pinned Playwright MCP server expects is not installed, which fails
+ * doctor only when some project has screenshot capture on.
  */
 export const StartupCode = z.enum([
   "platform_unsupported",
@@ -843,6 +884,7 @@ export const StartupCode = z.enum([
   "change_feed_missing",
   "server_port_in_use",
   "server_listen_failed",
+  "capture_browser_missing",
   ...PluginStartupCode.options,
 ]);
 export type StartupCode = z.infer<typeof StartupCode>;

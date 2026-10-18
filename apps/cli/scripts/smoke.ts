@@ -4,10 +4,11 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { createRequire } from "node:module";
 import { createServer } from "node:net";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import type { Readable } from "node:stream";
 import { setTimeout as sleep } from "node:timers/promises";
 
+import { PLAYWRIGHT_MCP_ENTRY, PLAYWRIGHT_MCP_PACKAGE } from "@zenorm/agent";
 import {
   DeliveryRun,
   InstanceConfig,
@@ -25,11 +26,12 @@ import { packedTarball } from "./packed.ts";
 /**
  * The install smoke test, run by CI on Linux after the `pack` task: installs
  * the packed `@ze-norm/cli` with npm into an empty folder outside the repository and checks that
- * better-sqlite3 came from its bundled prebuild, with no node-gyp compile, and is the only
- * runtime dependency. `zenorm --help` and `--version` exit 0 and an unknown option is refused
+ * better-sqlite3 came from its bundled prebuild, with no node-gyp compile, and that it and the
+ * Playwright MCP server (playwright-core) are the only runtime dependencies, the server installed
+ * and running with node. `zenorm --help` and `--version` exit 0 and an unknown option is refused
  * `arguments_invalid`. With a config whose
  * `agent.claudePath` is the repository's stand-in claude (signed in), `zenorm doctor` passes every
- * check; `zenorm run` serves the shipped web app over a freshly migrated database; and one map is
+ * check (the screenshot browser may be reported missing); `zenorm run` serves the shipped web app over a freshly migrated database; and one map is
  * driven over `/rpc` from idea to a passed delivery run, so the stand-in planning sessions (To Spec,
  * the planning reviews, To Tickets) and delivery sessions (orchestrator, reviewer) all run on the
  * skills the installed package ships: a missing one would stop its run with `agent_skill_missing`.
@@ -155,17 +157,23 @@ function isJsonLine(line: string): boolean {
   }
 }
 
+/** The published manifest's runtime dependencies, sorted: everything else is bundled. */
+const RUNTIME_DEPENDENCIES = ["better-sqlite3", "playwright-core"];
+
 /**
- * The published manifest's only runtime dependency is better-sqlite3 (the command library is
- * bundled); `zenorm --help` and `zenorm --version` exit 0, the version the manifest's; and an
- * unknown option exits 1 with a readable `arguments_invalid` refusal on stderr (no terminal), no
- * line of it JSON.
+ * The published manifest's only runtime dependencies are better-sqlite3 and playwright-core (the
+ * command library is bundled); `zenorm --help` and `zenorm --version` exit 0, the version the
+ * manifest's; and an unknown option exits 1 with a readable `arguments_invalid` refusal on stderr
+ * (no terminal), no line of it JSON.
  */
 function checkCommandLine(bin: string, packageDir: string): void {
   const { dependencies, version: published } = readInstalledManifest(packageDir);
-  if (!isRecord(dependencies) || Object.keys(dependencies).join(",") !== "better-sqlite3") {
+  if (
+    !isRecord(dependencies) ||
+    Object.keys(dependencies).sort().join(",") !== RUNTIME_DEPENDENCIES.join(",")
+  ) {
     throw new Error(
-      `The published dependencies are ${JSON.stringify(dependencies)}; only better-sqlite3 is expected`,
+      `The published dependencies are ${JSON.stringify(dependencies)}; only ${RUNTIME_DEPENDENCIES.join(" and ")} are expected`,
     );
   }
   if (typeof published !== "string") {
@@ -190,6 +198,41 @@ function checkCommandLine(bin: string, packageDir: string): void {
   ) {
     throw new Error(
       `zenorm run --bogus exited ${String(unknown.status)} without a readable arguments_invalid refusal: ${unknown.stderr}`,
+    );
+  }
+}
+
+/**
+ * The Playwright MCP server the screenshot capture starts is installed with the package, resolved
+ * from the bundle as the capture session resolves it, at the version the manifest pins, and runs
+ * with node: `--version` exits 0 naming that version. Its Chromium build is the person's to
+ * install, so nothing launches a browser here.
+ */
+function checkPlaywrightMcp(packageDir: string): void {
+  const { dependencies } = readInstalledManifest(packageDir);
+  const pinned = isRecord(dependencies) ? dependencies[PLAYWRIGHT_MCP_PACKAGE] : undefined;
+  if (typeof pinned !== "string") {
+    throw new Error(`The published manifest pins no ${PLAYWRIGHT_MCP_PACKAGE}`);
+  }
+  const fromBundle = createRequire(join(packageDir, "dist", "zenorm.js"));
+  const serverDir = dirname(fromBundle.resolve(`${PLAYWRIGHT_MCP_PACKAGE}/package.json`));
+  const { version: installed } = readInstalledManifest(serverDir);
+  if (installed !== pinned) {
+    throw new Error(
+      `${PLAYWRIGHT_MCP_PACKAGE} ${String(installed)} is installed; the manifest pins ${pinned}`,
+    );
+  }
+  const entry = join(serverDir, PLAYWRIGHT_MCP_ENTRY);
+  const server = spawnSync(process.execPath, [entry, "--version"], {
+    encoding: "utf8",
+    env: childEnv(),
+  });
+  if (server.error !== undefined) throw server.error;
+  process.stdout.write(server.stdout);
+  process.stderr.write(server.stderr);
+  if (server.status !== 0 || !server.stdout.includes(pinned)) {
+    throw new Error(
+      `The Playwright MCP server exited ${String(server.status)} without its version ${pinned}: ${server.stderr}`,
     );
   }
 }
@@ -243,7 +286,16 @@ function writeConfig(root: string, port: number, dataDir: string): string {
   return file;
 }
 
-/** `zenorm doctor` must exit 0 with every check passing (`ok`), none failed or skipped. */
+/**
+ * The screenshot browser check's line when this machine has no Chromium for the pinned server: no
+ * project here captures screens, so it is reported, not failed.
+ */
+const BROWSER_MISSING_NOTE = "note  capture_browser: capture_browser_missing:";
+
+/**
+ * `zenorm doctor` must exit 0 with every check passing (`ok`), none failed or skipped; the
+ * screenshot browser's check may instead report the browser missing.
+ */
 function runDoctor(bin: string, configFile: string): void {
   const doctor = spawnSync(bin, ["doctor", "--config", configFile], {
     encoding: "utf8",
@@ -253,7 +305,9 @@ function runDoctor(bin: string, configFile: string): void {
   process.stdout.write(doctor.stdout);
   process.stderr.write(doctor.stderr);
   const lines = doctor.stdout.split("\n").filter((line) => line !== "");
-  const notPassing = lines.filter((line) => !line.startsWith("ok "));
+  const notPassing = lines.filter(
+    (line) => !line.startsWith("ok ") && !line.startsWith(BROWSER_MISSING_NOTE),
+  );
   if (doctor.status !== 0 || lines.length === 0 || notPassing.length > 0) {
     throw new Error(
       `zenorm doctor exited ${String(doctor.status)} with checks not passing: ${notPassing.join("; ")}`,
@@ -461,6 +515,9 @@ async function deliverOneMap(smoke: Smoke, repo: string): Promise<void> {
       // A project needs a saved repair limit before it can start delivery; 0 is no repair.
       repairLimit: 0,
       fixCommands: [],
+      appStartCommand: null,
+      appUrl: null,
+      appSetupCommands: [],
     }),
   );
   const run = DeliveryRun.parse(await rpc(smoke, "delivery/start", { ticketSetId: ticketSet.id }));
@@ -490,6 +547,9 @@ const installedDist = join(installedPackage, "dist");
 
 step("zenorm --help, --version and an unknown option");
 checkCommandLine(bin, installedPackage);
+
+step("The Playwright MCP server runs with node");
+checkPlaywrightMcp(installedPackage);
 
 const port = await freePort();
 const url = `http://${HOST}:${String(port)}`;

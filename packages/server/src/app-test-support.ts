@@ -45,6 +45,11 @@ import type {
   PlanningAgentError,
   PlanningCallSession,
   PlanningRunUsage,
+  CapturedScreens,
+  CaptureScreens,
+  PickedScreens,
+  PickScreens,
+  PickScreensRequest,
   Project,
   PullRequestRequest,
   QuestionRound,
@@ -59,6 +64,7 @@ import type {
   ReviewSpecRequest,
   ReviewTicketSetRequest,
   RunEvent,
+  SaveProjectSettingsInput,
   SpecReviewOutcome,
   TaskOutcome,
   TicketSetContent,
@@ -66,6 +72,7 @@ import type {
   Verdict,
   WorkTaskRequest,
   WritePullRequest,
+  WrittenPullRequest,
 } from "@zenorm/contracts";
 import { gitIdentityEnv, ok } from "@zenorm/contracts";
 import { createChangeBus, ticketBranchName } from "@zenorm/core";
@@ -360,8 +367,20 @@ export function localExecutor(): DeliveryExecutor {
   const implementTicketSet: ImplementTicketSet = implementPort.port;
   const reviewDelivery: ReviewDelivery = reviewPort.port;
   const writePullRequest: WritePullRequest = pullRequestPort.port;
-  return { name: "local", implementTicketSet, reviewDelivery, writePullRequest };
+  const pickScreens: PickScreens = pickScreensPort.port;
+  const captureScreens: CaptureScreens = () => Promise.resolve(ok(NO_IMAGES));
+  return {
+    name: "local",
+    implementTicketSet,
+    reviewDelivery,
+    writePullRequest,
+    pickScreens,
+    captureScreens,
+  };
 }
+
+/** What a stand-in capture that shoots nothing returns. */
+export const NO_IMAGES: CapturedScreens = { images: [], skipped: [] };
 
 /** `plugins` checked as the app entry checks them, with `executors` and the one `executor` names. */
 export function checked(
@@ -379,9 +398,17 @@ export function checked(
 export function deliveryOptions() {
   return {
     plugins: checked([], [localExecutor()], "local"),
-    delivery: { runsDir: join(root, "runs"), checkTimeoutMinutes: 1 },
+    delivery: {
+      runsDir: join(root, "runs"),
+      checkTimeoutMinutes: 1,
+      sessionsDir: join(root, "sessions"),
+      appReadyTimeoutMs: APP_READY_TEST_TIMEOUT_MS,
+    },
   };
 }
+
+/** How long a test run's capture waits for its stand-in app's URL: the fixed two minutes, cut short. */
+export const APP_READY_TEST_TIMEOUT_MS = 3000;
 
 /** The app over `options`, started and launched as the app entry does; a refusal fails the test. */
 export async function appOf(options: AppOptions): Promise<ZeNormApp> {
@@ -419,7 +446,10 @@ export let ticketsReviewPort: ReturnType<
 export let hatchPort: ReturnType<typeof deferredPort<ReplyThroughHatchRequest, HatchOutcome>>;
 export let implementPort: ReturnType<typeof deferredSession<ImplementRequest, null>>;
 export let reviewPort: ReturnType<typeof deferredSession<ReviewRequest, Verdict>>;
-export let pullRequestPort: ReturnType<typeof deferredSession<PullRequestRequest, string>>;
+export let pullRequestPort: ReturnType<
+  typeof deferredSession<PullRequestRequest, WrittenPullRequest>
+>;
+export let pickScreensPort: ReturnType<typeof deferredSession<PickScreensRequest, PickedScreens>>;
 export let app: ZeNormApp;
 export let client: ContractRouterClient<Contract>;
 
@@ -458,6 +488,7 @@ export function setUpAppTests(): void {
     await writeFile(join(webDistDir, "index.html"), INDEX_HTML);
     await writeFile(join(webDistDir, "asset.js"), "export {};");
     await mkdir(join(root, "runs"));
+    await mkdir(join(root, "sessions"));
     const file = join(root, "zenorm.sqlite");
     await copyFile(inject("migratedDatabase"), file);
     const opened = openDatabase(file);
@@ -481,7 +512,8 @@ export function setUpAppTests(): void {
     hatchPort = deferredPort<ReplyThroughHatchRequest, HatchOutcome>();
     implementPort = deferredSession<ImplementRequest, null>();
     reviewPort = deferredSession<ReviewRequest, Verdict>();
-    pullRequestPort = deferredSession<PullRequestRequest, string>();
+    pullRequestPort = deferredSession<PullRequestRequest, WrittenPullRequest>();
+    pickScreensPort = deferredSession<PickScreensRequest, PickedScreens>();
     app = await appOf({ db, bus: createChangeBus(log), webDistDir, log, ...planningPorts() });
     client = clientOf(app);
   });
@@ -684,6 +716,11 @@ export const DELIVERED_FILE = "delivered.txt";
 /** The body every stand-in pull request writer returns (the PR skill's four headings). */
 export const PULL_REQUEST_BODY =
   "## Why\n\nDark mode.\n\n## What\n\n## Tests\n\n## Risks\n\nNone.\n";
+/** What every stand-in pull request writer returns: the body, reporting no visible change. */
+export const PULL_REQUEST_WRITTEN: WrittenPullRequest = {
+  body: PULL_REQUEST_BODY,
+  visibleChange: false,
+};
 export const PASSING_CHECK = "git status --short";
 export const FAILING_CHECK = "git rev-parse --verify no-such-ref";
 
@@ -756,9 +793,16 @@ export async function startRunWithRepairs(
     requiredChecks: [...checks],
     repairLimit,
     fixCommands: [],
+    ...NO_APP_SETTINGS,
   });
   return await client.delivery.start({ ticketSetId });
 }
+
+/** The app settings of a project that takes no screenshots: no start command, URL or setup. */
+export const NO_APP_SETTINGS: Pick<
+  SaveProjectSettingsInput,
+  "appStartCommand" | "appUrl" | "appSetupCommands"
+> = { appStartCommand: null, appUrl: null, appSetupCommands: [] };
 
 /** The run with this id as `map.overview` reports it in spec 1's runs. */
 export async function deliveryRun(mapId: string, runId: string): Promise<SpecRun> {
@@ -877,7 +921,15 @@ export function standInExecutor(calls: string[]): DeliveryExecutor {
     },
     writePullRequest: () => {
       calls.push("pull request");
-      return Promise.resolve(ok(PULL_REQUEST_BODY));
+      return Promise.resolve(ok(PULL_REQUEST_WRITTEN));
+    },
+    pickScreens: () => {
+      calls.push("pick screens");
+      return Promise.resolve(ok({ kind: "no_visible_change" }));
+    },
+    captureScreens: () => {
+      calls.push("capture");
+      return Promise.resolve(ok(NO_IMAGES));
     },
   };
 }
@@ -936,7 +988,9 @@ export function repairingExecutor(requests: ImplementRequest[]): DeliveryExecuto
       return ok(null);
     },
     reviewDelivery: (request) => Promise.resolve(ok(verdictFor(request.finalCommit, false))),
-    writePullRequest: () => Promise.resolve(ok(PULL_REQUEST_BODY)),
+    writePullRequest: () => Promise.resolve(ok(PULL_REQUEST_WRITTEN)),
+    pickScreens: () => Promise.resolve(ok({ kind: "no_visible_change" })),
+    captureScreens: () => Promise.resolve(ok(NO_IMAGES)),
   };
 }
 

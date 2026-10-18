@@ -19,15 +19,27 @@ import type { ComponentType } from "react";
 
 export { err, gitIdentityEnv, ok, ticketBranchName } from "@zenorm/contracts";
 export {
+  CaptureFailureCode,
+  CapturedImage,
+  CapturedScreens,
+  CaptureScreensRequest,
+  DELIVERY_SCREENS_MAX_COUNT,
   DeliveryAgentErrorCode,
   ImplementEvent,
   ImplementRequest,
+  PickedScreen,
+  PickedScreens,
+  PickScreensRequest,
+  PullRequestCapture,
   PullRequestRequest,
+  SkippedScreen,
   ReviewRequest,
   Verdict,
+  WrittenPullRequest,
 } from "@zenorm/contracts";
 export type {
   AdmitRun,
+  CaptureScreens,
   DeliveryAgentError,
   GitIdentity,
   Result,
@@ -41,6 +53,7 @@ export type {
   ExecutorEnvRun,
   Identify,
   ImplementTicketSet,
+  PickScreens,
   ReviewDelivery,
   RunAdmissionRefusal,
   RunAdmissionRequest,

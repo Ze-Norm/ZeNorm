@@ -9,12 +9,14 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 
 import {
+  type CaptureScreensRequest,
   type DeliveryAgentConfig,
   type ImplementEvent,
   type ImplementRequest,
+  type PickScreensRequest,
   type PullRequestRequest,
   type ReviewRequest,
   Verdict,
@@ -23,7 +25,11 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { z } from "zod";
 
 import {
+  CAPTURE_ALLOWED_TOOLS,
+  CAPTURE_JSON_SCHEMA,
+  claudeCodeCaptureScreens,
   claudeCodeImplementTicketSet,
+  claudeCodePickScreens,
   claudeCodeReviewDelivery,
   claudeCodeWritePullRequest,
   type DeliverySessionConfig,
@@ -31,10 +37,16 @@ import {
   implementTicketSetWith,
   PULL_REQUEST_JSON_SCHEMA,
   reviewDeliveryWith,
+  SCREEN_PICKER_JSON_SCHEMA,
   VERDICT_JSON_SCHEMA,
   writePullRequestWith,
 } from "./delivery.ts";
 import { buildOrchestratorPrompt, buildOrchestratorSystemPrompt } from "./delivery-prompt.ts";
+import {
+  checkCaptureBrowser,
+  locateCaptureBrowser,
+  resolvePlaywrightMcp,
+} from "./playwright-mcp.ts";
 import { checkSkill, deliverySkills, type DeliverySkills, SKILLS_DIR } from "./skills.ts";
 
 /** The repository's delivery skills, which the source entries pass in. */
@@ -229,18 +241,44 @@ function pullRequestRequest(): PullRequestRequest {
       { ticket: "T2", report: null },
     ],
     verdict: VERDICT,
+    capture: { kind: "off" },
   };
 }
 
-function pullRequestResult(body: string): string {
+function pullRequestResult(body: string, visibleChange = false): string {
   return JSON.stringify({
     type: "result",
     subtype: "success",
     is_error: false,
     stop_reason: "tool_use",
-    structured_output: { pullRequestBody: body },
+    structured_output: { pullRequestBody: body, visibleChange },
   });
 }
+
+function pickScreensRequest(): PickScreensRequest {
+  return {
+    runDir,
+    worktreePath,
+    baseCommit: BASE,
+    finalCommit: FINAL,
+    specPath: join(runDir, "inputs", "spec.md"),
+    diffPath: join(runDir, "review.diff"),
+    changedFiles: ["src/Settings.tsx", "src/Settings.test.tsx"],
+    gitIdentity: IDENTITY,
+  };
+}
+
+function screenPickerResult(changedScreens: unknown[]): string {
+  return JSON.stringify({
+    type: "result",
+    subtype: "success",
+    is_error: false,
+    stop_reason: "tool_use",
+    structured_output: { changedScreens },
+  });
+}
+
+const SCREEN = { where: "/settings", changed: "A new App section.", isNew: false };
 
 function recordedArgv(): string[] {
   const raw = readFileSync(join(dir, "argv"), "utf8");
@@ -1077,7 +1115,7 @@ describe("claudeCodeWritePullRequest", () => {
 
     const result = await claudeCodeWritePullRequest(config(claudePath))(request, neverAborted());
 
-    expect(result).toEqual({ ok: true, value: BODY });
+    expect(result).toEqual({ ok: true, value: { body: BODY, visibleChange: false } });
     expect(readFileSync(join(dir, "cwd"), "utf8").trim()).toBe(worktreePath);
     expect(recordedGitEnv()).toEqual([
       IDENTITY.name,
@@ -1120,7 +1158,7 @@ describe("claudeCodeWritePullRequest", () => {
     const schema = z
       .looseObject({ properties: z.record(z.string(), z.unknown()) })
       .parse(JSON.parse(PULL_REQUEST_JSON_SCHEMA));
-    expect(Object.keys(schema.properties)).toEqual(["pullRequestBody"]);
+    expect(Object.keys(schema.properties)).toEqual(["pullRequestBody", "visibleChange"]);
 
     const prompt = argv[1];
     if (prompt === undefined) throw new Error("no prompt after -p");
@@ -1143,7 +1181,103 @@ describe("claudeCodeWritePullRequest", () => {
     const systemPrompt = readFileSync(systemPromptFile, "utf8");
     expect(systemPrompt).toContain(DELIVERY_SKILLS.pullRequest);
     expect(systemPrompt).toContain("`## Why`");
+    expect(systemPrompt).toContain("`visibleChange`");
     expect(readFileSync(join(runDir, "pr-writer.json"), "utf8")).toBe(stdout);
+  });
+
+  test.each([
+    { capture: { kind: "off" } as const, line: "Screenshots: off for this run." },
+    {
+      capture: { kind: "no_visible_change" } as const,
+      line: "Screenshots: none, the screen picker found no visible change.",
+    },
+    {
+      capture: { kind: "failed", code: "capture_app_not_ready" } as const,
+      line: "Screenshots: missing (capture_app_not_ready)",
+    },
+  ])("the prompt names the capture outcome $capture.kind", async ({ capture, line }) => {
+    const claudePath = writeStandIn({
+      auth: LOGGED_IN,
+      run: { stdout: pullRequestResult(BODY), exitCode: 0 },
+    });
+
+    await claudeCodeWritePullRequest(config(claudePath))(
+      { ...pullRequestRequest(), capture },
+      neverAborted(),
+    );
+
+    const prompt = recordedArgv()[1];
+    expect(prompt).toContain(line);
+  });
+
+  test("the prompt lists captured images by their paths, with skipped and not-shown screens", async () => {
+    const claudePath = writeStandIn({
+      auth: LOGGED_IN,
+      run: { stdout: pullRequestResult(BODY), exitCode: 0 },
+    });
+    const src = "../blob/pr-assets-add-numbers-5f3a9c21-run-1/screen-1.png?raw=true";
+
+    await claudeCodeWritePullRequest(config(claudePath))(
+      {
+        ...pullRequestRequest(),
+        capture: {
+          kind: "captured",
+          images: [{ screen: "/settings", caption: "The new App section.", src }],
+          skipped: [{ screen: "/admin", reason: "It needs an admin login." }],
+          notShown: [{ where: "/about", changed: "A new footer.", isNew: false }],
+        },
+      },
+      neverAborted(),
+    );
+
+    const prompt = recordedArgv()[1];
+    if (prompt === undefined) throw new Error("no prompt after -p");
+    const lines = prompt.split("\n");
+    expect(lines).toEqual(
+      expect.arrayContaining([
+        `Image of /settings: ![The new App section.](${src})`,
+        "Skipped: /admin (It needs an admin login.)",
+        "Not shown: /about (A new footer.)",
+      ]),
+    );
+    expect(lines.some((line) => /^<<<SCREENSHOTS \S+$/.test(line))).toBe(true);
+  });
+
+  test("returns the writer's visibleChange with its body", async () => {
+    const claudePath = writeStandIn({
+      auth: LOGGED_IN,
+      run: { stdout: pullRequestResult(BODY, true), exitCode: 0 },
+    });
+
+    const result = await claudeCodeWritePullRequest(config(claudePath))(
+      pullRequestRequest(),
+      neverAborted(),
+    );
+
+    expect(result).toEqual({ ok: true, value: { body: BODY, visibleChange: true } });
+  });
+
+  test("refuses with agent_output_invalid when visibleChange is missing", async () => {
+    const claudePath = writeStandIn({
+      auth: LOGGED_IN,
+      run: {
+        stdout: JSON.stringify({
+          type: "result",
+          subtype: "success",
+          is_error: false,
+          stop_reason: "tool_use",
+          structured_output: { pullRequestBody: BODY },
+        }),
+        exitCode: 0,
+      },
+    });
+
+    const result = await claudeCodeWritePullRequest(config(claudePath))(
+      pullRequestRequest(),
+      neverAborted(),
+    );
+
+    expect(result.ok ? null : result.error.code).toBe("agent_output_invalid");
   });
 
   test("refuses with agent_timed_out past delivery.reviewerTimeoutMinutes", async () => {
@@ -1187,6 +1321,404 @@ describe("claudeCodeWritePullRequest", () => {
 
     expect(result.ok ? null : result.error.code).toBe("agent_cancelled");
     expect(isAlive(pid)).toBe(false);
+  });
+});
+
+describe("claudeCodePickScreens", () => {
+  test("runs with only the read tools under the reviewer's turns and returns the listed screens", async () => {
+    const stdout = screenPickerResult([SCREEN, { ...SCREEN, where: "/about", isNew: true }]);
+    const claudePath = writeStandIn({ auth: LOGGED_IN, run: { stdout, exitCode: 0 } });
+    const request = pickScreensRequest();
+
+    const result = await claudeCodePickScreens(config(claudePath))(request, neverAborted());
+
+    expect(result).toEqual({
+      ok: true,
+      value: { kind: "screens", screens: [SCREEN, { ...SCREEN, where: "/about", isNew: true }] },
+    });
+    expect(readFileSync(join(dir, "cwd"), "utf8").trim()).toBe(worktreePath);
+    const systemPromptFile = join(runDir, "screen-picker-prompt.md");
+    const argv = recordedArgv();
+    expect(argv).toEqual([
+      "-p",
+      expect.any(String),
+      "--output-format",
+      "json",
+      "--model",
+      "claude-sonnet-5-5",
+      "--effort",
+      "medium",
+      "--max-turns",
+      "30",
+      "--setting-sources",
+      "project",
+      "--permission-mode",
+      "dontAsk",
+      "--tools",
+      "Read,Grep,Glob",
+      "--allowedTools",
+      "Read,Grep,Glob",
+      "--disallowedTools",
+      "Bash,Write,Edit,NotebookEdit,WebFetch,WebSearch,Agent",
+      "--add-dir",
+      runDir,
+      "--append-system-prompt-file",
+      systemPromptFile,
+      "--json-schema",
+      SCREEN_PICKER_JSON_SCHEMA,
+    ]);
+    const schema = z
+      .looseObject({ properties: z.record(z.string(), z.unknown()) })
+      .parse(JSON.parse(SCREEN_PICKER_JSON_SCHEMA));
+    expect(Object.keys(schema.properties)).toEqual(["changedScreens"]);
+
+    const prompt = argv[1];
+    if (prompt === undefined) throw new Error("no prompt after -p");
+    expect(prompt.split("\n")).toEqual(
+      expect.arrayContaining([
+        `Spec: ${request.specPath}`,
+        `Diff: ${request.diffPath}`,
+        `Base commit: ${BASE}`,
+        `Final commit: ${FINAL}`,
+        "src/Settings.tsx",
+      ]),
+    );
+    expect(readFileSync(join(runDir, "screen-picker.json"), "utf8")).toBe(stdout);
+  });
+
+  test("no screen listed is no visible change", async () => {
+    const claudePath = writeStandIn({
+      auth: LOGGED_IN,
+      run: { stdout: screenPickerResult([]), exitCode: 0 },
+    });
+
+    const result = await claudeCodePickScreens(config(claudePath))(
+      pickScreensRequest(),
+      neverAborted(),
+    );
+
+    expect(result).toEqual({ ok: true, value: { kind: "no_visible_change" } });
+  });
+
+  test("refuses with agent_output_invalid past the six-screen cap", async () => {
+    const claudePath = writeStandIn({
+      auth: LOGGED_IN,
+      run: { stdout: screenPickerResult(Array.from({ length: 7 }, () => SCREEN)), exitCode: 0 },
+    });
+
+    const result = await claudeCodePickScreens(config(claudePath))(
+      pickScreensRequest(),
+      neverAborted(),
+    );
+
+    expect(result.ok ? null : result.error.code).toBe("agent_output_invalid");
+  });
+
+  test("refuses with agent_timed_out past delivery.reviewerTimeoutMinutes", async () => {
+    const claudePath = writeStandIn({ auth: LOGGED_IN, run: { body: SLEEP_UNTIL_TERM } });
+
+    const result = await claudeCodePickScreens(
+      config(claudePath, { reviewerTimeoutMinutes: 1 / 60 }),
+    )(pickScreensRequest(), neverAborted());
+
+    expect(result.ok ? null : result.error.code).toBe("agent_timed_out");
+    expect(existsSync(join(dir, "term"))).toBe(true);
+  });
+
+  test("returns agent_cancelled when the signal aborts mid-run", async () => {
+    const claudePath = writeStandIn({ auth: LOGGED_IN, run: { body: SLEEP_UNTIL_TERM } });
+    const controller = new AbortController();
+
+    const pending = claudeCodePickScreens(config(claudePath))(
+      pickScreensRequest(),
+      controller.signal,
+    );
+    await waitForFile(join(dir, "pid"));
+    controller.abort();
+    const result = await pending;
+
+    expect(result.ok ? null : result.error.code).toBe("agent_cancelled");
+  });
+});
+
+describe("claudeCodeCaptureScreens", () => {
+  /** The browsers folder the tests point Playwright at, and the Chromium build's executable in it. */
+  function browserExecutable(): string {
+    const located = locateCaptureBrowser(process.env, worktreePath);
+    if (!located.ok) throw new Error(located.error.message);
+    return located.value.executablePath;
+  }
+
+  /** Puts a stand-in Chromium executable where the pinned server looks for its build. */
+  function installBrowser(): void {
+    const executable = browserExecutable();
+    mkdirSync(dirname(executable), { recursive: true });
+    writeFileSync(executable, "#!/bin/sh\n", { mode: 0o755 });
+  }
+
+  beforeEach(() => {
+    vi.stubEnv("PLAYWRIGHT_BROWSERS_PATH", join(dir, "browsers"));
+    installBrowser();
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  function captureRequest(): CaptureScreensRequest {
+    const screenshotsDir = join(runDir, "screenshots");
+    mkdirSync(screenshotsDir, { recursive: true });
+    return {
+      runDir,
+      worktreePath,
+      appUrl: "http://localhost:5173/app",
+      screens: [SCREEN, { ...SCREEN, where: "/admin", isNew: true }],
+      screenshotsDir,
+      gitIdentity: IDENTITY,
+    };
+  }
+
+  const IMAGE = { screen: "/settings", file: "screen-1.png", caption: "The new App section." };
+  const SKIPPED = { screen: "/admin", reason: "It needs an admin login no doc names." };
+
+  function captureResult(screenshots: unknown[], skippedScreens: unknown[]): string {
+    return JSON.stringify({
+      type: "result",
+      subtype: "success",
+      is_error: false,
+      stop_reason: "tool_use",
+      structured_output: { screenshots, skippedScreens },
+    });
+  }
+
+  /** A stand-in session that writes `files` into the screenshots folder, then answers `stdout`. */
+  function shooting(files: readonly string[], stdout: string): StandIn {
+    writeFileSync(join(dir, "run-stdout"), stdout);
+    return {
+      auth: LOGGED_IN,
+      run: {
+        body: [
+          ...files.map((file) => `printf png > '${join(runDir, "screenshots", file)}'`),
+          'cat "$dir/run-stdout"',
+          "exit 0",
+        ].join("\n"),
+      },
+    };
+  }
+
+  test("runs with only its MCP server, the read and named browser tools, under the reviewer's turns", async () => {
+    const request = captureRequest();
+    const claudePath = writeStandIn(shooting(["screen-1.png"], captureResult([IMAGE], [SKIPPED])));
+
+    const result = await claudeCodeCaptureScreens(config(claudePath))(request, neverAborted());
+
+    expect(result).toEqual({ ok: true, value: { images: [IMAGE], skipped: [SKIPPED] } });
+    expect(readFileSync(join(dir, "cwd"), "utf8").trim()).toBe(worktreePath);
+    const systemPromptFile = join(runDir, "capture-prompt.md");
+    const mcpConfigFile = join(runDir, "capture-mcp.json");
+    const argv = recordedArgv();
+    expect(argv).toEqual([
+      "-p",
+      expect.any(String),
+      "--output-format",
+      "json",
+      "--model",
+      "claude-sonnet-5-5",
+      "--effort",
+      "medium",
+      "--max-turns",
+      "30",
+      "--setting-sources",
+      "project",
+      "--permission-mode",
+      "dontAsk",
+      "--strict-mcp-config",
+      "--mcp-config",
+      mcpConfigFile,
+      "--tools",
+      "Read,Grep,Glob",
+      "--allowedTools",
+      CAPTURE_ALLOWED_TOOLS,
+      "--disallowedTools",
+      "Bash,Write,Edit,NotebookEdit,WebFetch,WebSearch,Agent,Read(**/.env),Read(**/.env.local),Read(**/.env.*.local),Read(**/*.pem),Read(**/*.key)",
+      "--add-dir",
+      runDir,
+      "--append-system-prompt-file",
+      systemPromptFile,
+      "--json-schema",
+      CAPTURE_JSON_SCHEMA,
+    ]);
+    // The allowed tools are the read tools and the named browser tools only.
+    expect(CAPTURE_ALLOWED_TOOLS.split(",")).toEqual([
+      "Read",
+      "Grep",
+      "Glob",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_navigate_back",
+      "mcp__playwright__browser_snapshot",
+      "mcp__playwright__browser_click",
+      "mcp__playwright__browser_hover",
+      "mcp__playwright__browser_type",
+      "mcp__playwright__browser_fill_form",
+      "mcp__playwright__browser_press_key",
+      "mcp__playwright__browser_select_option",
+      "mcp__playwright__browser_handle_dialog",
+      "mcp__playwright__browser_wait_for",
+      "mcp__playwright__browser_resize",
+      "mcp__playwright__browser_take_screenshot",
+      "mcp__playwright__browser_close",
+    ]);
+
+    // One MCP server, the pinned Playwright one, limited to the app's origin.
+    const server = resolvePlaywrightMcp();
+    if (!server.ok) throw new Error(server.error.message);
+    const { launch } = server.value;
+    expect(launch.command).toBe(process.execPath);
+    const [entry] = launch.args;
+    if (entry === undefined) throw new Error("The MCP server's launch names no entry");
+    expect(entry).toMatch(/playwright-core\/lib\/entry\/mcp\.js$/);
+    expect(existsSync(entry)).toBe(true);
+    expect(JSON.parse(readFileSync(mcpConfigFile, "utf8"))).toEqual({
+      mcpServers: {
+        playwright: {
+          type: "stdio",
+          command: process.execPath,
+          args: [
+            ...launch.args,
+            "--headless",
+            "--browser",
+            "chromium",
+            "--isolated",
+            "--allowed-origins",
+            "http://localhost:5173",
+            "--output-dir",
+            request.screenshotsDir,
+          ],
+        },
+      },
+    });
+
+    const schema = z
+      .looseObject({ properties: z.record(z.string(), z.unknown()) })
+      .parse(JSON.parse(CAPTURE_JSON_SCHEMA));
+    expect(Object.keys(schema.properties)).toEqual(["screenshots", "skippedScreens"]);
+    const prompt = argv[1];
+    if (prompt === undefined) throw new Error("no prompt after -p");
+    expect(prompt.split("\n")).toEqual(
+      expect.arrayContaining([
+        "App URL: http://localhost:5173/app",
+        "Screen 1, its screenshot's file name screen-1.png:",
+        "Where: /settings",
+        "Screen 2, its screenshot's file name screen-2.png:",
+      ]),
+    );
+    const systemPrompt = readFileSync(systemPromptFile, "utf8");
+    expect(systemPrompt).toContain("test, dev or demo");
+    expect(readFileSync(join(runDir, "capture.json"), "utf8")).toBe(
+      captureResult([IMAGE], [SKIPPED]),
+    );
+  });
+
+  test("a missing browser is capture_browser_missing before any session starts", async () => {
+    rmSync(join(dir, "browsers"), { recursive: true, force: true });
+    const claudePath = writeStandIn(shooting(["screen-1.png"], captureResult([IMAGE], [])));
+
+    const result = await claudeCodeCaptureScreens(config(claudePath))(
+      captureRequest(),
+      neverAborted(),
+    );
+
+    expect(result.ok ? null : result.error.code).toBe("capture_browser_missing");
+    expect(existsSync(join(dir, "argv"))).toBe(false);
+    expect(existsSync(join(runDir, "capture-mcp.json"))).toBe(false);
+  });
+
+  test("a Chromium build for another Playwright version is capture_browser_missing", async () => {
+    const executable = browserExecutable();
+    const located = locateCaptureBrowser(process.env, worktreePath);
+    if (!located.ok) throw new Error(located.error.message);
+    const { browsersDir, revision } = located.value;
+    rmSync(join(browsersDir, `chromium-${revision}`), { recursive: true, force: true });
+    const other = executable.replace(`chromium-${revision}`, "chromium-1000");
+    mkdirSync(dirname(other), { recursive: true });
+    writeFileSync(other, "#!/bin/sh\n", { mode: 0o755 });
+    const claudePath = writeStandIn(shooting([], captureResult([], [])));
+
+    const result = await claudeCodeCaptureScreens(config(claudePath))(
+      captureRequest(),
+      neverAborted(),
+    );
+
+    expect(result.ok ? null : result.error.code).toBe("capture_browser_missing");
+    expect(existsSync(join(dir, "argv"))).toBe(false);
+  });
+
+  test("the browser is the pinned package's Chromium build in Playwright's browsers folder", () => {
+    const server = resolvePlaywrightMcp();
+    if (!server.ok) throw new Error(server.error.message);
+    const browsers = z
+      .looseObject({
+        browsers: z.array(z.looseObject({ name: z.string(), revision: z.string() })),
+      })
+      .parse(JSON.parse(readFileSync(join(server.value.packageDir, "browsers.json"), "utf8")));
+    const chromium = browsers.browsers.find((browser) => browser.name === "chromium");
+
+    const located = locateCaptureBrowser(process.env, worktreePath);
+
+    if (!located.ok) throw new Error(located.error.message);
+    expect(located.value.revision).toBe(chromium?.revision);
+    expect(located.value.browsersDir).toBe(join(dir, "browsers"));
+    expect(
+      located.value.executablePath.startsWith(
+        join(dir, "browsers", `chromium-${located.value.revision}`),
+      ),
+    ).toBe(true);
+    expect(located.value.installCommand).toBe(
+      `npx playwright-core@${server.value.version} install --no-shell chromium`,
+    );
+    expect(checkCaptureBrowser(process.env, worktreePath).ok).toBe(true);
+  });
+
+  test("a relative browsers path resolves against the working folder", () => {
+    const located = locateCaptureBrowser({ PLAYWRIGHT_BROWSERS_PATH: "pw-browsers" }, worktreePath);
+
+    if (!located.ok) throw new Error(located.error.message);
+    expect(located.value.browsersDir).toBe(join(worktreePath, "pw-browsers"));
+  });
+
+  test("a screenshot the output names that is not in the screenshots folder is agent_output_invalid", async () => {
+    const claudePath = writeStandIn(shooting([], captureResult([IMAGE], [])));
+
+    const result = await claudeCodeCaptureScreens(config(claudePath))(
+      captureRequest(),
+      neverAborted(),
+    );
+
+    expect(result.ok ? null : result.error.code).toBe("agent_output_invalid");
+  });
+
+  test("a screenshot file name with a folder part is agent_output_invalid", async () => {
+    const claudePath = writeStandIn(
+      shooting([], captureResult([{ ...IMAGE, file: "../screen-1.png" }], [])),
+    );
+
+    const result = await claudeCodeCaptureScreens(config(claudePath))(
+      captureRequest(),
+      neverAborted(),
+    );
+
+    expect(result.ok ? null : result.error.code).toBe("agent_output_invalid");
+  });
+
+  test("refuses with agent_timed_out past delivery.reviewerTimeoutMinutes", async () => {
+    const claudePath = writeStandIn({ auth: LOGGED_IN, run: { body: SLEEP_UNTIL_TERM } });
+
+    const result = await claudeCodeCaptureScreens(
+      config(claudePath, { reviewerTimeoutMinutes: 1 / 60 }),
+    )(captureRequest(), neverAborted());
+
+    expect(result.ok ? null : result.error.code).toBe("agent_timed_out");
+    expect(existsSync(join(dir, "term"))).toBe(true);
   });
 });
 

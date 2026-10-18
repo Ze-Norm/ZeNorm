@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createServer } from "node:net";
 import { join } from "node:path";
 
@@ -218,6 +218,32 @@ export function deliveryRepo(flow: DeliveryFlow): string {
 /** The github.com repository the `pull-request` flow's project names as its `origin`. */
 export const GITHUB_ORIGIN_URL = "https://github.com/acme/numbers.git";
 
+/**
+ * The screenshot capture flows of `delivery.spec.ts`; each adds its own project, whose `origin` is
+ * on github.com (`CAPTURE_ORIGIN_URL`, a repository of its own, so the fake gh numbers its pull
+ * requests apart from `GITHUB_ORIGIN_URL`'s) and whose pushes land in `pushTargetRepo()`.
+ */
+export const CAPTURE_FLOWS = ["capture-none", "capture-screens", "capture-off"] as const;
+export type CaptureFlow = (typeof CAPTURE_FLOWS)[number];
+
+/** The fixture repository capture flow `flow` adds as its own project: one commit on `main`. */
+export function captureRepo(flow: CaptureFlow): string {
+  return join(e2eRoot(), `${flow}-repo`);
+}
+
+/** The github.com repository the capture flows' projects name as their `origin`. */
+export const CAPTURE_ORIGIN_URL = "https://github.com/acme/screens.git";
+
+/** The file the stand-in's screen picker appends each call's final commit to (`fake-claude.ts`). */
+export function screenPickerCallsFile(): string {
+  return join(e2eRoot(), "fake-screen-picker-calls");
+}
+
+/** The body the fake gh opened the pull request of run branch `branch` with. */
+export function pullRequestBody(branch: string): string {
+  return readFileSync(join(ghStateDir(), `body-${branch.replaceAll("/", "_")}`), "utf8");
+}
+
 /** The URL the fake gh gives the `number`th pull request it opens on that repository. */
 export function pullRequestUrl(number: number): string {
   return `https://github.com/acme/numbers/pull/${String(number)}`;
@@ -246,7 +272,8 @@ export function reportPullRequestMerged(number: number): void {
 /**
  * A stand-in for the GitHub CLI, kept in `ghBinDir()`: every call appends its arguments as
  * one line to `<state>/calls`. `gh auth status` succeeds; `gh pr create` numbers the pull request
- * from 1 and prints its URL on its `--repo`; `gh pr view <url> --json state` prints the state in
+ * from 1 per `--repo`, prints its URL there and keeps its `--body-file` as
+ * `<state>/body-<--head, each / as _>`; `gh pr view <url> --json state` prints the state in
  * `<state>/pr-<number>`, `OPEN` when there is none. Any other call exits 2.
  */
 export function fakeGhScript(state: string): string {
@@ -260,13 +287,18 @@ export function fakeGhScript(state: string): string {
     "fi",
     'if [ "$1" = "pr" ] && [ "$2" = "create" ]; then',
     '  repo=""',
+    '  head=""',
+    '  body=""',
     '  prev=""',
     '  for arg in "$@"; do',
     '    if [ "$prev" = "--repo" ]; then repo="$arg"; fi',
+    '    if [ "$prev" = "--head" ]; then head="$arg"; fi',
+    '    if [ "$prev" = "--body-file" ]; then body="$arg"; fi',
     '    prev="$arg"',
     "  done",
+    "  cp \"$body\" \"$state/body-$(printf '%s' \"$head\" | tr '/' '_')\"",
     '  echo "$repo" >> "$state/opened"',
-    "  number=$(wc -l < \"$state/opened\" | tr -d ' ')",
+    '  number=$(grep -c -x -F "$repo" "$state/opened")',
     '  echo "https://github.com/$repo/pull/$number"',
     "  exit 0",
     "fi",

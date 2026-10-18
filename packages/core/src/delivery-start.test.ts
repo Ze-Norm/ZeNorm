@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { LOCAL_EXECUTOR } from "@zenorm/contracts";
 import type { Project, TicketSetContent } from "@zenorm/contracts";
 import { deliveryRuns, projects } from "@zenorm/db";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
 import {
@@ -27,6 +27,7 @@ import {
   closeTestContext,
   deliveredSpec,
   insertNextRevision,
+  NO_APP_SETTINGS,
   commitOnRunBranch,
   deliverableTicketSet,
   endRun,
@@ -79,6 +80,7 @@ describe("delivery.start pins the project's checks and base branch", () => {
       requiredChecks: ["pnpm test"],
       repairLimit: 3,
       fixCommands: ["pnpm format"],
+      ...NO_APP_SETTINGS,
     });
 
     const stored = await getDeliveryRun(context.db, run.id);
@@ -88,6 +90,64 @@ describe("delivery.start pins the project's checks and base branch", () => {
       projectId: project.id,
       repairLimit: REPAIR_LIMIT,
       fixCommands: [],
+    });
+  });
+
+  test("a run pins the project's app settings; a later save leaves the run's", async () => {
+    const set = await deliverableTicketSet(context, project);
+    const app = {
+      appStartCommand: "pnpm dev",
+      appUrl: "http://localhost:5173",
+      appSetupCommands: ["pnpm install"],
+    };
+    const saved = await saveProjectSettings(context.user, context.db, {
+      projectId: project.id,
+      baseBranch: project.baseBranch,
+      requiredChecks: REQUIRED_CHECKS,
+      repairLimit: REPAIR_LIMIT,
+      fixCommands: [],
+      ...app,
+    });
+    expect(saved.ok).toBe(true);
+    const run = await startedRun(context, set.ticketSetId);
+    expect(run).toMatchObject(app);
+
+    await saveProjectSettings(context.user, context.db, {
+      projectId: project.id,
+      baseBranch: project.baseBranch,
+      requiredChecks: REQUIRED_CHECKS,
+      repairLimit: REPAIR_LIMIT,
+      fixCommands: [],
+      appStartCommand: "pnpm start",
+      appUrl: "http://127.0.0.1:3000",
+      appSetupCommands: [],
+    });
+
+    const stored = await getDeliveryRun(context.db, run.id);
+    expect(stored.ok && stored.value).toMatchObject(app);
+  });
+
+  test("a run of a project without app settings pins none", async () => {
+    const set = await deliverableTicketSet(context, project);
+    const run = await startedRun(context, set.ticketSetId);
+    expect(run).toMatchObject(NO_APP_SETTINGS);
+  });
+
+  test("a run stored before the pinned app settings reads them unset", async () => {
+    const set = await deliverableTicketSet(context, project);
+    const run = await startedRun(context, set.ticketSetId);
+    // The row as 0037 leaves a run that predates it: the app columns take their backfill.
+    writeTestData(context, (tx) =>
+      tx.run(
+        sql`update delivery_runs set app_start_command = null, app_url = null, app_setup_commands = '[]' where id = ${run.id}`,
+      ),
+    );
+
+    const stored = await getDeliveryRun(context.db, run.id);
+    expect(stored.ok && stored.value).toMatchObject({
+      appStartCommand: null,
+      appUrl: null,
+      appSetupCommands: [],
     });
   });
 
@@ -152,6 +212,7 @@ describe("delivery.start refuses in order, writing nothing", () => {
       requiredChecks: REQUIRED_CHECKS,
       repairLimit: 0,
       fixCommands: [],
+      ...NO_APP_SETTINGS,
     });
     const lifted = await getProject(context.db, project.id);
     expect(lifted.ok && lifted.value.startDeliveryBlockers).toEqual([]);
@@ -183,6 +244,7 @@ describe("delivery.start refuses in order, writing nothing", () => {
       requiredChecks: [],
       repairLimit: 0,
       fixCommands: [],
+      ...NO_APP_SETTINGS,
     });
     expect((await getProject(context.db, project.id)).ok).toBe(true);
     expect(await start(set.ticketSetId)).toMatchObject({

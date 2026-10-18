@@ -4,16 +4,21 @@ import { join } from "node:path";
 import { parseArgs } from "node:util";
 
 import {
+  checkCaptureBrowser as checkBrowser,
+  claudeCodeCaptureScreens,
   claudeCodeImplementTicketSet,
+  claudeCodePickScreens,
   claudeCodePlanningAgent,
   claudeCodeReviewDelivery,
   claudeCodeWritePullRequest,
+  PLAYWRIGHT_MCP_PACKAGE,
   readAuthStatus,
 } from "@zenorm/agent";
 import type { AuthStatusRead, ClaudeEnv, DeliverySessionConfig } from "@zenorm/agent";
 import { err, InstanceConfig, LOCAL_EXECUTOR, ok } from "@zenorm/contracts";
 import type { DeliveryExecutor, PlanningAgentError, Result, StartupError } from "@zenorm/contracts";
 import {
+  anyProjectCapturesScreens,
   checkDatabaseFile,
   claimInstanceLock,
   INSTANCE_LOCK_FILE,
@@ -24,7 +29,7 @@ import {
   users,
 } from "@zenorm/db";
 import type { DatabaseFileState, ZeNormDatabase } from "@zenorm/db";
-import { checkPlugins, createApp, createChangeBus } from "@zenorm/server";
+import { APP_READY_TIMEOUT_MS, checkPlugins, createApp, createChangeBus } from "@zenorm/server";
 import type { Log, ServerPlugin, ZeNormApp } from "@zenorm/server";
 
 import { sweepRunFolders, sweepSessions } from "./sweeps.ts";
@@ -368,6 +373,42 @@ export function checkDatabase(
   return checkDatabaseFile(join(dataDir, DATABASE_FILE), migrationsFolder);
 }
 
+/** What `checkCaptureBrowser` found: whether capture is on anywhere, and the browser's check. */
+export interface CaptureBrowserCheck {
+  /** Whether some project in the database has both an app start command and its URL saved. */
+  readonly captureOn: boolean;
+  /** The screenshot browser's check: the Chromium build found, or `capture_browser_missing`. */
+  readonly browser: Result<{ readonly executablePath: string }, StartupError>;
+}
+
+/**
+ * `zenorm doctor`'s screenshot browser check: whether any project in `dataDir`'s database (read
+ * only, as `checkDatabase` reads it; an absent database has none) has screenshot capture on, and
+ * whether the Chromium build the pinned Playwright MCP server drives is installed where the server,
+ * run with `env`, looks for it (a relative `PLAYWRIGHT_BROWSERS_PATH` resolves against this
+ * process's working folder). Writes and downloads nothing. A database it cannot read is the
+ * refusal.
+ */
+export function checkCaptureBrowser(
+  dataDir: string,
+  migrationsFolder: string,
+  env: StartupInput["env"],
+): Result<CaptureBrowserCheck, StartupError> {
+  const database = checkDatabase(dataDir, migrationsFolder);
+  if (!database.ok) {
+    return database;
+  }
+  const captureOn = anyProjectCapturesScreens(join(dataDir, DATABASE_FILE));
+  if (!captureOn.ok) {
+    return captureOn;
+  }
+  const found = checkBrowser(env, process.cwd());
+  const browser: CaptureBrowserCheck["browser"] = found.ok
+    ? ok({ executablePath: found.value.executablePath })
+    : err({ ...found.error, subject: PLAYWRIGHT_MCP_PACKAGE });
+  return ok({ captureOn: captureOn.value, browser });
+}
+
 /**
  * The checks that write nothing: the config, the data directory, the Claude Code CLI, the web
  * build, and Claude Code's sign-in, read with the input's environment (as `zenorm init` and
@@ -500,6 +541,8 @@ export function localExecutor(
     implementTicketSet: claudeCodeImplementTicketSet(deliveryAgent),
     reviewDelivery: claudeCodeReviewDelivery(deliveryAgent),
     writePullRequest: claudeCodeWritePullRequest(deliveryAgent),
+    pickScreens: claudeCodePickScreens(deliveryAgent),
+    captureScreens: claudeCodeCaptureScreens(deliveryAgent),
   };
 }
 
@@ -559,6 +602,8 @@ export async function startZeNorm(
     delivery: {
       runsDir: join(config.dataDir, RUNS_DIR),
       checkTimeoutMinutes: config.delivery.checkTimeoutMinutes,
+      sessionsDir,
+      appReadyTimeoutMs: APP_READY_TIMEOUT_MS,
     },
   });
   if (!created.ok) {

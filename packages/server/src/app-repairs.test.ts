@@ -38,6 +38,7 @@ import {
   activityTexts,
   repairingExecutor,
   setUpAppTests,
+  NO_APP_SETTINGS,
 } from "./app-test-support.ts";
 
 setUpAppTests();
@@ -84,6 +85,7 @@ describe("repairs of failing checks", () => {
       requiredChecks: [PASSING_CHECK],
       repairLimit: 5,
       fixCommands: [],
+      ...NO_APP_SETTINGS,
     });
     expect((await deliveryRun(mapId, run.id)).repairLimit).toBe(2);
 
@@ -301,6 +303,7 @@ describe("fix commands on the implement calls", () => {
       requiredChecks: [PASSING_CHECK, REPAIRED_CHECK],
       repairLimit: 1,
       fixCommands,
+      ...NO_APP_SETTINGS,
     });
     const run = await client.delivery.start({ ticketSetId });
 
@@ -312,6 +315,7 @@ describe("fix commands on the implement calls", () => {
       requiredChecks: [PASSING_CHECK, REPAIRED_CHECK],
       repairLimit: 1,
       fixCommands: ["pnpm prettier --write ."],
+      ...NO_APP_SETTINGS,
     });
     await commitDelivery(first.request);
     first.resolve({ ok: true, value: null });

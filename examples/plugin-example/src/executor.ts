@@ -128,8 +128,9 @@ async function repair(
  * the ticket branch, made at the run branch's head, and merges that branch into the run branch with
  * `--no-ff`, keeping it; the runner then verifies the work from git as it does for `"local"`. Given
  * a repair attempt, it merges nothing and commits one file for the attempt on the run branch
- * (`repairFile`). Its review passes the final commit with no findings, and its pull request writer
- * returns a fixed body. The first two count their calls into `calls`.
+ * (`repairFile`). Its review passes the final commit with no findings, its pull request writer
+ * returns a fixed body reporting no visible change, its screen picker reports no visible change,
+ * and its capture returns no images. The first two count their calls into `calls`.
  */
 export function exampleExecutor(calls: ExecutorCalls): DeliveryExecutor {
   return {
@@ -191,6 +192,11 @@ export function exampleExecutor(calls: ExecutorCalls): DeliveryExecutor {
         }),
       );
     },
-    writePullRequest: () => Promise.resolve(ok(EXAMPLE_PULL_REQUEST_BODY)),
+    // A fixed body, and no visible change: its runs open pull requests without screenshots.
+    writePullRequest: () =>
+      Promise.resolve(ok({ body: EXAMPLE_PULL_REQUEST_BODY, visibleChange: false })),
+    pickScreens: () => Promise.resolve(ok({ kind: "no_visible_change" })),
+    // Its picker never lists a screen, so this is never called by a run; it shoots nothing.
+    captureScreens: () => Promise.resolve(ok({ images: [], skipped: [] })),
   };
 }

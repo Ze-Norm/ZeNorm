@@ -59,6 +59,7 @@ import {
   startRun,
   cleanedUp,
   setUpAppTests,
+  NO_APP_SETTINGS,
 } from "./app-test-support.ts";
 
 setUpAppTests();
@@ -138,6 +139,7 @@ describe("specs over /rpc", () => {
       requiredChecks: [PASSING_CHECK],
       repairLimit: 0,
       fixCommands: [],
+      ...NO_APP_SETTINGS,
     });
     const ready = await client.map.overview({ mapId });
     expect(ready.status.stages[4]).toMatchObject({ stage: "delivery", tone: "needs-you" });

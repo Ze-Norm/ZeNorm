@@ -33,6 +33,7 @@ import {
   DeliveryChecks,
   DeliveryFailure,
   DeliveryPhase,
+  ProjectAppSetupCommands,
   ProjectChecks,
   ProjectFixCommands,
   PullRequestState,
@@ -107,6 +108,7 @@ const deliveryChecksColumn = zodJson(DeliveryChecks);
 const codeSurveyColumn = zodJson(CodeSurvey);
 const projectChecksColumn = zodJson(ProjectChecks);
 const projectFixCommandsColumn = zodJson(ProjectFixCommands);
+const projectAppSetupCommandsColumn = zodJson(ProjectAppSetupCommands);
 const checkResultsColumn = zodJson(z.array(CheckResult));
 const verdictColumn = zodJson(Verdict);
 const deliveryFailureColumn = zodJson(DeliveryFailure);
@@ -139,6 +141,15 @@ export const projects = sqliteTable("projects", {
   repairLimit: integer("repair_limit"),
   /** 0–10 unique fix commands delivery sessions may run; `[]` until saved. */
   fixCommands: projectFixCommandsColumn("fix_commands").notNull(),
+  /**
+   * The command that starts the project's app for screenshots; null until saved. Core saves it
+   * only together with `appUrl`, so screenshots are on exactly when both are set.
+   */
+  appStartCommand: text("app_start_command"),
+  /** The app's localhost or 127.0.0.1 address; null until saved, only with `appStartCommand`. */
+  appUrl: text("app_url"),
+  /** 0–10 unique commands that install what the app needs; `[]` until saved. */
+  appSetupCommands: projectAppSetupCommandsColumn("app_setup_commands").notNull(),
 });
 
 /**
@@ -916,6 +927,17 @@ export const deliveryRuns = sqliteTable(
      * the column's SQL DEFAULT, which only backfills; every insert sets it.
      */
     fixCommands: projectFixCommandsColumn("fix_commands").notNull(),
+    /**
+     * The project's app start command and URL, pinned at the start: capture is on for the run
+     * exactly when both are set. Null on the runs before `0037`, which publish with capture off.
+     */
+    appStartCommand: text("app_start_command"),
+    appUrl: text("app_url"),
+    /**
+     * The project's app setup commands, pinned at the start. `0037` sets `[]` on the runs before it
+     * by the column's SQL DEFAULT, which only backfills; every insert sets it.
+     */
+    appSetupCommands: projectAppSetupCommandsColumn("app_setup_commands").notNull(),
   },
   (t) => [
     unique("delivery_runs_spec_number_uq").on(t.specificationId, t.number),

@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { CaptureFailureCode } from "./codes.ts";
 import type { DeliveryAgentError } from "./codes.ts";
 import {
   CheckResult,
@@ -7,6 +8,7 @@ import {
   DELIVERY_CHECKS_MAX_COUNT,
   DeliveryChecks,
   DeliveryFailure,
+  PULL_REQUEST_WRITTEN_BODY_MAX_LENGTH,
   RUN_TICKET_SUMMARY_MAX_LENGTH,
   Verdict,
   VerdictFinding,
@@ -16,8 +18,8 @@ import {
   TICKET_SET_TICKETS_MAX_COUNT,
   TicketId,
 } from "./spec-content.ts";
-import { AbsolutePath, ProjectFixCommands, REPAIR_LIMIT_MAX } from "./project.ts";
-import type { Result } from "./result.ts";
+import { AbsolutePath, AppUrl, ProjectFixCommands, REPAIR_LIMIT_MAX } from "./project.ts";
+import type { CodedError, Result } from "./result.ts";
 
 /** The identity every delivery session and check commits as, through `GIT_AUTHOR_*`/`GIT_COMMITTER_*`. */
 export const GitIdentity = z.strictObject({
@@ -144,6 +146,114 @@ export const ReviewRequest = z.strictObject({
 });
 export type ReviewRequest = z.infer<typeof ReviewRequest>;
 
+/** The most changed screens a picker may list, and so the most a pull request shows. */
+export const DELIVERY_SCREENS_MAX_COUNT = 6;
+/** The longest a picked screen's `where` or `changed` may be. */
+export const PICKED_SCREEN_TEXT_MAX_LENGTH = 300;
+
+/** One screen the change makes look different: where it is, what changed, and whether it is new. */
+export const PickedScreen = z.strictObject({
+  /** How to reach the screen in the app, such as a route or the page and the action that opens it. */
+  where: z.string().min(1).max(PICKED_SCREEN_TEXT_MAX_LENGTH),
+  /** What a person sees changed on it. */
+  changed: z.string().min(1).max(PICKED_SCREEN_TEXT_MAX_LENGTH),
+  /** True when the change adds the screen. */
+  isNew: z.boolean(),
+});
+export type PickedScreen = z.infer<typeof PickedScreen>;
+
+/**
+ * The most images a capture may return. More than `DELIVERY_SCREENS_MAX_COUNT` screens among them
+ * is the runner's `capture_too_many_screens`, so the bound sits above the screen cap.
+ */
+export const CAPTURED_IMAGES_MAX_COUNT = 12;
+/** The longest an image's caption or a skipped screen's reason may be. */
+export const CAPTURE_TEXT_MAX_LENGTH = 300;
+
+/**
+ * A screenshot's file name in the run's screenshots folder: a PNG or JPEG, with no folder part, so
+ * it names a file in that folder and nothing outside it.
+ */
+export const ScreenshotFile = z
+  .string()
+  .max(100)
+  .regex(/^[A-Za-z0-9][A-Za-z0-9._-]*\.(png|jpe?g)$/);
+
+/**
+ * What the browser capture session needs to screenshot the picked screens of a passed run: the app
+ * ZeNorm started from the run worktree at `appUrl`, the screens, and the folder in the run folder
+ * the screenshots go to.
+ */
+export const CaptureScreensRequest = z.strictObject({
+  /** The run folder; the session writes its prompt and output files here. */
+  runDir: AbsolutePath,
+  /** The run worktree, which the app was started from; the session's working directory. */
+  worktreePath: AbsolutePath,
+  /** The run's pinned app URL, answering: the one origin the browser may request. */
+  appUrl: AppUrl,
+  /** The screens the picker listed, in its order. */
+  screens: z.array(PickedScreen).min(1).max(DELIVERY_SCREENS_MAX_COUNT),
+  /** `<runDir>/screenshots`, empty and existing: every screenshot is written here. */
+  screenshotsDir: AbsolutePath,
+  gitIdentity: GitIdentity,
+});
+export type CaptureScreensRequest = z.infer<typeof CaptureScreensRequest>;
+
+/** One screenshot the capture took: the picked screen it shows, its file and its caption. */
+export const CapturedImage = z.strictObject({
+  /** The `where` of the picked screen it shows. */
+  screen: z.string().min(1).max(PICKED_SCREEN_TEXT_MAX_LENGTH),
+  /** Its file in the request's `screenshotsDir`. */
+  file: ScreenshotFile,
+  /** A short caption saying what it shows. */
+  caption: z.string().min(1).max(CAPTURE_TEXT_MAX_LENGTH),
+});
+export type CapturedImage = z.infer<typeof CapturedImage>;
+
+/** A picked screen the capture could not reach, and why. */
+export const SkippedScreen = z.strictObject({
+  /** The `where` of the picked screen. */
+  screen: z.string().min(1).max(PICKED_SCREEN_TEXT_MAX_LENGTH),
+  reason: z.string().min(1).max(CAPTURE_TEXT_MAX_LENGTH),
+});
+export type SkippedScreen = z.infer<typeof SkippedScreen>;
+
+/** What a capture returns: its images, and the picked screens it could not reach. */
+export const CapturedScreens = z.strictObject({
+  images: z.array(CapturedImage).max(CAPTURED_IMAGES_MAX_COUNT),
+  skipped: z.array(SkippedScreen).max(DELIVERY_SCREENS_MAX_COUNT),
+});
+export type CapturedScreens = z.infer<typeof CapturedScreens>;
+
+/**
+ * The capture outcome the pull request writer places in the body's What section: capture was off
+ * for the run, the picker found no visible change, capture failed with its code (the body says the
+ * screenshots are missing), or it captured images, each with the repository-relative raw blob path
+ * it is embedded with, the screens it could not reach (skipped) and the picked screens it shows no
+ * image of (not shown).
+ */
+export const PullRequestCapture = z.discriminatedUnion("kind", [
+  z.strictObject({ kind: z.literal("off") }),
+  z.strictObject({ kind: z.literal("no_visible_change") }),
+  z.strictObject({ kind: z.literal("failed"), code: CaptureFailureCode }),
+  z.strictObject({
+    kind: z.literal("captured"),
+    images: z
+      .array(
+        z.strictObject({
+          screen: z.string().min(1).max(PICKED_SCREEN_TEXT_MAX_LENGTH),
+          caption: z.string().min(1).max(CAPTURE_TEXT_MAX_LENGTH),
+          /** `../blob/<pr-assets branch>/<file>?raw=true`: the image's only allowed link. */
+          src: z.string().min(1),
+        }),
+      )
+      .max(CAPTURED_IMAGES_MAX_COUNT),
+    skipped: z.array(SkippedScreen).max(DELIVERY_SCREENS_MAX_COUNT),
+    notShown: z.array(PickedScreen).max(DELIVERY_SCREENS_MAX_COUNT),
+  }),
+]);
+export type PullRequestCapture = z.infer<typeof PullRequestCapture>;
+
 /**
  * What the pull request writer session needs to write the body of a passed run's pull request: the
  * change (`baseCommit..finalCommit`, its diff and changed files), the spec and tickets, each
@@ -174,9 +284,55 @@ export const PullRequestRequest = z.strictObject({
   checkResults: z.array(CheckResult),
   /** The accepted verdict, with no blocking finding. */
   verdict: Verdict,
+  /** What the run's screenshot capture came to, which the body's What section shows. */
+  capture: PullRequestCapture,
   gitIdentity: GitIdentity,
 });
 export type PullRequestRequest = z.infer<typeof PullRequestRequest>;
+
+/**
+ * What the read-only screen picker session needs to judge whether a passed run's change is visible
+ * and which screens it changes: the change (`baseCommit..finalCommit`, its diff and changed files)
+ * and the spec. It runs before anything is installed or started.
+ */
+export const PickScreensRequest = z.strictObject({
+  /** The run folder; the session writes its prompt and output files here. */
+  runDir: AbsolutePath,
+  /** The run worktree; the session's working directory, which it must not change. */
+  worktreePath: AbsolutePath,
+  baseCommit: CommitSha,
+  finalCommit: CommitSha,
+  specPath: AbsolutePath,
+  /** `git diff <baseCommit> <finalCommit>`, written to a file. */
+  diffPath: AbsolutePath,
+  /** Paths relative to the worktree. */
+  changedFiles: z.array(z.string().min(1)),
+  gitIdentity: GitIdentity,
+});
+export type PickScreensRequest = z.infer<typeof PickScreensRequest>;
+
+/**
+ * The screen picker's answer: the change shows on no screen (`no_visible_change`), or the changed
+ * screens, one to `DELIVERY_SCREENS_MAX_COUNT`.
+ */
+export const PickedScreens = z.discriminatedUnion("kind", [
+  z.strictObject({ kind: z.literal("no_visible_change") }),
+  z.strictObject({
+    kind: z.literal("screens"),
+    screens: z.array(PickedScreen).min(1).max(DELIVERY_SCREENS_MAX_COUNT),
+  }),
+]);
+export type PickedScreens = z.infer<typeof PickedScreens>;
+
+/**
+ * What the pull request writer returns: the body, markdown, which ZeNorm opens the pull request
+ * with as it is, and whether the change is one a person can see in the app.
+ */
+export const WrittenPullRequest = z.strictObject({
+  body: z.string().min(1).max(PULL_REQUEST_WRITTEN_BODY_MAX_LENGTH),
+  visibleChange: z.boolean(),
+});
+export type WrittenPullRequest = z.infer<typeof WrittenPullRequest>;
 
 /**
  * What the orchestrator session reports while it works: a line of the orchestrator or of a ticket's
@@ -218,24 +374,56 @@ export type ReviewDelivery = (
 
 /**
  * The port behind which the read-only pull request writer session sits: it returns the pull
- * request's body, markdown, which ZeNorm opens the pull request with as it is.
+ * request's body, markdown, which ZeNorm opens the pull request with as it is, and whether the
+ * change is visible, which ZeNorm reads only when the run took no screenshots.
  */
 export type WritePullRequest = (
   request: PullRequestRequest,
   signal: AbortSignal,
-) => Promise<Result<string, DeliveryAgentError>>;
+) => Promise<Result<WrittenPullRequest, DeliveryAgentError>>;
+
+/**
+ * The port behind which the read-only screen picker session sits. ZeNorm calls it on a passing run
+ * on a GitHub project that pinned an app start command and URL, before installing or starting
+ * anything; a failure is the capture's (`capture_picker_failed`), never the run's.
+ */
+export type PickScreens = (
+  request: PickScreensRequest,
+  signal: AbortSignal,
+) => Promise<Result<PickedScreens, DeliveryAgentError>>;
+
+/**
+ * The port behind which the browser capture session sits. ZeNorm calls it once per app instance it
+ * started from the run worktree, with the picked screens, once the app URL answers; the session
+ * visits only the app's origin and writes each screenshot into `screenshotsDir`. ZeNorm stops the
+ * app after it returns. A failure is the capture's, never the run's: `capture_browser_missing` when
+ * the port finds the browser it drives is not installed (checked before any session starts), and
+ * `capture_session_failed` for any other.
+ */
+export type CaptureScreens = (
+  request: CaptureScreensRequest,
+  signal: AbortSignal,
+) => Promise<Result<CapturedScreens, DeliveryAgentError | CaptureBrowserMissingError>>;
+
+/**
+ * The capture port's refusal before it starts a session: the browser its pinned Playwright MCP
+ * server drives (or the server itself) is not installed where the server looks for it.
+ */
+export type CaptureBrowserMissingError = CodedError<"capture_browser_missing">;
 
 /** The name the app registers its Claude Code sessions under. */
 export const LOCAL_EXECUTOR = "local";
 
 /**
- * A delivery executor: one named set of the three ports, which supplies every role. The app
- * registers the Claude Code sessions as `"local"`; a plugin may register others, and
- * `delivery.executor` names the one every run uses.
+ * A delivery executor: one named set of the ports, which supplies every role. The app registers
+ * the Claude Code sessions as `"local"`; a plugin may register others, and `delivery.executor`
+ * names the one every run uses.
  */
 export interface DeliveryExecutor {
   readonly name: string;
   readonly implementTicketSet: ImplementTicketSet;
   readonly reviewDelivery: ReviewDelivery;
   readonly writePullRequest: WritePullRequest;
+  readonly pickScreens: PickScreens;
+  readonly captureScreens: CaptureScreens;
 }

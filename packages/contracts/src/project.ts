@@ -70,6 +70,37 @@ export const ProjectFixCommands = z
   });
 export type ProjectFixCommands = z.infer<typeof ProjectFixCommands>;
 
+export const APP_URL_MAX_LENGTH = 2048;
+
+/**
+ * The address the project's app answers on once its start command runs, as the person typed it.
+ * Any one-line text parses here; `project.saveSettings` refuses one that is not an http(s) URL on
+ * localhost or 127.0.0.1 with `project_app_url_invalid`.
+ */
+export const AppUrl = z
+  .string()
+  .trim()
+  .min(1)
+  .max(APP_URL_MAX_LENGTH)
+  .regex(/^[^\r\n]*$/);
+export type AppUrl = z.infer<typeof AppUrl>;
+
+/** The hosts an app URL may name: the app runs on the person's own machine. */
+export const APP_URL_HOSTS: readonly string[] = ["localhost", "127.0.0.1"];
+
+/**
+ * A project's app setup commands, such as `pnpm install`, run in order before the start command:
+ * 0–10 unique commands under the same rules as the required checks (a command needing a shell is
+ * refused with `project_app_command_invalid`). Empty means the app needs no setup.
+ */
+export const ProjectAppSetupCommands = z
+  .array(CheckCommand)
+  .max(DELIVERY_CHECKS_MAX_COUNT)
+  .refine((commands) => new Set(commands).size === commands.length, {
+    message: "Duplicate setup command",
+  });
+export type ProjectAppSetupCommands = z.infer<typeof ProjectAppSetupCommands>;
+
 export const InspectProjectInput = z.strictObject({
   folderPath: AbsolutePath,
 });
@@ -134,6 +165,15 @@ export const Project = z.strictObject({
   repairLimit: RepairLimit.nullable(),
   /** The commands delivery sessions may run to fix work, in order; empty until saved. */
   fixCommands: ProjectFixCommands,
+  /**
+   * The command that starts the project's app for screenshots; null until saved. Screenshots are
+   * on exactly when it and `appUrl` are both saved.
+   */
+  appStartCommand: CheckCommand.nullable(),
+  /** The app's local address once started; null until saved, and saved only with the command. */
+  appUrl: AppUrl.nullable(),
+  /** The commands that install what the app needs, in order; empty until saved. */
+  appSetupCommands: ProjectAppSetupCommands,
   /** ISO 8601 UTC. */
   createdAt: z.iso.datetime(),
   folder: ProjectFolder,
@@ -150,7 +190,8 @@ export type Project = z.infer<typeof Project>;
 
 /**
  * `project.saveSettings`: the base branch, the required checks (empty allowed), the repair limit
- * (required) and the fix commands (empty allowed).
+ * (required), the fix commands (empty allowed), the app start command and URL (both or neither)
+ * and the app setup commands (empty allowed).
  */
 export const SaveProjectSettingsInput = z.strictObject({
   projectId: z.uuid({ version: "v7" }),
@@ -158,5 +199,8 @@ export const SaveProjectSettingsInput = z.strictObject({
   requiredChecks: ProjectChecks,
   repairLimit: RepairLimit,
   fixCommands: ProjectFixCommands,
+  appStartCommand: CheckCommand.nullable(),
+  appUrl: AppUrl.nullable(),
+  appSetupCommands: ProjectAppSetupCommands,
 });
 export type SaveProjectSettingsInput = z.infer<typeof SaveProjectSettingsInput>;

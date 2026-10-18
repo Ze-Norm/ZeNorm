@@ -2,7 +2,13 @@ import { execFileSync } from "node:child_process";
 
 import { expect } from "@playwright/test";
 import type { Browser, Locator, Page } from "@playwright/test";
-import { DeliveryRun, MapOverviewDetail, Project, ProjectDetail } from "@zenorm/contracts";
+import {
+  DeliveryRun,
+  MapOverviewDetail,
+  Project,
+  ProjectDetail,
+  RunEvent,
+} from "@zenorm/contracts";
 import type { SpecRun } from "@zenorm/contracts";
 
 /**
@@ -277,8 +283,47 @@ export async function saveChecksAndRepairLimit(
       requiredChecks: checks,
       repairLimit,
       fixCommands: [],
+      appStartCommand: null,
+      appUrl: null,
+      appSetupCommands: [],
     }),
   );
+}
+
+/** A project's app settings: the start command and URL that turn screenshots on, and its setup. */
+export interface AppSettings {
+  readonly appStartCommand: string | null;
+  readonly appUrl: string | null;
+  readonly appSetupCommands: readonly string[];
+}
+
+/**
+ * `saveChecks` with the app settings `app` too, through `project.saveSettings`. Returns the saved
+ * project.
+ */
+export async function saveChecksAndAppSettings(
+  page: Page,
+  mapId: string,
+  checks: readonly string[],
+  app: AppSettings,
+): Promise<Project> {
+  const { project } = await mapOverview(page, mapId);
+  return Project.parse(
+    await rpc(page, "project/saveSettings", {
+      projectId: project.id,
+      baseBranch: project.baseBranch,
+      requiredChecks: checks,
+      repairLimit: SAVED_REPAIR_LIMIT,
+      fixCommands: [],
+      ...app,
+    }),
+  );
+}
+
+/** A delivery run's activity texts, in order, as `delivery.activity` answers them. */
+export async function deliveryActivityTexts(page: Page, runId: string): Promise<string[]> {
+  const lines = RunEvent.array().parse(await rpc(page, "delivery/activity", { runId }));
+  return lines.map((line) => line.text);
 }
 
 /** The Delivery page's card form "Start delivery". */

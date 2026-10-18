@@ -40,7 +40,23 @@ export function saveSettingsRefusalMessage(
       return needsShellSentence(error.data.command);
     case "project_fix_command_invalid":
       return fixNeedsShellSentence(error.data.command);
+    case "project_app_settings_incomplete":
+      return error.data.missing === "appUrl"
+        ? "Add the app URL too: screenshots need the start command and the URL together, or neither."
+        : "Add the app start command too: screenshots need the start command and the URL together, or neither.";
+    case "project_app_url_invalid":
+      return `${error.data.url} is not a local address. Use http://localhost or http://127.0.0.1 with the app's port, such as http://localhost:5173.`;
+    case "project_app_command_invalid":
+      return appNeedsShellSentence(error.data.command);
   }
+}
+
+/**
+ * The refusal of an app start or setup command that needs a shell, under its field for Add setup
+ * command and for a refused save (`project_app_command_invalid`) alike.
+ */
+export function appNeedsShellSentence(command: string): string {
+  return `“${command}” needs a shell. App commands run without one, so quotes, &&, pipes and redirects don't work. Add each setup step as its own setup command.`;
 }
 
 /**
@@ -65,9 +81,14 @@ const REPAIR_LIMIT_SENTENCE = `Set a repair limit: a whole number from 0 to ${St
 /** What the repair limit does, under its label. */
 const REPAIR_LIMIT_DESCRIPTION = `How many times a run whose required checks fail goes back to fix them before it fails, from 0 (no repair) to ${String(REPAIR_LIMIT_MAX)}. Start delivery is unavailable until one is saved.`;
 
+/** What the app settings do, under the app start command's label. */
+const APP_SETTINGS_DESCRIPTION =
+  "Save the command that starts the project's app and the local address it answers on to show screenshots of changed screens in pull requests. Leave both blank to keep screenshots off.";
+
 /**
- * Project settings: the base branch, the required checks, the repair limit and the fix commands
- * every delivery run pins at its start, saved with `project.saveSettings`.
+ * Project settings: the base branch, the required checks, the repair limit, the fix commands and
+ * the app start command, URL and setup commands every delivery run pins at its start, saved with
+ * `project.saveSettings`.
  */
 export function ProjectSettingsPage({ projectId }: { projectId: string }) {
   const project = useQuery(orpc.project.get.queryOptions({ input: { projectId } }));
@@ -101,21 +122,72 @@ export function ProjectSettingsPage({ projectId }: { projectId: string }) {
 }
 
 /**
- * Which field a settings issue belongs under: the base branch, the checks, the
- * repair limit or the fix commands.
+ * Which field a settings issue belongs under: the base branch, the checks, the repair limit, the
+ * fix commands, the app start command, the app URL or the app setup commands.
  */
-type SettingsField = "baseBranch" | "requiredChecks" | "repairLimit" | "fixCommands";
+type SettingsField =
+  | "baseBranch"
+  | "requiredChecks"
+  | "repairLimit"
+  | "fixCommands"
+  | "appStartCommand"
+  | "appUrl"
+  | "appSetupCommands";
 
-/** The two command lists: each adds commands one at a time and refuses one that needs a shell. */
-type CommandField = Extract<SettingsField, "requiredChecks" | "fixCommands">;
+/** The command lists: each adds commands one at a time and refuses one that needs a shell. */
+type CommandField = Extract<SettingsField, "requiredChecks" | "fixCommands" | "appSetupCommands">;
 
 function isSettingsField(field: PropertyKey | undefined): field is SettingsField {
   return (
     field === "baseBranch" ||
     field === "requiredChecks" ||
     field === "repairLimit" ||
-    field === "fixCommands"
+    field === "fixCommands" ||
+    field === "appStartCommand" ||
+    field === "appUrl" ||
+    field === "appSetupCommands"
   );
+}
+
+/**
+ * The field a refused save names, or null for a refusal about the whole save (the project is
+ * gone, access denied). `savedStartCommand` is the start command the refused save sent: an app
+ * command refusal naming it belongs under it, any other under the setup commands.
+ */
+function fieldOfRefusal(
+  error: SaveProjectSettingsError | AccessDeniedError,
+  savedStartCommand: string | null,
+): SettingsField | null {
+  switch (error.code) {
+    case "project_branch_invalid":
+      return "baseBranch";
+    case "project_check_invalid":
+      return "requiredChecks";
+    case "project_fix_command_invalid":
+      return "fixCommands";
+    case "project_app_settings_incomplete":
+      return error.data.missing;
+    case "project_app_url_invalid":
+      return "appUrl";
+    case "project_app_command_invalid":
+      return savedStartCommand === error.data.command ? "appStartCommand" : "appSetupCommands";
+    case "project_not_found":
+    case "access_denied":
+      return null;
+  }
+}
+
+/** A typed one-line value: blank is null (not saved), anything else is sent as typed. */
+function blankAsNull(value: string): string | null {
+  return value.trim() === "" ? null : value;
+}
+
+/** A saved one-line value as typed: null (not saved) is a blank input. */
+function nullAsBlank(value: string | null): string {
+  if (value === null) {
+    return "";
+  }
+  return value;
 }
 
 /** A field's issue line, under its input and named by its `aria-describedby`. */
@@ -229,6 +301,11 @@ function ProjectSettingsForm({ project }: { project: ProjectDetail }) {
   );
   const [fixes, setFixes] = useState<string[]>(project.fixCommands);
   const [fixDraft, setFixDraft] = useState("");
+  // The app start command and URL as typed: blank until a person saves them (screenshots off).
+  const [appStart, setAppStart] = useState(nullAsBlank(project.appStartCommand));
+  const [appUrl, setAppUrl] = useState(nullAsBlank(project.appUrl));
+  const [setups, setSetups] = useState<string[]>(project.appSetupCommands);
+  const [setupDraft, setSetupDraft] = useState("");
   /** The one field whose value was refused, with the sentence shown under it; null when none. */
   const [issue, setIssue] = useState<{ field: SettingsField; sentence: string } | null>(null);
   const [saved, setSaved] = useState(false);
@@ -236,6 +313,9 @@ function ProjectSettingsForm({ project }: { project: ProjectDetail }) {
   const checkIssueId = useId();
   const limitIssueId = useId();
   const fixIssueId = useId();
+  const appStartIssueId = useId();
+  const appUrlIssueId = useId();
+  const setupIssueId = useId();
 
   const save = useMutation(
     orpc.project.saveSettings.mutationOptions({
@@ -295,6 +375,14 @@ function ProjectSettingsForm({ project }: { project: ProjectDetail }) {
     }
   }
 
+  function addSetup() {
+    const next = withDraft("appSetupCommands", setupDraft, setups, appNeedsShellSentence);
+    if (next !== null) {
+      setSetups(next);
+      setSetupDraft("");
+    }
+  }
+
   function submit() {
     edited();
     const parsed = SaveProjectSettingsInput.safeParse({
@@ -304,6 +392,10 @@ function ProjectSettingsForm({ project }: { project: ProjectDetail }) {
       // A blank limit is no limit, which the schema refuses: there is no default.
       repairLimit: limit.trim() === "" ? null : Number(limit),
       fixCommands: fixes,
+      // A blank start command or URL is not saved; the save refuses one without the other.
+      appStartCommand: blankAsNull(appStart),
+      appUrl: blankAsNull(appUrl),
+      appSetupCommands: setups,
     });
     if (!parsed.success) {
       const first = parsed.error.issues[0];
@@ -327,15 +419,10 @@ function ProjectSettingsForm({ project }: { project: ProjectDetail }) {
    * A refused save about one field shows under that field, as a local issue does; any other
    * refusal (the project is gone, access denied) shows by Save settings.
    */
-  const refusedCode = save.error !== null && isDefinedError(save.error) ? save.error.code : null;
   const refusedField: SettingsField | null =
-    refusedCode === "project_branch_invalid"
-      ? "baseBranch"
-      : refusedCode === "project_check_invalid"
-        ? "requiredChecks"
-        : refusedCode === "project_fix_command_invalid"
-          ? "fixCommands"
-          : null;
+    save.error !== null && isDefinedError(save.error)
+      ? fieldOfRefusal(save.error, save.variables.appStartCommand)
+      : null;
   const fieldIssue = (field: SettingsField): string | null => {
     if (issue !== null && issue.field === field) {
       return issue.sentence;
@@ -349,6 +436,9 @@ function ProjectSettingsForm({ project }: { project: ProjectDetail }) {
   const checkIssue = fieldIssue("requiredChecks");
   const limitIssue = fieldIssue("repairLimit");
   const fixIssue = fieldIssue("fixCommands");
+  const appStartIssue = fieldIssue("appStartCommand");
+  const appUrlIssue = fieldIssue("appUrl");
+  const setupIssue = fieldIssue("appSetupCommands");
 
   return (
     <>
@@ -462,6 +552,70 @@ function ProjectSettingsForm({ project }: { project: ProjectDetail }) {
         placeholder="pnpm format"
         issue={fixIssue}
         issueId={fixIssueId}
+      />
+
+      <section className="grid gap-2">
+        <Label htmlFor="project-settings-app-start">App start command</Label>
+        <p className="text-xs text-muted-foreground">{APP_SETTINGS_DESCRIPTION}</p>
+        <Input
+          id="project-settings-app-start"
+          value={appStart}
+          aria-invalid={appStartIssue !== null}
+          aria-describedby={appStartIssue === null ? undefined : appStartIssueId}
+          onChange={(event) => {
+            setAppStart(event.target.value);
+            edited();
+          }}
+          placeholder="pnpm dev"
+          className="font-mono text-[13px]"
+        />
+        <FieldIssue id={appStartIssueId} issue={appStartIssue} />
+      </section>
+
+      <section className="grid gap-2">
+        <Label htmlFor="project-settings-app-url">App URL</Label>
+        <p className="text-xs text-muted-foreground">
+          Where the app answers once started, on localhost or 127.0.0.1.
+        </p>
+        <Input
+          id="project-settings-app-url"
+          value={appUrl}
+          aria-invalid={appUrlIssue !== null}
+          aria-describedby={appUrlIssue === null ? undefined : appUrlIssueId}
+          onChange={(event) => {
+            setAppUrl(event.target.value);
+            edited();
+          }}
+          placeholder="http://localhost:5173"
+          className="font-mono text-[13px]"
+        />
+        <FieldIssue id={appUrlIssueId} issue={appUrlIssue} />
+      </section>
+
+      <CommandsField
+        inputId="project-settings-app-setup"
+        label="App setup commands"
+        description="Commands such as pnpm install that install what the app needs, run in order before the start command. Each runs without a shell."
+        empty={<span className="text-muted-foreground">None. The app needs no setup.</span>}
+        commands={setups}
+        removeLabel={(command) => `Remove setup command ${command}`}
+        onRemove={(command) => {
+          setSetups(setups.filter((other) => other !== command));
+          edited();
+        }}
+        draft={setupDraft}
+        onDraftChange={(draft) => {
+          setSetupDraft(draft);
+          // Typing a new command clears the refusal of the last one; it edits nothing yet.
+          if (issue?.field === "appSetupCommands") {
+            setIssue(null);
+          }
+        }}
+        onAdd={addSetup}
+        addLabel="Add setup command"
+        placeholder="pnpm install"
+        issue={setupIssue}
+        issueId={setupIssueId}
       />
 
       <div className="grid gap-3 border-t border-hair-strong pt-4">

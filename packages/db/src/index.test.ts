@@ -11,6 +11,7 @@ import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import { z } from "zod";
 
 import {
+  anyProjectCapturesScreens,
   checkDatabaseFile,
   claimInstanceLock,
   INSTANCE_LOCK_FILE,
@@ -171,7 +172,7 @@ describe("migrateDatabase", () => {
     expect(db.$client.prepare("select type, name, sql from sqlite_master").all()).toEqual(
       schemaBefore,
     );
-    expect(db.$client.prepare("select count(*) from zenorm_migrations").pluck().get()).toBe(36);
+    expect(db.$client.prepare("select count(*) from zenorm_migrations").pluck().get()).toBe(38);
   });
 
   test("returns migration_failed when a migration cannot apply", () => {
@@ -223,6 +224,8 @@ const TAGS = [
   "0033_delivery_run_repairs",
   "0034_first_map_round_not_final",
   "0035_agent_decided",
+  "0036_project_app_settings",
+  "0037_delivery_run_app_settings",
 ];
 
 /** The split-from columns 0026 gives every map, null on each map that predates it. */
@@ -251,7 +254,10 @@ const PULL_REQUEST_NULLS = { pr_number: null, pr_url: null, pr_state: null };
 /** The repair columns 0033 gives every delivery run that predates it: none pinned, none counted. */
 const REPAIRS_UNPINNED = { repair_limit: null, repair_attempts: null, fix_commands: "[]" };
 
-/** The columns 0020, 0024, 0030 and 0033 add to a delivery run, as they set them. */
+/** The app columns 0037 gives every delivery run that predates it: none pinned, capture off. */
+const APP_SETTINGS_UNPINNED = { app_start_command: null, app_url: null, app_setup_commands: "[]" };
+
+/** The columns 0020, 0024, 0030, 0033 and 0037 add to a delivery run, as they set them. */
 function runColumnsAfter0020(row: Record<string, unknown>): Record<string, unknown> {
   return {
     executor: "local",
@@ -259,11 +265,21 @@ function runColumnsAfter0020(row: Record<string, unknown>): Record<string, unkno
     resumed_from_run_id: null,
     ...PULL_REQUEST_NULLS,
     ...REPAIRS_UNPINNED,
+    ...APP_SETTINGS_UNPINNED,
   };
 }
 
-/** The repair settings 0032 gives every project that predates it: no limit and no fix commands. */
-const REPAIR_SETTINGS_UNSAVED = { repair_limit: null, fix_commands: "[]" };
+/**
+ * The repair settings 0032 gives every project that predates it, no limit and no fix commands, and
+ * the app settings 0036 gives it: no start command, no URL and no setup commands.
+ */
+const REPAIR_SETTINGS_UNSAVED = {
+  repair_limit: null,
+  fix_commands: "[]",
+  app_start_command: null,
+  app_url: null,
+  app_setup_commands: "[]",
+};
 
 /** The usage columns 0016 gives every planning run, null on each run that predates it. */
 const USAGE_NULLS = {
@@ -335,7 +351,7 @@ describe("a database newer than the build", () => {
   });
 
   test("an earlier migration set migrates forward", async () => {
-    await migrateUpTo("0034_first_map_round_not_final");
+    await migrateUpTo("0036_project_app_settings");
     expect(migrationRows()).toHaveLength(TAGS.length - 1);
     expect(migrateDatabase(db, MIGRATIONS_FOLDER)).toEqual({ ok: true, value: undefined });
     expect(migrationRows()).toHaveLength(TAGS.length);
@@ -451,7 +467,8 @@ describe("migration 0004", () => {
 
     expect(migrateDatabase(db, MIGRATIONS_FOLDER)).toEqual({ ok: true, value: undefined });
 
-    // 0010 then adds `required_checks`, and 0030 `repair_limit` and `fix_commands`.
+    // 0010 then adds `required_checks`, 0030 `repair_limit` and `fix_commands`, and 0036 the app
+    // settings.
     expect(columns()).toEqual([
       "id",
       "folder_path",
@@ -460,6 +477,9 @@ describe("migration 0004", () => {
       "required_checks",
       "repair_limit",
       "fix_commands",
+      "app_start_command",
+      "app_url",
+      "app_setup_commands",
     ]);
     expect(
       db.$client
@@ -4994,8 +5014,87 @@ describe("migration 0032", () => {
         requiredChecks: [],
         repairLimit: null,
         fixCommands: [],
+        appStartCommand: null,
+        appUrl: null,
+        appSetupCommands: [],
       },
     ]);
+  });
+});
+
+describe("migration 0036", () => {
+  const at = "2026-10-18T12:00:00.000Z";
+  const projectId = "0199a1b2-c3d4-7e5f-8a9b-0c1d2e3fa036";
+
+  test("an existing project has no app start command, URL or setup commands, its other values kept", async () => {
+    await migrateUpTo("0035_agent_decided");
+    db.$client
+      .prepare(
+        "insert into projects (id, folder_path, base_branch, created_at, required_checks, repair_limit, fix_commands) values (?, ?, ?, ?, ?, ?, ?)",
+      )
+      .run(projectId, "/repo", "main", at, '["pnpm test"]', 2, '["pnpm format"]');
+
+    await migrateUpTo("0036_project_app_settings");
+
+    expect(db.$client.prepare("select * from projects").all()).toEqual([
+      {
+        id: projectId,
+        folder_path: "/repo",
+        base_branch: "main",
+        created_at: at,
+        required_checks: '["pnpm test"]',
+        repair_limit: 2,
+        fix_commands: '["pnpm format"]',
+        app_start_command: null,
+        app_url: null,
+        app_setup_commands: "[]",
+      },
+    ]);
+  });
+});
+
+describe("anyProjectCapturesScreens", () => {
+  const at = "2026-10-18T12:00:00.000Z";
+  const path = (): string => join(dir, "zenorm.sqlite");
+
+  function insertProject(id: string, appStartCommand: string | null, appUrl: string | null): void {
+    db.$client
+      .prepare(
+        "insert into projects (id, folder_path, base_branch, created_at, required_checks, app_start_command, app_url) values (?, ?, ?, ?, ?, ?, ?)",
+      )
+      .run(id, `/repo-${id}`, "main", at, "[]", appStartCommand, appUrl);
+  }
+
+  test("an absent file has no project capturing screens, and stays absent", () => {
+    const absent = join(dir, "none.sqlite");
+    expect(anyProjectCapturesScreens(absent)).toEqual(ok(false));
+    expect(existsSync(absent)).toBe(false);
+  });
+
+  test("a database not yet migrated to the app settings has none", async () => {
+    await migrateUpTo("0035_agent_decided");
+    expect(anyProjectCapturesScreens(path())).toEqual(ok(false));
+  });
+
+  test("only a project with both a start command and a URL saved captures, and the file is unchanged", async () => {
+    expect(migrateDatabase(db, MIGRATIONS_FOLDER).ok).toBe(true);
+    insertProject("0199a1b2-c3d4-7e5f-8a9b-0c1d2e3fc001", null, null);
+    expect(anyProjectCapturesScreens(path())).toEqual(ok(false));
+    insertProject("0199a1b2-c3d4-7e5f-8a9b-0c1d2e3fc002", "pnpm dev", null);
+    expect(anyProjectCapturesScreens(path())).toEqual(ok(false));
+
+    insertProject("0199a1b2-c3d4-7e5f-8a9b-0c1d2e3fc003", "pnpm dev", "http://localhost:5173");
+    db.$client.pragma("wal_checkpoint(TRUNCATE)");
+    const before = await readFile(path());
+    expect(anyProjectCapturesScreens(path())).toEqual(ok(true));
+    expect(await readFile(path())).toEqual(before);
+  });
+
+  test("a file that is not SQLite is database_open_failed", async () => {
+    const notSqlite = join(dir, "not-sqlite.sqlite");
+    await writeFile(notSqlite, "this is not a SQLite database file. ".repeat(20));
+    const read = anyProjectCapturesScreens(notSqlite);
+    expect(!read.ok && read.error.code).toBe("database_open_failed");
   });
 });
 
@@ -5098,7 +5197,9 @@ describe("migration 0033", () => {
 
     expect(migrateDatabase(db, MIGRATIONS_FOLDER)).toEqual({ ok: true, value: undefined });
 
-    expect(runs()).toEqual(before.map((row) => ({ ...row, ...REPAIRS_UNPINNED })));
+    expect(runs()).toEqual(
+      before.map((row) => ({ ...row, ...REPAIRS_UNPINNED, ...APP_SETTINGS_UNPINNED })),
+    );
     expect(
       db
         .select({
@@ -5109,6 +5210,32 @@ describe("migration 0033", () => {
         .from(deliveryRuns)
         .all(),
     ).toEqual([{ repairLimit: null, repairAttempts: null, fixCommands: [] }]);
+    expect(db.$client.pragma("foreign_key_check")).toEqual([]);
+  });
+
+  test("0037: a run from before pins no app start command, URL or setup commands", async () => {
+    await migrateUpTo("0036_project_app_settings");
+    seedRun();
+    const runs = () =>
+      z
+        .array(z.record(z.string(), z.unknown()))
+        .parse(db.$client.prepare("select * from delivery_runs").all());
+    const before = runs();
+    expect(before).toHaveLength(1);
+
+    await migrateUpTo("0037_delivery_run_app_settings");
+
+    expect(runs()).toEqual(before.map((row) => ({ ...row, ...APP_SETTINGS_UNPINNED })));
+    expect(
+      db
+        .select({
+          appStartCommand: deliveryRuns.appStartCommand,
+          appUrl: deliveryRuns.appUrl,
+          appSetupCommands: deliveryRuns.appSetupCommands,
+        })
+        .from(deliveryRuns)
+        .all(),
+    ).toEqual([{ appStartCommand: null, appUrl: null, appSetupCommands: [] }]);
     expect(db.$client.pragma("foreign_key_check")).toEqual([]);
   });
 });

@@ -30,7 +30,7 @@ import {
   clientOf,
   useApp,
   approvedSet,
-  PULL_REQUEST_BODY,
+  PULL_REQUEST_WRITTEN,
   PASSING_CHECK,
   gitIn,
   verdictFor,
@@ -81,7 +81,9 @@ describe("delivery executors", () => {
         return Promise.resolve(ok(null));
       },
       reviewDelivery: (request) => Promise.resolve(ok(verdictFor(request.finalCommit, false))),
-      writePullRequest: () => Promise.resolve(ok(PULL_REQUEST_BODY)),
+      writePullRequest: () => Promise.resolve(ok(PULL_REQUEST_WRITTEN)),
+      pickScreens: () => Promise.resolve(ok({ kind: "no_visible_change" })),
+      captureScreens: () => Promise.resolve(ok({ images: [], skipped: [] })),
     });
     const { project, mapId, ticketSetId } = await approvedSet();
     const [first] = TICKETS.tickets.map((ticket) => ticket.id);
@@ -154,6 +156,8 @@ describe("delivery executors", () => {
       },
       reviewDelivery: () => new Promise(() => undefined),
       writePullRequest: () => new Promise(() => undefined),
+      pickScreens: () => new Promise(() => undefined),
+      captureScreens: () => new Promise(() => undefined),
     });
     const { ticketSetId } = await approvedSet();
     const run = await startRun(ticketSetId, [PASSING_CHECK]);
@@ -244,6 +248,8 @@ describe("one folder per run, from the checkout seam", () => {
       },
       reviewDelivery: () => new Promise(() => undefined),
       writePullRequest: () => new Promise(() => undefined),
+      pickScreens: () => new Promise(() => undefined),
+      captureScreens: () => new Promise(() => undefined),
     };
     const options = (): AppOptions => ({
       db,
@@ -290,6 +296,8 @@ describe("a person's Cancel of a deaf executor", () => {
       },
       reviewDelivery: () => new Promise(() => undefined),
       writePullRequest: () => new Promise(() => undefined),
+      pickScreens: () => new Promise(() => undefined),
+      captureScreens: () => new Promise(() => undefined),
     });
     const { mapId, ticketSetId } = await approvedSet();
     const run = await startRun(ticketSetId, [PASSING_CHECK]);

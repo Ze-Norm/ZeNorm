@@ -34,6 +34,8 @@ catalog:
   better-sqlite3: 13.0.3
   "@types/better-sqlite3": 9.6.0
   uuid: 14.0.2
+  # agent: the capture session's Playwright MCP server (lib/entry/mcp.js)
+  playwright-core: 1.63.0
   # server, app
   hono: 4.13.13
   "@hono/node-server": 2.1.3

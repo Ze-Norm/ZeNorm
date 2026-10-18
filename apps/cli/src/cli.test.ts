@@ -414,8 +414,11 @@ describe("the package", () => {
     expect(manifest).not.toHaveProperty("private");
   });
 
-  test("better-sqlite3 is its only runtime dependency; the workspace and commander are bundled", () => {
-    expect(manifest).toHaveProperty("dependencies", { "better-sqlite3": "catalog:" });
+  test("better-sqlite3 and playwright-core are its only runtime dependencies; the rest is bundled", () => {
+    expect(manifest).toHaveProperty("dependencies", {
+      "better-sqlite3": "catalog:",
+      "playwright-core": "catalog:",
+    });
   });
 
   test("the packaged assets sit beside the bundle in dist/", () => {

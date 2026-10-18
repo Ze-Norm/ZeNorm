@@ -264,6 +264,40 @@ export function checkDatabaseFile(
   }
 }
 
+/** One project with both an app start command and its URL saved, if any. */
+const CAPTURE_ON_QUERY =
+  "SELECT 1 FROM projects WHERE app_start_command IS NOT NULL AND app_url IS NOT NULL LIMIT 1";
+
+/**
+ * `zenorm doctor`'s read of whether screenshot capture is on anywhere: opens `filePath` read-only
+ * and says whether any project has both `app_start_command` and `app_url` saved. An absent file,
+ * and a database not yet migrated to have those columns, have none. Writes nothing. A file SQLite
+ * cannot read is `database_open_failed`.
+ */
+export function anyProjectCapturesScreens(filePath: string): Result<boolean, DatabaseOpenError> {
+  if (!existsSync(filePath)) {
+    return ok(false);
+  }
+  let client: Database.Database | undefined;
+  try {
+    client = new Database(filePath, { readonly: true, fileMustExist: true });
+    const columnQuery = client.prepare("SELECT name FROM pragma_table_info('projects')").pluck();
+    const columns = new Set(columnQuery.all().map(String));
+    if (!columns.has("app_start_command") || !columns.has("app_url")) {
+      return ok(false);
+    }
+    const found = client.prepare(CAPTURE_ON_QUERY).get();
+    return ok(found !== undefined);
+  } catch (error: unknown) {
+    if (!(error instanceof SqliteError)) {
+      throw error;
+    }
+    return err({ code: "database_open_failed", message: error.message, subject: filePath });
+  } finally {
+    client?.close();
+  }
+}
+
 /**
  * True when a query failed on a SQLite UNIQUE constraint. Drizzle 0.45's better-sqlite3 session
  * rethrows the driver's `SqliteError` unwrapped.

@@ -135,8 +135,15 @@ export interface AppOptions {
   readonly delivery: {
     /** Absolute path of the folder that holds every run folder, `<dataDir>/runs`. */
     readonly runsDir: string;
-    /** Each check's bound. */
+    /** Each check's bound, and each app setup command's. */
     readonly checkTimeoutMinutes: number;
+    /**
+     * `<dataDir>/sessions`: a capture's started app keeps its session record here until its
+     * process group is stopped.
+     */
+    readonly sessionsDir: string;
+    /** How long a capture waits for a started app's URL: core's `APP_READY_TIMEOUT_MS` for a run. */
+    readonly appReadyTimeoutMs: number;
   };
 }
 
@@ -722,7 +729,11 @@ export function createApp({
     implementTicketSet: chosen.implementTicketSet,
     reviewDelivery: chosen.reviewDelivery,
     writePullRequest: chosen.writePullRequest,
+    pickScreens: chosen.pickScreens,
+    captureScreens: chosen.captureScreens,
     checkTimeoutMinutes: delivery.checkTimeoutMinutes,
+    sessionsDir: delivery.sessionsDir,
+    appReadyTimeoutMs: delivery.appReadyTimeoutMs,
     // A run's end may start planning work on any map: a release run, or a run the spec's hold kept
     // back.
     onEnd: () => {
