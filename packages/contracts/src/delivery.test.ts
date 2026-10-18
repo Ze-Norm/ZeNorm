@@ -18,6 +18,7 @@ import {
   ImplementEvent,
   MarkMergedErrorCode,
   PlanningAgentErrorCode,
+  ProjectAppSetupCommands,
   ProjectChecks,
   ProjectFixCommands,
   REPAIR_LIMIT_MAX,
@@ -128,6 +129,9 @@ describe("ProjectChecks and SaveProjectSettingsInput", () => {
     requiredChecks: [],
     repairLimit: 0,
     fixCommands: [],
+    appStartCommand: null,
+    appUrl: null,
+    appSetupCommands: [],
   };
 
   test("a save takes the project, the branch, the checks, the repair limit and the fix commands", () => {
@@ -158,6 +162,9 @@ describe("ProjectChecks and SaveProjectSettingsInput", () => {
       baseBranch: "main",
       requiredChecks: [],
       fixCommands: [],
+      appStartCommand: null,
+      appUrl: null,
+      appSetupCommands: [],
     };
     expect(issues(SaveProjectSettingsInput.safeParse(withoutLimit))).toEqual([
       { code: "invalid_type", path: ["repairLimit"] },
@@ -178,6 +185,56 @@ describe("ProjectChecks and SaveProjectSettingsInput", () => {
         }),
       ),
     ).toEqual([{ code: "custom", path: ["fixCommands"] }]);
+  });
+
+  test("the app settings are required: the start command and URL may be null, the setup commands empty", () => {
+    const withoutCommand = {
+      projectId: PROJECT_ID,
+      baseBranch: "main",
+      requiredChecks: [],
+      repairLimit: 0,
+      fixCommands: [],
+      appUrl: null,
+      appSetupCommands: [],
+    };
+    expect(issues(SaveProjectSettingsInput.safeParse(withoutCommand))).toEqual([
+      { code: "invalid_type", path: ["appStartCommand"] },
+    ]);
+    expect(
+      SaveProjectSettingsInput.safeParse({
+        ...input,
+        appStartCommand: "pnpm dev",
+        appUrl: "http://localhost:5173",
+        appSetupCommands: ["pnpm install"],
+      }).success,
+    ).toBe(true);
+  });
+
+  test("ten unique app setup commands are accepted; eleven or a duplicate are refused", () => {
+    const ten = Array.from({ length: DELIVERY_CHECKS_MAX_COUNT }, (_, i) => `setup ${String(i)}`);
+    expect(ProjectAppSetupCommands.safeParse(ten).success).toBe(true);
+    expect(
+      issues(
+        SaveProjectSettingsInput.safeParse({ ...input, appSetupCommands: [...ten, "setup 10"] }),
+      ),
+    ).toEqual([{ code: "too_big", path: ["appSetupCommands"] }]);
+    expect(
+      issues(
+        SaveProjectSettingsInput.safeParse({
+          ...input,
+          appSetupCommands: ["pnpm install", " pnpm install "],
+        }),
+      ),
+    ).toEqual([{ code: "custom", path: ["appSetupCommands"] }]);
+  });
+
+  test("an app start command or URL on two lines is refused", () => {
+    expect(
+      issues(SaveProjectSettingsInput.safeParse({ ...input, appStartCommand: "a\nb", appUrl: "x" })),
+    ).toEqual([{ code: "invalid_format", path: ["appStartCommand"] }]);
+    expect(
+      issues(SaveProjectSettingsInput.safeParse({ ...input, appStartCommand: "a", appUrl: "x\ny" })),
+    ).toEqual([{ code: "invalid_format", path: ["appUrl"] }]);
   });
 });
 

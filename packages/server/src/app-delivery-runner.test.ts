@@ -44,6 +44,7 @@ import {
   commitTicket,
   ticketRefs,
   setUpAppTests,
+  NO_APP_SETTINGS,
 } from "./app-test-support.ts";
 
 setUpAppTests();
@@ -58,7 +59,7 @@ describe("project settings, Mark merged and run activity over /rpc", () => {
       startDeliveryBlockers: ["project_checks_missing", "project_repair_limit_missing"],
       activeRun: null,
     });
-    const repair = { repairLimit: 1, fixCommands: ["pnpm format"] };
+    const repair = { repairLimit: 1, fixCommands: ["pnpm format"], ...NO_APP_SETTINGS };
     const saved = await client.project.saveSettings({
       projectId: project.id,
       baseBranch: "main",
@@ -105,6 +106,7 @@ describe("project settings, Mark merged and run activity over /rpc", () => {
         requiredChecks: [PASSING_CHECK],
         repairLimit: 3,
         fixCommands: ["pnpm format | tee log"],
+        ...NO_APP_SETTINGS,
       }),
     );
     expect(
@@ -130,15 +132,15 @@ describe("project settings, Mark merged and run activity over /rpc", () => {
       { requiredChecks: [PASSING_CHECK, PASSING_CHECK], ...repair },
       {
         requiredChecks: [PASSING_CHECK],
-        repairLimit: 1,
+        ...repair,
         fixCommands: ["pnpm format", "pnpm format"],
       },
       {
         requiredChecks: [PASSING_CHECK],
-        repairLimit: 1,
+        ...repair,
         fixCommands: Array.from({ length: 11 }, (_, index) => `fix ${String(index)}`),
       },
-      { requiredChecks: [PASSING_CHECK], repairLimit: 11, fixCommands: [] },
+      { requiredChecks: [PASSING_CHECK], ...repair, repairLimit: 11 },
     ]) {
       const [refused] = await safe(
         client.project.saveSettings({ projectId: project.id, baseBranch: "main", ...input }),
@@ -150,6 +152,67 @@ describe("project settings, Mark merged and run activity over /rpc", () => {
       requiredChecks: [PASSING_CHECK],
       ...repair,
     });
+  });
+
+  test("project.saveSettings stores the app start command, URL and setup commands; refusals are coded", async () => {
+    const project = await addProject();
+    expect(project).toMatchObject(NO_APP_SETTINGS);
+    const settings = {
+      projectId: project.id,
+      baseBranch: "main",
+      requiredChecks: [PASSING_CHECK],
+      repairLimit: 1,
+      fixCommands: [],
+    };
+    const appSettings = {
+      appStartCommand: "pnpm dev",
+      appUrl: "http://127.0.0.1:5173",
+      appSetupCommands: ["pnpm install"],
+    };
+    expect(await client.project.saveSettings({ ...settings, ...appSettings })).toMatchObject(
+      appSettings,
+    );
+    expect(await client.project.get({ projectId: project.id })).toMatchObject(appSettings);
+
+    const cases = [
+      {
+        change: { ...appSettings, appUrl: null },
+        refusal: ["project_app_settings_incomplete", { missing: "appUrl" }],
+      },
+      {
+        change: { ...appSettings, appStartCommand: null },
+        refusal: ["project_app_settings_incomplete", { missing: "appStartCommand" }],
+      },
+      {
+        change: { ...appSettings, appUrl: "http://example.com" },
+        refusal: ["project_app_url_invalid", { url: "http://example.com" }],
+      },
+      {
+        change: { ...appSettings, appStartCommand: "pnpm dev > log" },
+        refusal: ["project_app_command_invalid", { command: "pnpm dev > log" }],
+      },
+      {
+        change: { ...appSettings, appSetupCommands: ["pnpm i && pnpm build"] },
+        refusal: ["project_app_command_invalid", { command: "pnpm i && pnpm build" }],
+      },
+    ];
+    for (const { change, refusal } of cases) {
+      const [refused] = await safe(client.project.saveSettings({ ...settings, ...change }));
+      expect(isDefinedError(refused) && [refused.code, refused.status, refused.data]).toEqual([
+        refusal[0],
+        422,
+        refusal[1],
+      ]);
+    }
+    const [tooMany] = await safe(
+      client.project.saveSettings({
+        ...settings,
+        ...appSettings,
+        appSetupCommands: Array.from({ length: 11 }, (_, index) => `setup ${String(index)}`),
+      }),
+    );
+    expect(tooMany instanceof ORPCError && tooMany.code).toBe("BAD_REQUEST");
+    expect(await client.project.get({ projectId: project.id })).toMatchObject(appSettings);
   });
 
   test("delivery.start refuses project_checks_missing, then project_repair_limit_missing; delivery_in_progress carries the project's active run", async () => {

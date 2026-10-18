@@ -478,6 +478,9 @@ export const SaveProjectSettingsErrorCode = z.enum([
   "project_branch_invalid",
   "project_check_invalid",
   "project_fix_command_invalid",
+  "project_app_settings_incomplete",
+  "project_app_url_invalid",
+  "project_app_command_invalid",
 ]);
 export type SaveProjectSettingsErrorCode = z.infer<typeof SaveProjectSettingsErrorCode>;
 
@@ -488,6 +491,14 @@ export const SaveProjectSettingsErrorData = {
   project_check_invalid: z.strictObject({ command: z.string() }),
   /** The first fix command that needs a shell. */
   project_fix_command_invalid: z.strictObject({ command: z.string() }),
+  /** Only one of the app start command and URL was given; `missing` names the other. */
+  project_app_settings_incomplete: z.strictObject({
+    missing: z.enum(["appStartCommand", "appUrl"]),
+  }),
+  /** The app URL is not an http(s) URL on localhost or 127.0.0.1. */
+  project_app_url_invalid: z.strictObject({ url: z.string() }),
+  /** The app start command, or else the first app setup command, that needs a shell. */
+  project_app_command_invalid: z.strictObject({ command: z.string() }),
 } satisfies Record<SaveProjectSettingsErrorCode, z.ZodType>;
 
 export type SaveProjectSettingsError = {
@@ -769,6 +780,9 @@ export const DomainCode = z.enum([
   "project_repair_limit_missing",
   "project_check_invalid",
   "project_fix_command_invalid",
+  "project_app_settings_incomplete",
+  "project_app_url_invalid",
+  "project_app_command_invalid",
   ...CancelDeliveryErrorCode.options,
   "delivery_not_passed",
   "delivery_already_merged",

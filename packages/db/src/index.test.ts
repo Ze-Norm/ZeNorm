@@ -171,7 +171,7 @@ describe("migrateDatabase", () => {
     expect(db.$client.prepare("select type, name, sql from sqlite_master").all()).toEqual(
       schemaBefore,
     );
-    expect(db.$client.prepare("select count(*) from zenorm_migrations").pluck().get()).toBe(36);
+    expect(db.$client.prepare("select count(*) from zenorm_migrations").pluck().get()).toBe(37);
   });
 
   test("returns migration_failed when a migration cannot apply", () => {
@@ -223,6 +223,7 @@ const TAGS = [
   "0033_delivery_run_repairs",
   "0034_first_map_round_not_final",
   "0035_agent_decided",
+  "0036_project_app_settings",
 ];
 
 /** The split-from columns 0026 gives every map, null on each map that predates it. */
@@ -262,8 +263,17 @@ function runColumnsAfter0020(row: Record<string, unknown>): Record<string, unkno
   };
 }
 
-/** The repair settings 0032 gives every project that predates it: no limit and no fix commands. */
-const REPAIR_SETTINGS_UNSAVED = { repair_limit: null, fix_commands: "[]" };
+/**
+ * The repair settings 0032 gives every project that predates it, no limit and no fix commands, and
+ * the app settings 0036 gives it: no start command, no URL and no setup commands.
+ */
+const REPAIR_SETTINGS_UNSAVED = {
+  repair_limit: null,
+  fix_commands: "[]",
+  app_start_command: null,
+  app_url: null,
+  app_setup_commands: "[]",
+};
 
 /** The usage columns 0016 gives every planning run, null on each run that predates it. */
 const USAGE_NULLS = {
@@ -335,7 +345,7 @@ describe("a database newer than the build", () => {
   });
 
   test("an earlier migration set migrates forward", async () => {
-    await migrateUpTo("0034_first_map_round_not_final");
+    await migrateUpTo("0035_agent_decided");
     expect(migrationRows()).toHaveLength(TAGS.length - 1);
     expect(migrateDatabase(db, MIGRATIONS_FOLDER)).toEqual({ ok: true, value: undefined });
     expect(migrationRows()).toHaveLength(TAGS.length);
@@ -451,7 +461,8 @@ describe("migration 0004", () => {
 
     expect(migrateDatabase(db, MIGRATIONS_FOLDER)).toEqual({ ok: true, value: undefined });
 
-    // 0010 then adds `required_checks`, and 0030 `repair_limit` and `fix_commands`.
+    // 0010 then adds `required_checks`, 0030 `repair_limit` and `fix_commands`, and 0036 the app
+    // settings.
     expect(columns()).toEqual([
       "id",
       "folder_path",
@@ -460,6 +471,9 @@ describe("migration 0004", () => {
       "required_checks",
       "repair_limit",
       "fix_commands",
+      "app_start_command",
+      "app_url",
+      "app_setup_commands",
     ]);
     expect(
       db.$client
@@ -4994,6 +5008,40 @@ describe("migration 0032", () => {
         requiredChecks: [],
         repairLimit: null,
         fixCommands: [],
+        appStartCommand: null,
+        appUrl: null,
+        appSetupCommands: [],
+      },
+    ]);
+  });
+});
+
+describe("migration 0036", () => {
+  const at = "2026-10-18T12:00:00.000Z";
+  const projectId = "0199a1b2-c3d4-7e5f-8a9b-0c1d2e3fa036";
+
+  test("an existing project has no app start command, URL or setup commands, its other values kept", async () => {
+    await migrateUpTo("0035_agent_decided");
+    db.$client
+      .prepare(
+        "insert into projects (id, folder_path, base_branch, created_at, required_checks, repair_limit, fix_commands) values (?, ?, ?, ?, ?, ?, ?)",
+      )
+      .run(projectId, "/repo", "main", at, '["pnpm test"]', 2, '["pnpm format"]');
+
+    await migrateUpTo("0036_project_app_settings");
+
+    expect(db.$client.prepare("select * from projects").all()).toEqual([
+      {
+        id: projectId,
+        folder_path: "/repo",
+        base_branch: "main",
+        created_at: at,
+        required_checks: '["pnpm test"]',
+        repair_limit: 2,
+        fix_commands: '["pnpm format"]',
+        app_start_command: null,
+        app_url: null,
+        app_setup_commands: "[]",
       },
     ]);
   });

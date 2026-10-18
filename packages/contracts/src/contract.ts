@@ -208,8 +208,8 @@ export const contract = {
       .input(CreateProjectInput)
       .output(Project),
     /**
-     * Stores the base branch, the required checks, the repair limit and the fix commands; a missing
-     * folder does not refuse it.
+     * Stores the base branch, the required checks, the repair limit, the fix commands and the app
+     * start command, URL and setup commands; a missing folder does not refuse it.
      */
     saveSettings: oc
       .errors({
@@ -229,6 +229,18 @@ export const contract = {
         project_fix_command_invalid: {
           status: UNPROCESSABLE,
           data: SaveProjectSettingsErrorData.project_fix_command_invalid,
+        },
+        project_app_settings_incomplete: {
+          status: UNPROCESSABLE,
+          data: SaveProjectSettingsErrorData.project_app_settings_incomplete,
+        },
+        project_app_url_invalid: {
+          status: UNPROCESSABLE,
+          data: SaveProjectSettingsErrorData.project_app_url_invalid,
+        },
+        project_app_command_invalid: {
+          status: UNPROCESSABLE,
+          data: SaveProjectSettingsErrorData.project_app_command_invalid,
         },
       })
       .input(SaveProjectSettingsInput)

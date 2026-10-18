@@ -239,6 +239,9 @@ async function deliver(
     requiredChecks: [...checks],
     repairLimit,
     fixCommands: [],
+    appStartCommand: null,
+    appUrl: null,
+    appSetupCommands: [],
   });
   const started = DeliveryRun.parse(
     await rpc(app, "delivery/start", { ticketSetId: ticketSet.id }),

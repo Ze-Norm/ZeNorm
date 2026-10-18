@@ -87,6 +87,7 @@ function newProjectRow(id: string): typeof projects.$inferInsert {
     requiredChecks: [],
     repairLimit: null,
     fixCommands: [],
+    appSetupCommands: [],
   };
 }
 
