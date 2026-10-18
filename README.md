@@ -39,7 +39,7 @@ Writing code is fast now. The hard part is deciding what to build, keeping that 
 
 ## Install
 
-You need macOS or Linux (on Windows, use WSL 2), Node.js 22.14 or later, git, and Claude Code installed.
+You need macOS or Linux (on Windows, use WSL 2), Node.js 22.14 or later, git, and [Claude Code](https://docs.claude.com/en/docs/claude-code).
 
 ```sh
 npm install -g @ze-norm/cli
@@ -47,9 +47,7 @@ zenorm init
 zenorm run
 ```
 
-`zenorm init` asks for one model, hands you to Claude Code's own sign-in if it isn't signed in, and writes `~/.config/zenorm/config.json` with its data folder beside it (`~/.config/zenorm/data`). On a machine without a browser (SSH, WSL, a container), run `claude auth login` first, or set `ANTHROPIC_API_KEY`; ZeNorm passes its environment on to Claude Code. Every command reads its config from `--config <path>`, else `ZENORM_CONFIG`, else `~/.config/zenorm/config.json`. The [example config](config.example.json) lists every key. `zenorm doctor` checks Node, the platform, the config, the data folder, Claude Code and its sign-in, git, the web build and the database, changes nothing, and lists every failing check with its code. Open [http://127.0.0.1:4310](http://127.0.0.1:4310), add a project, and start a map.
-
-Every config key but `fastMode` is required; ZeNorm refuses to start rather than guess a default. [SETUP.md](SETUP.md) explains each key. To run ZeNorm from a checkout of this repository instead, for example to work on it or to use plugins, see [DEVELOPING.md](DEVELOPING.md).
+Open [http://127.0.0.1:4310](http://127.0.0.1:4310), add a project, and start a map. If something's wrong, `zenorm doctor` tells you what. [SETUP.md](SETUP.md) covers configuration, signing in without a browser, and preparing a project for delivery.
 
 If ZeNorm is useful to you, a star on GitHub helps others find it. Want ZeNorm in the cloud for your whole team? [ZeNorm Pro](https://zenorm.com/?ref=gh-readme#pro) is coming; join the waitlist.
 
@@ -76,10 +74,6 @@ An independent review checks every spec before you approve it. On another map as
 A delivery run implements the tickets on one branch, reruns your required checks itself, has a fresh, read-only session review the result, and opens a pull request:
 
 ![A passed delivery run: both tickets implemented on the run branch, `node --test` rerun by ZeNorm and passed, the independent reviewer found no blocking findings, and pull request #2 is open to merge on GitHub](.github/assets/delivery.png)
-
-Before a project's first delivery, save a **Repair limit** in its Project settings: how many times a run whose required checks fail goes back to fix them, from 0 (no repair) to 10. Delivery can't start until one is saved. **Fix commands**, such as `pnpm format`, are optional.
-
-When a delivery run passes on a project whose origin is on github.com, it ends by opening a pull request. That needs [gh](https://cli.github.com) installed and signed in.
 
 Everything ZeNorm plans and delivers happens in your project, on your machine. Its records stay on your machine too, in a local SQLite database.
 

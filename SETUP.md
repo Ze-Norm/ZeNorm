@@ -61,6 +61,12 @@ Then open the host and port from your config (`http://127.0.0.1:4310` with the o
 
 If ZeNorm won't start, run `zenorm doctor`. It checks Node, the platform, the config, the data folder, Claude Code and its sign-in, git, the web build and the database, changes nothing, and lists every failing check with its code.
 
+## Before your first delivery
+
+Before a project's first delivery, save a **Repair limit** in its Project settings: how many times a run whose required checks fail goes back to fix them, from 0 (no repair) to 10. Delivery can't start until one is saved. **Fix commands**, such as `pnpm format`, are optional.
+
+When a delivery run passes on a project whose origin is on github.com, it ends by opening a pull request. That needs [gh](https://cli.github.com) installed and signed in.
+
 ## Plugins
 
 A plugin is one package with a server entry and, when it renders anything, a web entry, built on [`@zenorm/plugin-sdk`](packages/plugin-sdk). The [example plugin](examples/plugin-example) exercises every extension point, including its own delivery executor. The `zenorm` command runs without plugins. To compose one, run ZeNorm from a checkout of this repository ([DEVELOPING.md](DEVELOPING.md)): `pnpm dev:example` serves ZeNorm composed with the example plugin; its config needs a `plugins.example` section.
