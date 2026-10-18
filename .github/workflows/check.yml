@@ -103,14 +103,28 @@ jobs:
 
   smoke:
     # The install smoke test: the packed @ze-norm/cli installed with npm into an empty
-    # folder outside the repository, with better-sqlite3's prebuild.
+    # folder outside the repository, with better-sqlite3's prebuild. Packed on the .nvmrc Node,
+    # then installed and run on each Node the package supports: the oldest (`engines.node`), Node
+    # 24 and the .nvmrc one. Below 22.18 type stripping is behind a flag, which the smoke
+    # script and its stand-in claude need; it changes nothing on later versions.
+    name: smoke (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ["22.14.0", "24", "26.11.1"]
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup
         with:
-          turbo-cache: ${{ !startsWith(github.ref, 'refs/tags/') && 'smoke' || '' }}
+          turbo-cache: ${{ !startsWith(github.ref, 'refs/tags/') && format('smoke-{0}', matrix.node) || '' }}
       - run: pnpm exec turbo run pack --filter=@ze-norm/cli
-      - run: pnpm --filter @ze-norm/cli smoke
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: ${{ matrix.node }}
+      - run: node scripts/smoke.ts
+        working-directory: apps/cli
+        env:
+          NODE_OPTIONS: --experimental-strip-types --no-warnings=ExperimentalWarning

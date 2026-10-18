@@ -113,7 +113,7 @@ describe("the platform and Node refusals", () => {
     expect(run).not.toHaveBeenCalled();
   });
 
-  test.each(["26.11.0", "26.10.9", "24.12.0", "v22.0.0"])(
+  test.each(["22.13.1", "22.12.0", "v20.19.0", "18.20.4"])(
     "Node %s is node_version_unsupported, exit 1, before the arguments or any command",
     async (nodeVersion) => {
       const { commands, run } = stubCommands();
@@ -140,7 +140,7 @@ describe("the platform and Node refusals", () => {
     expect(await readdir(home)).toEqual(["config.json"]);
   });
 
-  test.each(["26.11.1", "v26.11.1", "26.12.0", "27.0.0"])(
+  test.each(["22.14.0", "v22.14.0", "24.15.0", "26.11.1"])(
     "Node %s on macOS or Linux reaches the command with its --config",
     async (nodeVersion) => {
       for (const platform of ["darwin", "linux"] as const) {
@@ -200,7 +200,7 @@ describe("help and the version", () => {
     "%s on old Node answers with exit code 0 and runs no command",
     async (...argv) => {
       const { commands, run } = stubCommands();
-      expect(await runCli(input({ argv, nodeVersion: "24.22.0" }), commands, report)).toBe(0);
+      expect(await runCli(input({ argv, nodeVersion: "20.19.0" }), commands, report)).toBe(0);
       expect(written.join("")).not.toBe("");
       expect(reported).toEqual([]);
       expect(run).not.toHaveBeenCalled();
@@ -211,8 +211,8 @@ describe("help and the version", () => {
     "%j on old Node is node_version_unsupported, with no output",
     async (...argv) => {
       const { commands, run } = stubCommands();
-      expect(await runCli(input({ argv, nodeVersion: "24.22.0" }), commands, report)).toBe(1);
-      expect(reportedCodes()).toEqual([{ code: "node_version_unsupported", subject: "24.22.0" }]);
+      expect(await runCli(input({ argv, nodeVersion: "20.19.0" }), commands, report)).toBe(1);
+      expect(reportedCodes()).toEqual([{ code: "node_version_unsupported", subject: "20.19.0" }]);
       expect(written).toEqual([]);
       expect(run).not.toHaveBeenCalled();
     },
@@ -343,7 +343,7 @@ describe("refusals on standard error", () => {
   const refusals: readonly { code: string; overrides: Partial<CliInput> }[] = [
     { code: "arguments_invalid", overrides: { argv: ["bogus"] } },
     { code: "platform_unsupported", overrides: { platform: "win32" } },
-    { code: "node_version_unsupported", overrides: { nodeVersion: "24.22.0" } },
+    { code: "node_version_unsupported", overrides: { nodeVersion: "20.19.0" } },
     { code: "config_file_missing", overrides: { argv: ["run"] } },
   ];
 
@@ -402,7 +402,7 @@ describe("the init hint", () => {
 });
 
 describe("the package", () => {
-  test("ships the zenorm bin and dist, needs Node 26.11.1 or newer, and declares no os field", () => {
+  test("ships the zenorm bin and dist, needs Node 22.14.0 or newer, and declares no os field", () => {
     expect(manifest).toMatchObject({
       name: "@ze-norm/cli",
       type: "module",

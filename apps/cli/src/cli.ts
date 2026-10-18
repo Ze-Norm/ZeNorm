@@ -110,7 +110,7 @@ export function refuseNodeVersion(nodeVersion: string): Result<null, StartupErro
   const major = versionParts(MINIMUM_NODE_VERSION)[0];
   return err({
     code: "node_version_unsupported",
-    message: `ZeNorm needs Node ${MINIMUM_NODE_VERSION} or newer (the Current line, not yet LTS); this is Node ${nodeVersion}. Install it with \`nvm install ${String(major)}\` or \`fnm install ${String(major)}\`, then run zenorm again`,
+    message: `ZeNorm needs Node ${MINIMUM_NODE_VERSION} or newer; this is Node ${nodeVersion}. Install it with \`nvm install ${String(major)}\` or \`fnm install ${String(major)}\`, then run zenorm again`,
     subject: nodeVersion,
   });
 }

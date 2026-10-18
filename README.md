@@ -39,7 +39,7 @@ Writing code is fast now. The hard part is deciding what to build, keeping that 
 
 ## Install
 
-You need macOS or Linux (on Windows, use WSL 2), Node.js 26.11.1 or later, git, and Claude Code installed. Node 26 is the Current release line, not yet LTS, so an LTS installer gives you Node 24; install 26 with `nvm install 26` (or `fnm install 26`).
+You need macOS or Linux (on Windows, use WSL 2), Node.js 22.14 or later, git, and Claude Code installed.
 
 ```sh
 npm install -g @ze-norm/cli

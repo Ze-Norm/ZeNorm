@@ -3,7 +3,7 @@ import { join } from "node:path";
 import type { ZeNormAssets } from "@zenorm/zenorm/startup";
 
 /** The oldest Node the command runs on; `package.json`'s `engines.node` names the same. */
-export const MINIMUM_NODE_VERSION = "26.11.1";
+export const MINIMUM_NODE_VERSION = "22.14.0";
 
 /** The folders inside the package's `dist/`, beside the bundle, that the build copies in. */
 export const PACKAGED_ASSET_DIRS = {

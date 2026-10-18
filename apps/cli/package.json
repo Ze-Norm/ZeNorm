@@ -1,6 +1,6 @@
 {
   "name": "@ze-norm/cli",
-  "version": "0.17.2",
+  "version": "0.17.3",
   "description": "Plan anything. Build anything. Turn a rough software idea into a reviewed plan, then a reviewed pull request, with Claude Code.",
   "keywords": [
     "claude-code",
@@ -27,7 +27,7 @@
     "dist"
   ],
   "engines": {
-    "node": ">=26.11.1"
+    "node": ">=22.14.0"
   },
   "publishConfig": {
     "access": "public"
