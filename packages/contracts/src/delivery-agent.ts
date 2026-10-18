@@ -19,7 +19,7 @@ import {
   TicketId,
 } from "./spec-content.ts";
 import { AbsolutePath, AppUrl, ProjectFixCommands, REPAIR_LIMIT_MAX } from "./project.ts";
-import type { Result } from "./result.ts";
+import type { CodedError, Result } from "./result.ts";
 
 /** The identity every delivery session and check commits as, through `GIT_AUTHOR_*`/`GIT_COMMITTER_*`. */
 export const GitIdentity = z.strictObject({
@@ -396,12 +396,20 @@ export type PickScreens = (
  * The port behind which the browser capture session sits. ZeNorm calls it once per app instance it
  * started from the run worktree, with the picked screens, once the app URL answers; the session
  * visits only the app's origin and writes each screenshot into `screenshotsDir`. ZeNorm stops the
- * app after it returns. A failure is the capture's (`capture_session_failed`), never the run's.
+ * app after it returns. A failure is the capture's, never the run's: `capture_browser_missing` when
+ * the port finds the browser it drives is not installed (checked before any session starts), and
+ * `capture_session_failed` for any other.
  */
 export type CaptureScreens = (
   request: CaptureScreensRequest,
   signal: AbortSignal,
-) => Promise<Result<CapturedScreens, DeliveryAgentError>>;
+) => Promise<Result<CapturedScreens, DeliveryAgentError | CaptureBrowserMissingError>>;
+
+/**
+ * The capture port's refusal before it starts a session: the browser its pinned Playwright MCP
+ * server drives (or the server itself) is not installed where the server looks for it.
+ */
+export type CaptureBrowserMissingError = CodedError<"capture_browser_missing">;
 
 /** The name the app registers its Claude Code sessions under. */
 export const LOCAL_EXECUTOR = "local";

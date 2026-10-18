@@ -449,6 +449,7 @@ const CAPTURE_FAILURE_REASONS: Readonly<Record<CaptureFailureCode, string>> = {
   capture_setup_failed: "a setup command of the app failed",
   capture_app_not_ready: "the app did not answer at its URL once started",
   capture_app_url_in_use: "something else already answered at the app's URL",
+  capture_browser_missing: "the screenshot browser is not installed on the machine running ZeNorm",
   capture_session_failed: "the browser session that takes the screenshots failed",
   capture_too_many_screens: "the capture returned more screens than a pull request shows",
   capture_push_failed: "pushing the screenshots to GitHub failed",

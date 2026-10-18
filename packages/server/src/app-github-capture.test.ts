@@ -5,7 +5,7 @@ import type { Server } from "node:http";
 import { join } from "node:path";
 
 import type {
-  CapturedScreens,
+  CaptureScreens,
   CaptureScreensRequest,
   DeliveryAgentError,
   DeliveryExecutor,
@@ -155,10 +155,7 @@ interface Calls {
 }
 
 /** How a stand-in capture answers: what it returns, given its request. */
-type Shoot = (
-  request: CaptureScreensRequest,
-  signal: AbortSignal,
-) => Promise<Result<CapturedScreens, DeliveryAgentError>>;
+type Shoot = CaptureScreens;
 
 /** A capture that writes one PNG per picked screen but the last, which it skips. */
 const SHOOT_ALL_BUT_LAST: Shoot = async (request) => {
@@ -450,6 +447,14 @@ describe("a failed capture adds a line with its code, and the run ends passed wi
       }),
     );
 
+  const BROWSER_MISSING: Shoot = () =>
+    Promise.resolve(
+      err({
+        code: "capture_browser_missing",
+        message: "The screenshot browser, Chromium build 1243, is not installed.",
+      }),
+    );
+
   test.each([
     {
       code: "capture_setup_failed",
@@ -472,6 +477,12 @@ describe("a failed capture adds a line with its code, and the run ends passed wi
         servers.push(server);
         await new Promise<void>((resolve) => server.listen(port, "127.0.0.1", resolve));
       },
+    },
+    {
+      code: "capture_browser_missing",
+      app: () => captureOn(),
+      shoot: BROWSER_MISSING,
+      before: () => Promise.resolve(),
     },
     {
       code: "capture_session_failed",

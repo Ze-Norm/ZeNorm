@@ -11,8 +11,10 @@ import { MINIMUM_NODE_VERSION, PACKAGED_ASSET_DIRS } from "../src/packaged.ts";
 
 /**
  * Builds `@ze-norm/cli` into `dist/`: the `zenorm` bin bundled to one JavaScript file, with the
- * repository's skills, migrations and web build copied beside it. better-sqlite3 stays a
- * real dependency, loaded from the installed package's `node_modules`.
+ * repository's skills, migrations and web build copied beside it. better-sqlite3 and
+ * playwright-core (the screenshot capture's Playwright MCP server, which the capture session starts
+ * as its own Node process) stay real dependencies, loaded from the installed package's
+ * `node_modules`.
  */
 
 const packageDir = fileURLToPath(new URL("..", import.meta.url));
@@ -32,7 +34,7 @@ await build({
   platform: "node",
   format: "esm",
   target: `node${MINIMUM_NODE_VERSION}`,
-  external: ["better-sqlite3"],
+  external: ["better-sqlite3", "playwright-core"],
   // The bin's shebang, and a `require` for the bundled CommonJS modules, which ESM has none of.
   banner: {
     js: [

@@ -9,7 +9,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 
 import {
   type CaptureScreensRequest,
@@ -42,7 +42,11 @@ import {
   writePullRequestWith,
 } from "./delivery.ts";
 import { buildOrchestratorPrompt, buildOrchestratorSystemPrompt } from "./delivery-prompt.ts";
-import { playwrightMcpLaunch } from "./playwright-mcp.ts";
+import {
+  checkCaptureBrowser,
+  locateCaptureBrowser,
+  resolvePlaywrightMcp,
+} from "./playwright-mcp.ts";
 import { checkSkill, deliverySkills, type DeliverySkills, SKILLS_DIR } from "./skills.ts";
 
 /** The repository's delivery skills, which the source entries pass in. */
@@ -1438,6 +1442,29 @@ describe("claudeCodePickScreens", () => {
 });
 
 describe("claudeCodeCaptureScreens", () => {
+  /** The browsers folder the tests point Playwright at, and the Chromium build's executable in it. */
+  function browserExecutable(): string {
+    const located = locateCaptureBrowser(process.env, worktreePath);
+    if (!located.ok) throw new Error(located.error.message);
+    return located.value.executablePath;
+  }
+
+  /** Puts a stand-in Chromium executable where the pinned server looks for its build. */
+  function installBrowser(): void {
+    const executable = browserExecutable();
+    mkdirSync(dirname(executable), { recursive: true });
+    writeFileSync(executable, "#!/bin/sh\n", { mode: 0o755 });
+  }
+
+  beforeEach(() => {
+    vi.stubEnv("PLAYWRIGHT_BROWSERS_PATH", join(dir, "browsers"));
+    installBrowser();
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   function captureRequest(): CaptureScreensRequest {
     const screenshotsDir = join(runDir, "screenshots");
     mkdirSync(screenshotsDir, { recursive: true });
@@ -1543,7 +1570,9 @@ describe("claudeCodeCaptureScreens", () => {
     ]);
 
     // One MCP server, the pinned Playwright one, limited to the app's origin.
-    const launch = playwrightMcpLaunch();
+    const server = resolvePlaywrightMcp();
+    if (!server.ok) throw new Error(server.error.message);
+    const { launch } = server.value;
     expect(launch.command).toBe(process.execPath);
     const [entry] = launch.args;
     if (entry === undefined) throw new Error("The MCP server's launch names no entry");
@@ -1588,6 +1617,73 @@ describe("claudeCodeCaptureScreens", () => {
     expect(readFileSync(join(runDir, "capture.json"), "utf8")).toBe(
       captureResult([IMAGE], [SKIPPED]),
     );
+  });
+
+  test("a missing browser is capture_browser_missing before any session starts", async () => {
+    rmSync(join(dir, "browsers"), { recursive: true, force: true });
+    const claudePath = writeStandIn(shooting(["screen-1.png"], captureResult([IMAGE], [])));
+
+    const result = await claudeCodeCaptureScreens(config(claudePath))(
+      captureRequest(),
+      neverAborted(),
+    );
+
+    expect(result.ok ? null : result.error.code).toBe("capture_browser_missing");
+    expect(existsSync(join(dir, "argv"))).toBe(false);
+    expect(existsSync(join(runDir, "capture-mcp.json"))).toBe(false);
+  });
+
+  test("a Chromium build for another Playwright version is capture_browser_missing", async () => {
+    const executable = browserExecutable();
+    const located = locateCaptureBrowser(process.env, worktreePath);
+    if (!located.ok) throw new Error(located.error.message);
+    const { browsersDir, revision } = located.value;
+    rmSync(join(browsersDir, `chromium-${revision}`), { recursive: true, force: true });
+    const other = executable.replace(`chromium-${revision}`, "chromium-1000");
+    mkdirSync(dirname(other), { recursive: true });
+    writeFileSync(other, "#!/bin/sh\n", { mode: 0o755 });
+    const claudePath = writeStandIn(shooting([], captureResult([], [])));
+
+    const result = await claudeCodeCaptureScreens(config(claudePath))(
+      captureRequest(),
+      neverAborted(),
+    );
+
+    expect(result.ok ? null : result.error.code).toBe("capture_browser_missing");
+    expect(existsSync(join(dir, "argv"))).toBe(false);
+  });
+
+  test("the browser is the pinned package's Chromium build in Playwright's browsers folder", () => {
+    const server = resolvePlaywrightMcp();
+    if (!server.ok) throw new Error(server.error.message);
+    const browsers = z
+      .looseObject({
+        browsers: z.array(z.looseObject({ name: z.string(), revision: z.string() })),
+      })
+      .parse(JSON.parse(readFileSync(join(server.value.packageDir, "browsers.json"), "utf8")));
+    const chromium = browsers.browsers.find((browser) => browser.name === "chromium");
+
+    const located = locateCaptureBrowser(process.env, worktreePath);
+
+    if (!located.ok) throw new Error(located.error.message);
+    expect(located.value.revision).toBe(chromium?.revision);
+    expect(located.value.browsersDir).toBe(join(dir, "browsers"));
+    expect(
+      located.value.executablePath.startsWith(
+        join(dir, "browsers", `chromium-${located.value.revision}`),
+      ),
+    ).toBe(true);
+    expect(located.value.installCommand).toBe(
+      `npx playwright-core@${server.value.version} install --no-shell chromium`,
+    );
+    expect(checkCaptureBrowser(process.env, worktreePath).ok).toBe(true);
+  });
+
+  test("a relative browsers path resolves against the working folder", () => {
+    const located = locateCaptureBrowser({ PLAYWRIGHT_BROWSERS_PATH: "pw-browsers" }, worktreePath);
+
+    if (!located.ok) throw new Error(located.error.message);
+    expect(located.value.browsersDir).toBe(join(worktreePath, "pw-browsers"));
   });
 
   test("a screenshot the output names that is not in the screenshots folder is agent_output_invalid", async () => {

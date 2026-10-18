@@ -194,6 +194,9 @@ importers:
       better-sqlite3:
         specifier: 'catalog:'
         version: 13.0.3
+      playwright-core:
+        specifier: 'catalog:'
+        version: 1.63.0
     devDependencies:
       '@clack/prompts':
         specifier: 'catalog:'
