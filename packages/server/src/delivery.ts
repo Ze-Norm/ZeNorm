@@ -850,6 +850,7 @@ export function createDeliveryRunner({
     readonly say: (text: string) => void;
   }): Promise<PullRequestCapture> {
     const { run, request, appStartCommand, appUrl, screens, signal, say } = input;
+    const aborted = (): boolean => signal.aborted;
     const failed = (error: CodedError<CaptureFailureCode>): PullRequestCapture => {
       say(`Screenshots are missing (${error.code}): ${error.message}`);
       return { kind: "failed", code: error.code };
@@ -867,7 +868,7 @@ export function createDeliveryRunner({
       env: process.env,
       signal,
     });
-    if (signal.aborted) return { kind: "off" };
+    if (aborted()) return { kind: "off" };
     if (!setUp.ok) return failed(setUp.error);
     say(`Starting the app with \`${appStartCommand}\` and waiting for ${appUrl} to answer.`);
     const started = await startApp({
@@ -880,7 +881,7 @@ export function createDeliveryRunner({
       readyTimeoutMs: appReadyTimeoutMs,
       signal,
     });
-    if (signal.aborted) return { kind: "off" };
+    if (aborted()) return { kind: "off" };
     if (!started.ok) return failed(started.error);
     const app = started.value;
     const screenshotsDir = join(request.runDir, SCREENSHOTS_DIR);
@@ -905,7 +906,7 @@ export function createDeliveryRunner({
       }
     };
     const captured = await shoot();
-    if (signal.aborted) return { kind: "off" };
+    if (aborted()) return { kind: "off" };
     if (!captured.ok) {
       return failed({
         code: "capture_session_failed",
@@ -938,7 +939,7 @@ export function createDeliveryRunner({
       indexFile: join(request.runDir, PR_ASSETS_INDEX_FILE),
       signal,
     });
-    if (signal.aborted) return { kind: "off" };
+    if (aborted()) return { kind: "off" };
     if (!pushed.ok) return failed(pushed.error);
     const { branch } = pushed.value;
     say(`Pushed ${plural(images.length, "screenshot")} to ${branch} on origin.`);

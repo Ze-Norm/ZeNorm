@@ -87,7 +87,11 @@ async function freePort(): Promise<number> {
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
   const address = server.address();
   if (address === null || typeof address === "string") throw new Error("No port was bound");
-  await new Promise<void>((resolve) => server.close(() => resolve()));
+  await new Promise<void>((resolve) =>
+    server.close(() => {
+      resolve();
+    }),
+  );
   return address.port;
 }
 
@@ -104,7 +108,11 @@ beforeEach(async () => {
 
 afterEach(async () => {
   for (const server of servers.splice(0)) {
-    await new Promise<void>((resolve) => server.close(() => resolve()));
+    await new Promise<void>((resolve) =>
+      server.close(() => {
+        resolve();
+      }),
+    );
   }
   // A stand-in app a failed case left running must not outlive it.
   if (existsSync(appPidFile)) {
@@ -366,7 +374,7 @@ describe("screens listed are captured from the started app and pushed to the run
       runDir: calls.writes[0]?.runDir,
       worktreePath: calls.writes[0]?.worktreePath,
       appUrl,
-      screens: SCREENS.kind === "screens" ? SCREENS.screens : [],
+      screens: SCREENS.screens,
       screenshotsDir: join(capture.runDir, "screenshots"),
       gitIdentity: calls.writes[0]?.gitIdentity,
     });
@@ -414,7 +422,7 @@ describe("screens listed are captured from the started app and pushed to the run
       kind: "captured",
       images: [],
       skipped: [],
-      notShown: SCREENS.kind === "screens" ? SCREENS.screens : [],
+      notShown: SCREENS.screens,
     });
   });
 });

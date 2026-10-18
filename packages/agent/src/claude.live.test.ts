@@ -2129,7 +2129,9 @@ test(
           runDir,
           worktreePath,
           appUrl: `http://127.0.0.1:${String(address.port)}/`,
-          screens: [{ where: "/", changed: "The settings page shows an App URL field.", isNew: true }],
+          screens: [
+            { where: "/", changed: "The settings page shows an App URL field.", isNew: true },
+          ],
           screenshotsDir,
           gitIdentity: { name: "ZeNorm delivery", email: "run-live-capture@zenorm.invalid" },
         },
@@ -2144,7 +2146,11 @@ test(
       }
       expect(readdirSync(worktreePath)).toEqual([]);
     } finally {
-      await new Promise<void>((resolve) => server.close(() => resolve()));
+      await new Promise<void>((resolve) =>
+        server.close(() => {
+          resolve();
+        }),
+      );
       rmSync(root, { recursive: true, force: true });
     }
   },

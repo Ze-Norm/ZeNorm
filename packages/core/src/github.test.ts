@@ -92,7 +92,9 @@ describe("prAssetsBranchName", () => {
     expect(prAssetsBranchName("zenorm/dark-mode-2e3f4a5b-run-1")).toBe(
       "pr-assets-dark-mode-2e3f4a5b-run-1",
     );
-    expect(prAssetsBranchName("zenorm/spec-2e3f4a5b-run-12")).toBe("pr-assets-spec-2e3f4a5b-run-12");
+    expect(prAssetsBranchName("zenorm/spec-2e3f4a5b-run-12")).toBe(
+      "pr-assets-spec-2e3f4a5b-run-12",
+    );
   });
 
   test("a screenshot embeds as a raw blob image relative to the pull request's page", () => {
@@ -159,9 +161,12 @@ describe("pushScreenshots", () => {
 
     const pushed = await push();
 
+    if (!pushed.ok) throw new Error(pushed.error.message);
+    const { commit } = pushed.value;
+    expect(commit).toEqual(expect.any(String));
     expect(pushed).toEqual({
       ok: true,
-      value: { branch: "pr-assets-dark-mode-2e3f4a5b-run-1", commit: expect.any(String) },
+      value: { branch: "pr-assets-dark-mode-2e3f4a5b-run-1", commit },
     });
     expect(gitOut(target, ["for-each-ref", "--format=%(refname:short)", "refs/heads"])).toBe(
       "pr-assets-dark-mode-2e3f4a5b-run-1",

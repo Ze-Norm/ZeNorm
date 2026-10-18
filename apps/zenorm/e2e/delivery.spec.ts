@@ -406,7 +406,11 @@ async function freePort(): Promise<number> {
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
   const address = server.address();
   if (address === null || typeof address === "string") throw new Error("No port was bound");
-  await new Promise<void>((resolve) => server.close(() => resolve()));
+  await new Promise<void>((resolve) =>
+    server.close(() => {
+      resolve();
+    }),
+  );
   return address.port;
 }
 

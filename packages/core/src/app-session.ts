@@ -226,6 +226,7 @@ export async function startApp(input: {
   readonly signal: AbortSignal;
 }): Promise<Result<RunningApp, AppStartError>> {
   const { command, url, signal } = input;
+  const aborted = (): boolean => signal.aborted;
   if (await urlAnswers(url)) {
     return err({
       code: "capture_app_url_in_use",
@@ -267,13 +268,14 @@ export async function startApp(input: {
       resolve(errnoOf(error) ?? error.message);
     });
   });
-  const { pid } = child;
+  const childPid = child.pid;
   if (spawned !== null) {
     return err(notReady(`could not be started (${spawned}).`));
   }
-  if (pid === undefined) {
+  if (childPid === undefined) {
     throw new Error(`The app started with ${JSON.stringify(command)} spawned with no pid`);
   }
+  const pid: number = childPid;
 
   const recordFile = join(input.sessionsDir, `${String(pid)}.json`);
   const startedAt = new Date().toISOString();
@@ -306,7 +308,7 @@ export async function startApp(input: {
 
   const deadline = Date.now() + input.readyTimeoutMs;
   for (;;) {
-    if (signal.aborted) {
+    if (aborted()) {
       await app.stop();
       return err(notReady("was stopped: the run was cancelled."));
     }

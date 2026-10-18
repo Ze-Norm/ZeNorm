@@ -894,12 +894,7 @@ function callPrompt(): string {
 const prompt = callPrompt();
 
 type Role =
-  | "orchestrator"
-  | "reviewer"
-  | "pull-request-writer"
-  | "screen-picker"
-  | "capture"
-  | "planning";
+  "orchestrator" | "reviewer" | "pull-request-writer" | "screen-picker" | "capture" | "planning";
 
 /** The root `properties` of the `--json-schema`, which must be an object schema. */
 function schemaProperties(): object {
@@ -1016,11 +1011,7 @@ function checkScreenPickerFlags(): void {
  * the Playwright MCP server's browser tools, with Bash, Edit and Write denied.
  */
 function checkCaptureFlags(): void {
-  expectFlags([
-    ...DELIVERY_FLAGS,
-    ["--output-format", "json"],
-    ["--tools", CAPTURE_READ_TOOLS],
-  ]);
+  expectFlags([...DELIVERY_FLAGS, ["--output-format", "json"], ["--tools", CAPTURE_READ_TOOLS]]);
   if (!args.includes("--strict-mcp-config")) {
     mismatch("the capture has no --strict-mcp-config");
   }
@@ -2977,7 +2968,12 @@ switch (role) {
     });
     break;
   case "capture":
-    print({ type: "result", subtype: "success", is_error: false, structured_output: await capture() });
+    print({
+      type: "result",
+      subtype: "success",
+      is_error: false,
+      structured_output: await capture(),
+    });
     break;
   case "planning":
     print({

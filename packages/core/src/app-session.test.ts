@@ -7,13 +7,7 @@ import { join } from "node:path";
 
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
-import {
-  appSetupLogPath,
-  groupRuns,
-  runAppSetup,
-  startApp,
-  urlAnswers,
-} from "./app-session.ts";
+import { appSetupLogPath, groupRuns, runAppSetup, startApp, urlAnswers } from "./app-session.ts";
 
 /**
  * A stand-in app: it starts a child in its own process group (as a dev server's watcher would be)
@@ -54,7 +48,11 @@ async function freePort(): Promise<number> {
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
   const address = server.address();
   if (address === null || typeof address === "string") throw new Error("No port was bound");
-  await new Promise<void>((resolve) => server.close(() => resolve()));
+  await new Promise<void>((resolve) =>
+    server.close(() => {
+      resolve();
+    }),
+  );
   return address.port;
 }
 
@@ -77,7 +75,11 @@ beforeEach(async () => {
 
 afterEach(async () => {
   for (const server of servers.splice(0)) {
-    await new Promise<void>((resolve) => server.close(() => resolve()));
+    await new Promise<void>((resolve) =>
+      server.close(() => {
+        resolve();
+      }),
+    );
   }
   await rm(root, { recursive: true, force: true });
 });
@@ -186,9 +188,9 @@ describe("startApp", () => {
     expect(record).toMatchObject({
       pid: app.pid,
       kind: "app",
-      command: expect.stringContaining(appScript),
       serverPid: process.pid,
     });
+    expect(record).toHaveProperty("command", expect.stringContaining(appScript));
     expect(groupRuns(app.pid)).toBe(true);
     const child = childPid();
     expect(alive(child)).toBe(true);
